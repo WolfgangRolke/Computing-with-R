@@ -1,0 +1,71 @@
+---
+header-includes: \usepackage{color}
+output:
+  html_document: default
+  pdf_document:
+    fig_caption: no
+---
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+whichcomp <- strsplit(getwd(),"/")[[1]][3]
+load(paste0("c:/users/", whichcomp, "/Dropbox/Resma3/Resma3.RData"))
+
+require(knitr)
+require(ggplot2)
+require(grid)
+require(leaps)
+```
+`r rmd$basefontsize()`
+
+<style>
+table, th, td { text-align:right; }
+th, td {padding: 10px;}
+</style>
+
+#Installation and Updating
+
+You can get a free version of R for your computer from a number of sources. The download is about 70MB and setup is fully automatic. Versions for several operating systems can be found on the R web site
+
+[https://cran.r-project.org](https://cran.r-project.org)
+
+
+*Note* 
+
+-  the one item you should change from the defaults is to install R into a folder under the root, aka C:\\R
+
+-  You might be asked at several times whether you want to do something (allow access, run a program, save a library, ...), always just say yes!
+
+-  You will need to connect to a reasonably fast internet for these steps.
+
+-  This will take a few minutes, just wait until the > sign appears.
+
+`r rmd$hr()`
+
+**FOR MAC OS USERS ONLY**
+
+There are a few things that are different from MacOS and Windows. Here is one thing you should do:
+
+Download XQuartz - XQuartz-2.7.11.dmg  
+Open XQuartz      
+Type the letter R (to make XQuartz run R)        
+Hit enter
+          Open R 
+          Run the command .First()          
+Then, every command should work correctly. 
+
+
+###RStudio
+
+We will run R using an interface called **RStudio**. You can download it at [RStudio](https://www.rstudio.com/). 
+
+
+###Updating
+
+R releases new versions about every three months or so. In general it is not necessary to get the latest version every time. Every now and then a package won't run under the old version, and then it is time to do so. In essence this just means to install the latest version of R from CRAN. More important is to now also update ALL your packages to the latest versions. This is done simply by running
+
+```{r, eval=FALSE}
+update.packages()
+```
+
+
+

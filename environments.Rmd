@@ -1,0 +1,292 @@
+---
+header-includes: \usepackage{color}
+output:
+  html_document: default
+  pdf_document:
+    fig_caption: no
+---
+<style>
+table, th, td { text-align:right; }
+th, td {padding: 10px;}
+</style>
+
+<font size=\"+1\">
+
+#Environments, Libraries
+
+##Environments
+
+WARNING: In what follows I will only discuss a FEW of the issues involved with environments, and I will simplify them greatly. For a much more detailed discussion see [http://adv-r.had.co.nz/Environments.html](http://adv-r.had.co.nz/Environments.html).
+
+Let's start with this:
+
+```{r}
+search()
+```
+
+These are the environments currently loaded into R. In some ways you can think of these as folders. But as folders that are "ordered", so that the folder  "package:leaps" comes after the folder "package:knitr". This has the following effect. Say you type
+
+```{r}
+x <- runif(10)
+mean(x)
+```
+
+What has R just done? First it created an object called "x", and stored it in the folder ".GlobalEnv". We can check:
+
+```{r}
+ls()
+```
+
+Next R starts looking for an object called *mean*. To do that it again first looks into ".GlobalEnv", but we already know it is not there.
+
+Next R looks into "package:stats", which we can do with
+
+```{r}
+ls(2, pattern="mean")
+```
+
+and again no luck. This continues until we get to "package:base":
+
+```{r}
+ls(9, pattern="mean")
+```
+
+and there it is!
+
+There is an easy way to find out in which environment an object is located, with the routine where in the library pryr:
+
+```{r warning=FALSE}
+library(pryr)
+where("x")
+where("mean")
+```
+
+
+One important consequence of this is that R stops when it finds an object, even if the one you want is in a later environment. Here is an example:
+
+```{r}
+my.data <- data.frame(x=1:10)
+attach(my.data)
+mean(x);rm(x);mean(x)
+search()[1:3]
+```
+
+So here is what happens:
+
+-  the first time we call mean(x) R finds an x in .GlobalEnv, and so finds its mean.  
+-  after removing this x, the next time we call mean(x) it looks into the data frame my.data, finds a variable called x, and now calculates its mean.
+
+Notice that R gives a warning when we attach the data frame, telling us that there are now two x's.
+
+Let's clean up before we continue:
+
+```{r}
+detach(2)
+```
+<hr>
+
+As we just saw, environments can come about by loading libraries and by attaching data frames (also lists). In fact we can make our own:
+
+```{r}
+test_env <- new.env()
+attach(test_env)
+search()[1:3]
+```
+
+Now we can add stuff to our environment using the list notation:
+
+```{r}
+test_env$a <- 1
+test_env$fun <- function(x) x^2
+ls(2)
+attach(test_env)
+ls(2)
+search()[1:3]
+```
+
+note that we had to attach the environment again for the two new objects to be useful, but now we have two of them. It would be better if we detached it first.
+
+Actually, let's detach it completely
+```{r echo=-1}
+detach(2)
+detach(2)
+search()
+```
+
+If an object is part of a package that is installed on your computer you can sometimes use it without loading the package. As an example consider the package mailR, which has the function send.mail to send emails from whithin R:
+
+```{r}
+args(mailR::send.mail)
+```
+
+
+Yet another way environments are created is when you write a function. Essentially each function is evaluated in its own environment. This can cause some problems:
+
+```{r}
+f <- function() {
+  a<-1
+  print(ls())
+  
+}
+ls()
+f()
+ls()
+```
+
+so when we run f it creates a new environment. We create "a", and we see it when we use ls() inside the function. But after the function is done we return to the global environement, which has no object called a.
+
+Sometimes we want to save an object created inside a function to the global environment:
+
+```{r}
+f <- function() {
+  a<-1
+  assign("a", a, envir=.GlobalEnv)
+  
+}
+ls()
+f()
+ls()
+```
+
+One place where this is useful is if you have a routine like a simulation that runs for a long time and you want to save intermediate results.
+
+We will see in the next section one import use of this
+
+##Packages
+
+As we have already seen, packages/libraries are at the heart of R. Mostly it is where we can find routines already written for various tasks. The main repository is at p[https://cran.r-project.org/web/packages/](https://cran.r-project.org/web/packages/). Currently there are over 12000!
+
+In fact, that is one problem: for any one task there are likely a dozen packages that would work. Finding the one that works for you is not easy!
+
+Once you have it you download it easily by clicking on the Packages tab, select Install and typing the name. Occasionally RStudio won't find it, then you can do it manually:
+
+```{r eval=FALSE}
+install.packages("pckname")
+```
+
+Two useful arguments are
+
+-  lib: the folder on you hard drive where you want to store the package (usually c:/R/lib)  
+-  repos: the place on the internet where the package is located ( if not give a list pops up) 
+
+Notice that this only downloads the package, you still have to load it into R:
+
+```{r eval=FALSE}
+library(mypcks)
+```
+
+If you install a new version of R you want to update all the packages:
+
+```{r eval=FALSE}
+update.packages()
+```
+
+##Creating your own library
+
+It has been said that *as soon as your project has two functions, make a library*. While that might be a bit extreme, putting a collection of routines and data sets into a common library certainly is worthwhile. Here are the main steps to do so:
+
+First we need a couple of libraries. If you are using RStudio (and you really should when creating a library), you likely have them already. If not get them as usual:
+
+```{r, eval=c(2,4), message=FALSE}
+install.packages("devtools")
+library(devtools)
+devtools::install_github("klutometis/roxygen")
+library(roxygen2)
+```
+
+First let's make a new folder for our project:
+
+```{r eval=2}
+create("../testlib")
+dir("../testlib")
+```
+
+Now go to File > New Project > Existing Directory 
+
+Next open the folder and the file DESCRIPTION. It looks like this:
+
+  
+Package: testlib  
+Title: What the Package Does (one line, title case)  
+Version: 0.0.0.9000  
+Authors@R: person("First", "Last", email = "first.last@example.com", role = c("aut", "cre"))  
+Description: What the package does (one paragraph).  
+Depends: R (>= 3.4.3)  
+License: What license is it under?  
+Encoding: UTF-8  
+LazyData: true  
+
+
+and so we can change it to
+
+
+Package: testlib  
+Title: Test Library
+Version: 0.0.0.9000  
+Authors@R: person("W", "R", email = "w.r@gmail.com", role = c("aut", "cre"))  
+Description: Let's us learn how to make our own libraries
+Depends: R (>= 3.4.3)  
+License: Free  
+Encoding: UTF-8  
+LazyData: true  
+
+
+Next we have to put the functions we want to have in our library into the R folder:
+
+```{r}
+f1 <- function(x) x^2
+f2 <- function(x) sqrt(x)
+dump("f1", "../testlib/R/f1.R")
+dump("f2", "../testlib/R/f2.R")
+dir("../testlib/R")
+```
+
+Often we also want some data sets as part of the library:
+
+```{r eval=FALSE}
+test.x <- 1:10
+test.y <- c(2, 3, 7)
+setwd("testlib")
+use_data(test.x, test.y)
+```
+
+
+In the next step we need to add comments to the functions. Eventually these are the things will appear in the help files. They are
+
+\#' f1 Function  
+\#'  
+\#' This function finds the square.  
+\#' @param x.  
+\#' @keywords square  
+\#' @export  
+\#' @examples  
+\#' f(2)  
+
+Next we need to process the documentation:
+
+```{r eval=FALSE}
+document()
+```
+
+Now it is as simple as installing the package! You need to run this from the parent working directory that contains the testlib folder.
+
+```{r eval=FALSE}
+setwd("..")
+install("testlib")
+```
+
+Let's check:
+
+```{r}
+ls()
+rm(f1)
+rm(f2)
+ls()
+library(testlib)
+search()[1:4]
+ls(2)
+f1(2)
+f2(2)
+```
+
+And that's it!

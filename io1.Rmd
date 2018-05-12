@@ -1,0 +1,76 @@
+---
+header-includes: \usepackage{color}
+output:
+  html_document: default
+  pdf_document:
+    fig_caption: no
+---
+<style>
+table, th, td { text-align:right; }
+th, td {padding: 10px;}
+</style>
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+whichcomp <- strsplit(getwd(),"/")[[1]][3]
+load(paste0("c:/users/", whichcomp, "/Dropbox/Resma3/Resma3.RData"))
+library(knitr)
+opts_chunk$set(fig.width=6, fig.align = "center", 
+      out.width = "70%", warning=FALSE, message=FALSE)
+library(ggplot2)
+library(grid)
+```
+`r rmd$basefontsize()`
+
+#Input/Output Part 2
+
+There are a number of packages that help with data I/O. Some are specialized for certain data types, others are more general
+
+##rio
+
+One of my favorites is *rio*. An introduction can be found at [https://cran.r-project.org/web/packages/rio/vignettes/rio.html](https://cran.r-project.org/web/packages/rio/vignettes/rio.html). The list of supported file formats is quite impressive! You use the import function to import data and the export function to export. The routine uses the extension to figure out the file format. So say you have a file called mytestdata.csv in a folder called c:/tmpdata, just run
+
+```{r}
+B <- 2*1e6
+x <- round(rnorm(B), 3)
+y <- round(rnorm(B), 3)
+z <- sample(letters[1:5], size=B, replace=TRUE)
+xyz <- data.frame(x, y, z)
+dir.create("c:/tmpdata")
+library(rio)
+export(xyz, "c:/tmpdata/mytestdata.csv")
+detach(2)
+```
+
+```{r}
+library(rio)
+head(import("c:/tmpdata/mytestdata.csv"))
+```
+ 
+##readr
+
+This package is specific to rectangular data, such as data from an Excel spreadsheet. It's advantage is it's speed:
+
+```{r}
+library(readr)
+tm <- proc.time()
+head(import("c:/tmpdata/mytestdata.csv"), 2)
+proc.time()-tm
+tm <- proc.time()
+head(read_csv("c:/tmpdata/mytestdata.csv"), 2)
+proc.time()-tm
+```
+
+**Note** that the data is in the form of a *tibble*. This is a  special kind of data frame which we will talk about later.
+
+**Note** the corresponding base R routine was called read.csv
+
+##data.table
+
+Similar to read.table but faster and more convenient. 
+
+```{r}
+library(data.table)
+tm <- proc.time()
+head(fread("c:/tmpdata/mytestdata.csv"), 2)
+proc.time()-tm
+```

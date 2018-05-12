@@ -1,0 +1,218 @@
+---
+header-includes: \usepackage{color}
+output:
+  html_document: default
+  pdf_document:
+    fig_caption: no
+---
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+whichcomp <- strsplit(getwd(),"/")[[1]][3]
+load(paste0("c:/users/", whichcomp, "/Dropbox/Resma3/Resma3.RData"))
+
+require(knitr)
+require(ggplot2)
+require(grid)
+require(leaps)
+```
+`r rmd$basefontsize()`
+
+<style>
+table, th, td { text-align:right; }
+th, td {padding: 10px;}
+</style>
+
+#R Markdown
+
+R Markdown is a file format for making dynamic documents with R. An R Markdown document is written in markdown (an easy-to-write plain text format) and contains chunks of embedded R code. It has a number of great features:
+
+-  easy syntax for a number of basic objects  
+-  code and output are in the same place and so are always synced  
+-  several output formats (html, latex, word)
+
+###Get Started
+
+to start writing an R Markdown document open RStudio, File - New File - R Markdown. You can type in the title and some other things.
+
+The default document starts like this:
+
+\-\-\-  
+title: "My first R Markdown Document"  
+author: "Dr. Wolfgang Rolke"  
+date: "April 1, 2018"  
+output: html_document  
+\-\-\-
+
+This follows a syntax called YAML (also used by other programs).
+
+Then there is other stuff you should erase. Next File - Save. Give the document a name with the extension .Rmd
+
+###Basic R Markdown Syntax
+
+for a list of the basic syntax go to [https://rmarkdown.rstudio.com/articles_intro.html](https://rmarkdown.rstudio.com/articles_intro.html)
+
+###Embedded Code
+
+There are two ways to include code chunks (yes, that's what they are called!) into an R Markdown document:
+
+a.  stand alone code
+
+simultaneously enter CTRL-ALT-i and you will see this:
+
+
+\`\`\`\{r\}
+
+\`\`\`
+
+you can now enter any R code you like:
+
+\`\`\`{r}  
+x<-rnorm(10)  
+mean(x)  
+\`\`\`
+
+which will appear in the final document as
+
+```{r eval=FALSE}
+x<-rnorm(10)
+mean(x)
+```
+
+Actually, it will be like this:
+
+```{r}
+x<-rnorm(10)
+mean(x)
+```
+
+so we can see the result of the R calculation as well. The reason it didn't appear like this before was that I added the argument eval=FALSE:
+
+\`\`\`\{r eval=FALSE\}
+
+which keeps the code chunk from actually executing. This is useful if the code takes along time to run, or if you want to show code that is actually faulty, or ...
+
+there are several useful arguments:
+
+-  eval=FALSE  (shows but doesn't run the code)  
+-  eval=2:5 (shows all the code but only runs lines 2 to 5)
+-  echo=FALSE  (the code chunk is run but does not appear in the document)  
+-  echo=2:5 (shows only code on linees 2 to 5)  
+-  warning=FALSE  (warnings are not shown)  
+-  message=FALSE (messages) are not shown)  
+-  cache=TRUE  (code is run only if there has been a change, useful for lengthy calculations)  
+-  error=TRUE  (if there errors in the code R normaly terminates the parsing. with this argument it will ignore the erro, which hepls with debugging)  
+-  engine='Rcpp' (to include C++ code)
+
+b.  inline code. 
+
+here is a bit of text:
+
+and the mean was `r mean(x)`.
+
+Now I didn't type in the number, it was done with the chunk
+```{r, echo=FALSE}
+txt <-"\`r mean(x)\`"
+cat(txt)
+```
+
+###Creating Output
+
+To create the output you have to "knit" the document. This is done by clicking on the knit button above. If you click on the arrow you can change the output format.
+
+###HTML vs Latex(Pdf)
+
+In order to knit to pdf you have to install a latex interpreter. My suggestion is to use 
+
+[Miktex](https://miktex.org/)
+
+There are several advantages / disadvantages to each output format:
+
+-  HTML is much faster  
+-  HTML looks good on a webpage, pdf looks good on paper  
+-  HTML needs an internet connection to display math, pdf does not  
+-  HTML can use both html and latex syntax, pdf works only with latex.
+
+I generally use HTML when writting a document, and use pdf only when everything else is done. There is one problem with this, namely that a document might well knit ok to HTML but give an error message when knitting to pdf. Moreover, those error messages are weird! Not even the line numbers are anywhere near right. So it's not a bad idea to also knit to pdf every now and then.
+
+###Tables
+
+One of the more complicated things to do in R Markdown is tables. For a nice illustration look at [https://stackoverflow.com/questions/19997242/simple-manual-rmarkdown-tables-that-look-good-in-html-pdf-and-docx](https://stackoverflow.com/questions/19997242/simple-manual-rmarkdown-tables-that-look-good-in-html-pdf-and-docx)
+
+My preference is to generate a data frame and the use the *kable* function:
+
+```{r}
+Gender <- c("Male", "Male", "Female")
+Age <- c(20, 21, 19)
+knitr::kable(data.frame(Gender, Age))
+```
+
+probably with the argument echo=FALSE so only the table is visible.
+
+It is also possible to use HTML code to make a table:
+
+```{r echo=FALSE}
+txt <- c(" <table border=\"1\">\n",
+"<tr><th>Gender</th><th>Age</th></tr>\n",
+"<tr><td>Male</td><td>20</td></tr>\n",
+"<tr><td>Male</td><td>21</td></tr>\n",
+"<tr><td>Female</td><td>19</td></tr>\n",
+"</table>")
+cat(txt)
+```
+
+will look like this in HTML:
+
+<table border="1">
+<tr><th>Gender</th><th>Age</th></tr>
+<tr><td>Male</td><td>20</td></tr>
+<tr><td>Male</td><td>21</td></tr>
+<tr><td>Female</td><td>19</td></tr>
+</table>
+
+but won't look like anything in pdf. 
+
+$$
+\begin{table}[!htbp] \centering
+\begin{tabular}{cc}
+\hline
+   Gender   &   Age \\
+ Male & 20 \\
+ Male & 21 \\
+ Female & 19 \\
+\hline
+\end{tabular}
+\end{table}
+$$
+
+will look good in pdf but not in HTML!
+
+###LATEX
+
+A nice list of common symbols is found on [https://artofproblemsolving.com/wiki/index.php/LaTeX:Symbols](https://artofproblemsolving.com/wiki/index.php/LaTeX:Symbols).
+
+Some additional comments:
+
+-  Multiline math
+
+say you want the following in your document:
+
+$$
+\begin{aligned}
+&E[X] = \int_{-\infty}^{\infty} xf(x) dx    = \\
+&\int_{0}^{1} x dx    = \frac12 x^2 |_0^1 = \frac12
+\end{aligned}
+$$
+
+for this to display correctly in HTML and PDF you need to use the format
+
+```{r, echo=FALSE}
+txt <- c(" $$\n",
+         "\\begin{aligned}\n",
+         "&E[X] = \\int_{-\\infty}^{\\infty} xf(x) dx=\\ \n",
+         "&\\int_{0}^{1} x dx    = \\frac12 x^2 |_0^1 = \\frac12 \n",
+          "\\end{aligned}\n",
+          "$$"
+         )
+cat(txt)
+```
+

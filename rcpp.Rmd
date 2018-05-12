@@ -1,0 +1,317 @@
+---
+header-includes: \usepackage{color}
+output:
+  html_document: default
+  pdf_document:
+    fig_caption: no
+---
+<style>
+table, th, td { text-align:right; }
+th, td {padding: 10px;}
+</style>
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+whichcomp <- strsplit(getwd(),"/")[[1]][3]
+load(paste0("c:/users/", whichcomp, "/Dropbox/Resma3/Resma3.RData"))
+library(knitr)
+opts_chunk$set(fig.width=6, fig.align = "center", 
+      out.width = "70%", warning=FALSE, message=FALSE)
+library(ggplot2)
+library(grid)
+```
+`r rmd$basefontsize()`
+
+#Rcpp
+
+For this section you will need the Rcpp and the microbenchmark packages.
+```{r}
+library(Rcpp)
+library(microbenchmark)
+```
+
+Sometimes when you have some code that takes a while to run it is worthwhile to spend some time speading it up. One way to do this is to rewrite part of the code in C++.
+
+Say we have the following problem: we have a data set with points (x, y) and for each point we want to find the Euclidean distance to the origin $d=\sqrt{x^2+y^2}$. Here is a simple routine to do this:
+
+```{r}
+dist1 <- function(x, y) {
+  n <- length(x)
+  d <- rep(0, n)
+  for(i in 1:n) d[i] <- sqrt(x[i]^2+y[i]^2)
+  d
+}
+```
+
+Let's see how long this takes:
+
+```{r cache=TRUE}
+x <- rnorm(1e6)
+y <- rnorm(1e6)
+microbenchmark(dist1(x, y))
+```
+Now of course we can immediatley speed things up by vectorizing the routine:
+ 
+```{r cache=TRUE}
+dist2 <- function(x, y) {
+  sqrt(x^2+y^2)
+}
+microbenchmark(dist2(x, y))
+```
+ 
+Can we do even better?  
+
+```{r engine='Rcpp'}
+#include <Rcpp.h>
+using namespace Rcpp;
+// [[Rcpp::export]]
+NumericVector dist3(NumericVector x, NumericVector y) {
+ int n=x.length();
+ NumericVector dist(n);
+ for (int i=0; i<n; ++i) dist[i]=sqrt(x[i]*x[i]+y[i]*y[i]);
+ return dist;
+}
+```
+
+```{r}
+microbenchmark(dist3(x, y))
+```
+
+Notice that the above chunk starts like this:
+
+\```{r engine='Rcpp'}
+
+Actually, we can even do better than that:
+
+```{r engine='Rcpp'}
+#include <Rcpp.h>
+using namespace Rcpp;
+// [[Rcpp::export]]
+NumericVector dist4(NumericVector x, NumericVector y) {
+  NumericVector dist;
+  dist=sqrt(x*x+y*y);
+  return dist;
+}
+```
+
+```{r}
+microbenchmark(dist4(x, y))
+```
+
+Those of you who already know a bit of C++ are going to be quite amazed, because this is not even C++, it is sort of "vectorized" C++!
+
+Now the difference between 5.7 and 11.1 milliseconds might not seem like much, but imagine if we had to run this routine one million times, then the R routine would take $11*10^{-3}\times 10^6/3600=3$ hours, but the Cpp routine takes only 1.6 hours. Writing it takes literally 1 minute! (If you know how)  
+
+To strart let's discuss a few differences between R and C++ syntax:
+
+-  in C++ every variable has to be expicitely defined.  
+-  in C++ (almost) every line ends in ;  
+-  vectors start with index 0, not 1  
+-  the for loop is for(int i=0;i<n;++i)
+
+Moreover, to be linked to R the C++ routine has to start with
+
+\#include <Rcpp.h>  
+using namespace Rcpp;  
+// [[Rcpp::export]]  
+
+The easiest way to get started is to just use RStudio - File - New File - C++ File.
+
+There are some special variable types you need to use when moving data from R to C++ and back. The most important is the one used in our programs above: NumericVector. It is just what it says it is.
+
+##Debugging
+
+Generally you should only turn fairly short code into C++, so debugging is not to big a problem. However, on occasion you might want to add a print statement to your code, so you can find out where it fails. here is how:
+
+```{r engine='Rcpp'}
+#include <Rcpp.h>
+using namespace Rcpp;
+// [[Rcpp::export]]
+NumericVector dist5(NumericVector x, NumericVector y) {
+ int n=x.length();
+ NumericVector dist(n);
+ for(int i=0; i<n; ++i) {
+   dist[i]=sqrt(x[i]*x[i]+y[i]*y[i]);
+   Rcout<<i<<" "<<dist(i)<<"\n";
+ }
+ return dist;
+}
+```
+
+```{r}
+dist5(x[1:5], y[1:5])
+```
+
+##Sugar
+
+Not only is Rcpp vectorized, many standard R functions have been ported to Rcpp. For example, say we want to write a routine that simulates Brownian motion in R^2. That is, a stochastic process that moves as follows: if at time $t$ it is at $(x_0, y_0)$, then at time $t+\delta$ it is at $(x_0+\delta X, y_0+\delta Y)$ where $X,Y\sim N(0, 1)$.
+
+Note: generating stochastic process can be quite slow in R because they are difficult to vectorize, with one step of a loop depending on the previous one.
+
+```{r engine='Rcpp'}
+#include <Rcpp.h>
+using namespace Rcpp;
+// [[Rcpp::export]]
+NumericMatrix bw(int n, double delta) {
+ NumericMatrix xy(n, 2);
+  xy(0, 0)=0;
+  xy(0, 1)=0;
+  for(int i=2; i<n; ++i) {
+    xy(i, 0) = xy(i-1, 0)+delta*rnorm(1)[0];
+    xy(i, 1) = xy(i-1, 1)+delta*rnorm(1)[0];
+ }
+ return xy;
+}
+```
+
+```{r}
+plot(bw(10000, 1), type="l", xlab="x", ylab="y", col="blue")
+```
+
+Notice the term *rnorm(1)[0]*, a little different from the standard R usage.
+
+Anyone (like me!) who ever had to write a routine in C++ and needed a simple routine like rnorm which does not exist in C++ will find this very sweet! And that is why it is called sugar!
+
+##STD (standard template library)
+
+The standard template library (STL) provides a set of extremely useful data structures and algorithms. 
+
+Let's start with a simple C++ implementation of the R *sum* function:
+
+
+```{r engine='Rcpp'}
+#include <Rcpp.h>
+using namespace Rcpp;
+// [[Rcpp::export]]
+double sum_cpp(NumericVector x) {
+ double total=0.0;
+ for(int i=0; i<x.length(); ++i) total +=x(i);
+ return total;
+}
+```
+
+```{r}
+sum(x)
+sum_cpp(x)
+```
+
+Notice the term *total+=x(i);* which is standard C++ shortand for *total+x(i);*
+
+Now the same can be written as:
+
+```{r engine='Rcpp'}
+#include <Rcpp.h>
+using namespace Rcpp;
+// [[Rcpp::export]]
+double sum_cpp1(NumericVector x) {
+ double total=0.0;
+ NumericVector::iterator it;
+ for(it=x.begin(); it!=x.end(); ++it) total += *it;
+ return total;
+}
+```
+
+```{r}
+sum_cpp1(x)
+```
+
+*Example* let's write a routine that calculates the golden ratio via the Fibonacci numbers. First, these are defined by
+
+$$
+\begin{aligned}
+&n_0    = 1\\
+&n_1    = 1\\
+&n_k    = n_{k-1}+n_{k-2}\\
+\end{aligned}
+$$
+and the golden ratio is the limit
+
+$$
+\lim_{k \rightarrow \infty} \frac{n_k}{n_{k-1}}
+$$
+because of its defintion the Fibonacci numbers are most easily calculated using recursion:
+
+```{r}
+fibR <- function(n) {
+ if(n==0) return(0)
+ if(n==1) return(1)
+ return (fibR(n-1)+fibR(n-2))
+}
+fibR(10)
+```
+
+Let's write this with Rcpp:
+
+```{r engine='Rcpp'}
+#include <Rcpp.h>
+using namespace Rcpp;
+// [[Rcpp::export]]
+int fib_cpp(const int n) {
+ if(n==0) return(0);
+ if(n==1) return(1);
+ return fib_cpp(n-1)+fib_cpp(n-2);
+}
+```
+
+```{r}
+fib_cpp(10)
+```
+
+and now for the golden ratio:
+
+```{r cache=TRUE}
+golden_ratio <- function(n, fun) {
+ fun(n)/fun(n-1)
+}
+microbenchmark(golden_ratio(10, fun=fibR))
+microbenchmark(golden_ratio(10, fun=fib_cpp))
+```
+
+not only is the cpp version much faster, in this example R is actually quite useless: while it does recursion, doing it to often quicj=kly becomes a problem (because of memory issues). 
+
+```{r cache=TRUE}
+microbenchmark(golden_ratio(30, fun=fibR), times = 10L)
+microbenchmark(golden_ratio(30, fun=fib_cpp), times = 10L)
+```
+
+```{r cache=TRUE}
+golden_ratio(30, fun=fib_cpp)
+```
+
+The actual value of the golden ratio is of course $\frac{1+\sqrt{5}}2 =1.618..$.
+
+##Using C++ routines. 
+
+So far we used C++ to speed up calculations, and we could use Sugar to call standard R functions in the C++ routine. There is another use, though. C++ has been the main computing language in many fields for a long time, and so there exist a large number of excellent routine already written. Say you found one of these and want to use it in your R program. Here is how:
+
+What we need to do is to write a Rcpp wrapper routine, that eventually calls the C++ subroutine. Here is an example:
+
+```{r engine='Rcpp'}
+#include <Rcpp.h>
+using namespace Rcpp;
+
+//function declaration
+double sum_of_squares(double x[], int n);
+
+
+// [[Rcpp::export]]
+double sub_routine(NumericVector x) {
+  int n=x.length();
+  double y[n];
+  double ssq;
+  for(int i=0;i<n;++i) y[i]=x[i];
+  ssq=sum_of_squares(y, n);
+  return ssq;
+}
+
+double sum_of_squares (double x[], int n)
+{
+  double r;
+  for(int i=0;i<n;++i) r+=x[i]*x[i];
+  return r;
+}
+```
+
+```{r}
+sub_routine(1:10)
+```
+

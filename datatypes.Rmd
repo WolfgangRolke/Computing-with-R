@@ -1,0 +1,211 @@
+---
+header-includes: \usepackage{color}
+output:
+  html_document: default
+  pdf_document:
+    fig_caption: no
+---
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+whichcomp <- strsplit(getwd(),"/")[[1]][3]
+load(paste0("c:/users/", whichcomp, "/Dropbox/Resma3/Resma3.RData"))
+
+require(knitr)
+require(ggplot2)
+require(grid)
+require(leaps)
+```
+`r rmd$basefontsize()`
+
+<style>
+table, th, td { text-align:right; }
+th, td {padding: 10px;}
+</style>
+
+#Basic Data Types
+
+All objects have two intrinsic attributes: mode and length. The mode is the basic type of the elements of the object; there are four main modes:
+
+-  numeric  
+-  character  
+-  complex  
+-  logical (FALSE or TRUE)
+
+Other modes exist but they do not represent data, for instance function or expression. The length is the number of elements of the object. To display the mode and the length of an object, one can use the functions mode and length, respectively:
+
+```{r}
+x<-1; y<-"A"; z<-TRUE
+mode(x);  mode(y); mode(z)
+```
+
+R can handle strange calculations:
+
+```{r}
+1/0
+0/0
+```
+
+Here Inf is of course infinite, and NaN standts for *not a number*. These can be used in calculations:
+
+```{r}
+exp(-Inf)
+```
+
+Objects of type character are identifued with "":
+
+```{r}
+y <- "A"
+```
+
+sometimes you want the " to be treated as a character. This can be done with the *escape character* \\:
+
+```{r}
+"col=\"red\""
+```
+
+
+###Vectors
+
+the basic data unit of R is a vector. One can create a vector with the *c*ombine command:
+
+```{r}
+x <- c(3, 5, 6, 3, 4, 5)
+x
+```
+
+If you want a vector of characters use ""
+
+```{r}
+x <- c("A", "A", "B", "C")
+x
+```
+
+for logical:
+
+```{r}
+x <- c(FALSE, FALSE, TRUE)
+x
+```
+
+note that there are no quotes. "FALSE" would be the word *FALSE*, not the logical value.
+
+Note: this also works:
+
+```{r}
+x <- c(F, F, T)
+x
+```
+
+but I recommend writting FALSE and TRUE because sometimes F and T are used for other things (F=Female)
+
+the symbol R uses for missing values is NA (not available). Again, no quotes:
+
+```{r}
+x <- c(3, 5, NA, 3, 4, 5)
+x
+```
+
+Sometimes you want to create and object without any value:
+
+```{r}
+x <- NULL
+x
+c(x, 1)
+```
+
+ and note, the NULL is gone!
+ 
+ <hr>
+
+Finally, dates and times are always tricky:
+
+```{r}
+Sys.time()
+Sys.Date()
+```
+
+
+##Type Conversion
+
+Consider the following:
+
+```{r}
+x <- c(3, 5, 6, 3, "A", 5)
+x
+```
+
+in this case the vector is a mixture of numeric and character. But R vectors can never be such a mixture, so R (by itself!) decides to make it a character vector. This is called *type conversion*, and R does a lot of this, usually in a good way.
+
+There are a number of routines that 
+
+a.  test for a data type  
+b.  covert to a data type
+
+they either start with *is.* or with *as.*:
+
+```{r}
+x <- c(3, 5, NA, 3, 4, 5)
+is.numeric(x)
+```
+
+```{r}
+y <- c(2, 1, 5, 2)
+y
+x <- as.character(y)
+x
+as.numeric(x)
+x <- c("2", "1", "#", "2", "A")
+as.numeric(x)
+```
+
+```{r}
+as.numeric(c("1","2", "5",FALSE, 4, TRUE))
+```
+
+so FALSE gets turned into 0, TRUE into 1.
+
+R has almost 100 is. and as. functions built in!
+
+
+##Dates:
+
+The default format is yyyy-mm-dd:
+
+```{r}
+mydates <- as.Date(c("2018-01-01", "2018-06-13"))
+mydates
+mydates[2]-mydates[1]
+```
+
+
+##Factor
+
+a very common data type in Statistics is a factor. These are vectors with levels and possibly and ordering. Here is an example of their usage. Say we a list of students, identified by their year:
+
+```{r echo=3}
+set.seed(1)
+students <- sample(c("Freshman", "Junior", "Sophomore", "Senior"), 
+        size=10, prob=c(0, 1, 1, 1),replace=TRUE)
+students
+```
+
+Let's count how many of each we have:
+
+```{r}
+table(students)
+```
+
+there are two problems with this table:
+
+a.  the ordering is wrong  
+b.  the Freshman class is missing.
+
+We can fix both of these:
+
+```{r}
+students <- factor(students, 
+  levels = c("Freshman", "Junior", "Sophomore", "Senior"),
+  ordered=TRUE)
+table(students)
+```
+

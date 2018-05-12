@@ -1,0 +1,194 @@
+---
+header-includes: \usepackage{color}
+output:
+  html_document: default
+  pdf_document:
+    fig_caption: no
+---
+<style>
+table, th, td { text-align:right; }
+th, td {padding: 10px;}
+</style>
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+whichcomp <- strsplit(getwd(),"/")[[1]][3]
+load(paste0("c:/users/", whichcomp, "/Dropbox/Resma3/Resma3.RData"))
+require(knitr)
+require(ggplot2)
+require(grid)
+```
+`r rmd$basefontsize()`
+
+#Generate Radnom Variates
+
+##Random Numbers
+
+Everything starts with generating X~1~, X~2~, .. iid U[0,1]. These are simply called random numbers. There are some ways to get these:
+
+- random number tables  
+- numbers taken from things like the exact (computer) time  
+- quantum random number generators  
+- ...
+
+The R package *random* has the routine randomNumbers which gets random numbers from a web site which generates them based on (truely random) atmospheric phenomena.
+
+```{r message=FALSE}
+require(random)
+randomNumbers(20, 0, 100)
+```
+
+
+##Pseudo-Random Numbers
+
+These are numbers that look random, smell random ...
+
+Of course a computer can not do anything truly random, so all we can do is generate X~1~, X~2~, .. that **appear** to be iid U[0,1], so-called pseudo-random numbers. In R we have the function *runif*:
+
+```{r}
+runif(5)
+```
+
+or 
+
+```{r}
+runif(5, 0, 100)
+```
+
+If we want to choose from a finite set we have
+
+```{r}
+sample(letters, 5)
+```
+
+if no number is given it yields a random permutation:
+
+```{r}
+sample(1:10)
+```
+
+if we want to allow repetitions we can do this as well. Also, we can give the (relative) probabilities:
+
+```{r}
+table(sample(1:5, size=1000, replace=TRUE, prob=5:1))
+```
+
+##Standard Probability Distributions
+
+many standard distributions are part of base R. For each the format is
+
+-  dname = density  
+-  pname = cumulative distribution function  
+-  rname = random generation  
+-  qname = quantile function  
+
+for example -  Poisson distribution:
+
+```{r}
+dpois(c(0, 8, 12, 20), 10)
+ppois(c(0, 8, 12, 20), 10)
+rpois(5, 10)
+qpois(1:4/5, 10)
+```
+
+Here is a list of the distributions included with base R:
+
+-  beta distribution: dbeta.
+
+-  binomial (including Bernoulli) distribution: dbinom.
+
+-  Cauchy distribution: dcauchy.
+
+-  chi-squared distribution: dchisq.
+
+-  exponential distribution: dexp.
+
+-  F distribution: df.
+
+-  gamma distribution: dgamma.
+
+-  geometric distribution: dgeom. 
+
+-  hypergeometric distribution: dhyper.
+
+-  log-normal distribution: dlnorm.
+
+-  multinomial distribution: dmultinom.
+
+-  negative binomial distribution: dnbinom.
+
+-  normal distribution: dnorm.
+
+-  Poisson distribution: dpois.
+
+-  Student's t distribution: dt.
+
+-  uniform distribution: dunif.
+
+-  Weibull distribution: dweibull. 
+
+With some of these a bit of caution is needed. For example, the usual textbook definition of the geometric random variable is as the number of tries in a sequence of independent Bernoulli trials until a success. This means that the density is defined as
+
+$$
+P(X=x)=p(1-p)^{x-1}\text{, }x=1,2,..
+$$
+R however defines it as the number of failures until the first success, and so it uses
+
+$$
+P(X*=x)=\text{dgeom}(x, p)=p(1-p)^x\text{, }x=0,1,2,..
+$$
+Of course this is easy to fix. If you want to generate the "usual" geometric do
+
+```{r}
+rgeom(10, 0.4)+1
+```
+
+##Other Variates
+
+if you need to generate  random variates from a distribution that is not part of base R you should first try to find a package that includes it.
+
+**Example** multivariate normal
+
+there are actually several packages, the most commonly used one is *mvtnorm*
+
+```{r}
+library(mvtnorm)
+x <- rmvnorm(1000, mean=c(0, 1), sigma=matrix(c(1, 0.8, 0.8, 2), 2, 2))
+plot(x)
+cor(x)[1, 2]
+```
+
+If you can't find a package you have write your own! Here is a simple routine that will generate random variates from any function fun (given as a character vector) in one dimension on a finite interval:
+
+```{r}
+rPIT <- function (n, fun, A, B) 
+{
+  f <- function(x) eval(parse(text=fun))
+  m <- min(2 * n, 1000)
+  x <- seq(A, B, length = m)
+  y <- f(x)
+  z <- (x[2] - x[1])/6 * cumsum((y[-1] + 4 * y[-2] + y[-3]))
+  z <- z/max(z)
+  y <- c(0, z)
+  xyTmp <- cbind(x, y)
+  approx(xyTmp[, 2], xyTmp[, 1], runif(n))$y
+}
+```
+
+Let's try it out:
+
+```{r}
+y <- rPIT(1000, "x^2", 0, 1)
+hist(y, 50, freq=FALSE, main="")
+curve(3*x^2, 0, 1, add=TRUE)
+```
+
+notice that the function doesn't even have to be normalized!
+
+or a bit more complicated:
+
+```{r}
+y <- rPIT(1000, "x*sin(2*pi*x)^2", 0, 1)
+hist(y, 50, freq=FALSE, main="")
+```
+
+Want to know why this routine works? Come to my course ESMA5015 Simulation!

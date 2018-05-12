@@ -1,0 +1,82 @@
+---
+header-includes: \usepackage{color}
+output:
+  html_document: default
+  pdf_document:
+    fig_caption: no
+---
+<style>
+table, th, td { text-align:right; }
+th, td {padding: 10px;}
+</style>
+
+<fontsize="+1">
+
+#Costumizing R: .First, .Rprofile, Dropbox
+
+There are quite a few things that one might want to change from the defaults of R. For example, I prefer a certain editor when writing a function, and there are a number of libraries that I will need sooner or later, so I would like to have them loaded. Also, over the years I have written a number of small routines that I use for various tasks, and I want them available at any time. The two routines to set up things the way I want are
+
+-  .First, to set up stuff specific to the project I am working on.  
+-  .Rprofile, to set up stuff I need regardless of the current project.
+
+Note that the . in front means that you can't see this object when you run ls().
+
+The .First is part of the.RData file whereas the .Rprofile is separate.
+
+When R starts it looks for a file called .Rprofile and executes any commands therein. Then it runs the routine .First.
+
+Well, at least that is how it used to be when we were using the command console. For reasons never explained (and much complained about by the users) RStudio ignores the .First file at startup, so we will need to have a work around.
+
+Let's start with a simple. Rprofile. This is a stand-alone file usually loacted in your default working directory. You can find out what is by running
+
+```{r eval=FALSE}
+dir("~")
+```
+
+So here is what it might look like:
+
+
+options(help_type="html")  
+options(show.signif.stars=FALSE)  
+options(stringsAsFactors=FALSE)  
+library("ggplot2")  
+.MyEnv <- new.env()   
+.MyEnv$sc <- function() source("clipboard")  
+.MyEnv$dp <- function(x) { dump(x,"clipboard") }  
+.MyEnv$ip <- function(x) {      
+    install.packages(x,lib="C:\\R\\library")  
+    library(x,character.only =T)   
+} 
+attach(.MyEnv)  
+if("First.R" %in% dir()) {  
+  source("First.R")  
+  .First()  
+}  
+cat("\nSuccessfully loaded .Rprofile at", date(), "\n")  
+
+So it changes a few options, loads a library, makes a new environment and defines a few functions. Finally it checks the directory from where the Rproject was started to see whether it contains a file .First.R. If so it loads and executes it as well. 
+
+Say this project is about writting a shiny app, then the .First.R would have the line
+
+library(shiny)
+
+Notice because a single .Rprofile sits in the default working directory the same one gets executed everytime I start RStudio, but different working directories might have different .Firsts (or none) 
+
+My own .Rprofile is a lot longer, you can see (and download) it at [http://academic.uprm.edu/wrolke/research/.Rprofile](http://academic.uprm.edu/wrolke/research/.Rprofile)
+
+##Dropbox
+
+Disclaimer: I discuss here Dropbox, but there are other companies that offer the same service and this is not meant as an endorsement of Dropbox (although I do like it myself!).
+
+Dropbox is a cloud based storage site. For me it helps to solve a number of issues:
+
+-  backup: done automatically  
+-  version control: Dropbox keeps all old versions, so if (when!!!) you save a file and then see that this was a mistake you can always go back and find a previous (good) version.  
+-  keep things consistent: I have a number of computers, I don't want to have to work on keeping them synchronized.  
+- availability: I can get to my files anyplace, anytime.
+
+so I have a folder named R in the Dropbox folder. Inside that I have many folders, one for each project. 
+
+There is a bit of an issue with this: every minute or so Dropbox wants to synchronize, but RStudio "sees" this and shows an annoying pop-up. To avoid that, open Dropbox by right-clicking the icon on the task bar, select the settings icon, choose preferences, click on the Sync button, selective sync, and uncheck the box of the R folder.
+
+Now of course Dropbox won't save anything automatically, so don't forget to do it regularly yourself!

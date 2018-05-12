@@ -1,0 +1,317 @@
+---
+header-includes: \usepackage{color}
+output:
+  html_document: default
+  pdf_document:
+    fig_caption: no
+---
+<style>
+table, th, td { text-align:right; }
+th, td {padding: 10px;}
+</style>
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+whichcomp <- strsplit(getwd(),"/")[[1]][3]
+load(paste0("c:/users/", whichcomp, "/Dropbox/Resma3/Resma3.RData"))
+library(knitr)
+opts_chunk$set(fig.width=6, fig.align = "center", 
+      out.width = "70%", warning=FALSE, message=FALSE)
+library(ggplot2)
+library(grid)
+```
+`r rmd$basefontsize()`
+
+#ggplot2
+
+A large part of this chapter is taken from various works of Hadley Wickham. Among others [The layered grammar of graphics](http://byrneslab.net/classes/biol607/readings/wickham_layered-grammar.pdf) and [R for data Science](http://r4ds.had.co.nz/).
+
+##Why ggplot2?
+
+Advantages of ggplot2
+
+-  consistent underlying grammar of graphics (Wilkinson, 2005)  
+-  plot specification at a high level of abstraction  
+-  very flexible  
+-  theme system for polishing plot appearance  
+-  mature and complete graphics system  
+-  many users, active mailing list
+
+##Grammar of Graphics
+
+In 2005 Wilkinson, Anand, and Grossman published the book "The Grammar of Graphics". In it he layed out a systematic way to describe any graph in terms of basic building blocks. ggplot2 is an implementation of his ideas.
+
+The use of the grammar seems a bit strange here. The general meaning of the word grammar is: 
+
+*the fundamental principles or rules of an art or science*
+
+As our running example we will use the *mtcars* data set. It is part of base R and has information on 32 cars:
+
+```{r echo=FALSE}
+kable(mtcars[1:6, ])
+```
+
+Here we have two quantitative variables, and so the obvious thing to do is a scatterplot. But there are a number of different ways we can this:
+
+```{r echo=3:7, warning=FALSE}
+attach(mtcars)
+par(mfrow=c(2, 2))
+plot(hp, mpg, main="Basic Graph")
+plot(hp, mpg, pch="x", main="Change Plotting Symbol")
+plot(hp, mpg, cex=2, main="Change Size")
+plot(hp, mpg, main="With Fit");abline(lm(mpg~hp))
+```
+ 
+The basic idea of the grammar of graphs is to separate out the parts of the graphs: there is the basic layout, there is the data that goes into it, there is the way in which the data is displayed. Finally there are annotations, here the titles, and possibly more things added, such as a fitted line. In ggplot2 you can always change one of these without changing any of the others.
+
+Another way of looking at it this: in ggplot2 you build a graph like a lasagne: layer by layer.
+
+Take the graph on the lower right. Here I made the plotting symbol bigger (with cex=2). But now the graph doesn't look nice any more, the first and the last circle don't fit into the graph. The only way to fix this is to start all over again, by making the margins bigger:
+
+```{r}
+plot(hp, mpg, cex=2, ylim=range(mpg)+c(-1, 1))
+```
+
+and that is a bit of work because I have to figure out how to change the margins. In ggplot2 that sort of thing is taken car of automatically!
+
+Let's start by recreating the first graph above. We first have to turn the data into a data frame, the basic data structure for ggplots
+
+```{r}
+ggplot(mtcars, aes(hp, mpg)) + geom_point()
+```
+
+this has the following logic:
+
+- *ggplot* sets up the graph  
+-  it's first argument is the data set, as a data frame  
+-  *aes* is the aestetic mapping. It connects the data to the graph  
+-  *geom* is the geometric object (circle, square, line) to be used in the graph. Here it is points.
+
+**Note** ggplot2 also has the *qplot* command. This stands for *qick plot*
+
+```{r warning=FALSE}
+qplot(hp, mpg, mtcars)
+```
+
+This seems much easier at first (and it is) but the qplot command is also very limitted. Very quickly you want to do things that aren't possible with qplot, and so I won't dsicuss it further here.
+
+**Note** consider the following variation:
+
+
+```{r warning=FALSE}
+ggplot(mtcars) + geom_point(aes(hp, mpg))
+```
+
+again it seems to do the same thing, but there is a big difference:
+
+-  if aes(x, y) is part of ggplot, it applies to all the geom's that come later (unless a different one is specified)  
+-  an aes(x, y) as part of a geom applies only to it.
+
+Let's say we want to identify the cars by the cylinders:
+
+```{r}
+ggplot(mtcars, aes(hp, mpg, color=cyl)) + geom_point()
+```
+
+Notice that the legend is a continous color scale. This is because the variable cy has values 4, 6, and 8, and so is identified as a numeric variable. In reality it is categorical (ever seen a car with 1.7 cylinders?), and so we should change that:
+
+
+```{r}
+mtcars$faccyl <- factor(cyl, levels = c(4, 6, 8), ordered = TRUE) 
+ggplot(mtcars, aes(hp, mpg, color=faccyl)) + geom_point()
+```
+
+
+we can also change the shape of the plotting synbols:
+
+```{r }
+ggplot(mtcars, aes(hp, mpg, shape=faccyl)) + geom_point()
+```
+
+or both:
+
+```{r}
+ggplot(mtcars, aes(hp, mpg, shape=faccyl, color=faccyl)) + geom_point()
+```
+
+let's pretty up the graph a bit with some labels and a title. We will be playing around with this graph for a while, so I will save some intermediate versions:
+
+```{r}
+plt1 <- ggplot(mtcars, aes(hp, mpg, color=faccyl)) + geom_point() 
+plt2 <- plt1 +
+  labs(x="Horsepower", y="Miles per Gallon", color="Cylinders") +
+  labs(title="Milage goes down as Horsepower goes up")
+plt2
+```
+
+Say we want to add the least squares regression lines for each gender:
+
+```{r}
+plt3 <- plt2 + geom_smooth(method = "lm", se=FALSE)
+plt3
+```
+
+There is another way to include a categorical variable in a scatterplot. The idea is to do several graphs, one for each value of the categorical variable. These are called facets:
+
+```{r}
+plt3 + facet_wrap(~cyl) 
+```
+
+The use of facets also allows us to include two categorical variables:
+
+```{r}
+mtcars$facgear <- factor(gear, levels = 3:5, ordered = TRUE)
+plt4 <- ggplot(aes(hp, mpg, color=faccyl), data = mtcars) + geom_point(size = 1) 
+plt4 <- plt4 + facet_wrap(~facgear) 
+plt4 <- plt4 +
+  labs(x="Horsepower", y="Miles per Gallon", color="Cylinders") +
+  labs(title="Milage goes down as Horsepower goes up")
+plt4 <- plt4 + geom_smooth(method="lm", se=FALSE)
+plt4
+```
+
+This is almost a bit to much, with just 32 data points ther is not really enough for such a split.
+
+##Some standard graphs
+
+###Histograms
+
+```{r}
+x <- rnorm(1000, 100, 30)
+df3 <- data.frame(x = x)
+bw <- diff(range(x))/50
+ggplot(df3, aes(x)) +
+  geom_histogram(color = "black", fill = "white", binwidth = bw) + 
+  labs(x="x", y="Counts")
+```
+
+Often we do histograms scaled to integrate to one. Then we can add the theoretical density and/or a nonparametric density estimate:
+
+```{r}
+x <- seq(0, 200, length=250)
+df4 <- data.frame(x=x, y=dnorm(x, 100, 30))
+ggplot(df3, aes(x)) +
+  geom_histogram(aes(y = ..density..), 
+        color = "black", fill = "white", binwidth = bw) + 
+  labs(x="x", y="Density") + 
+  geom_line(data = df4, aes(x, y), colour = "blue") +
+  geom_density(color="red")
+```
+
+**Notice** the red line on the bottom. This should not be there but seems almost impossible to get rid of!
+
+Here is another interesting case: say we have two data sets and we wish to draw the two histograms, one overlayed on the other:
+
+```{r message=FALSE}
+df5 <- data.frame(x=c(rnorm(100, 10, 3), rnorm(80, 12, 3)), 
+         y=c(rep(1, 100), rep(2, 80)))          
+ggplot(df5, aes(x=x)) + 
+    geom_histogram(data=subset(df5, y == 1), 
+        fill = "red", alpha = 0.2) +
+    geom_histogram(data=subset(df5, y == 2), 
+        fill = "blue", alpha = 0.2)
+```
+
+Notice the use of alpha. In general this "lightens" the color so we can see "behind".
+
+###Boxplots
+
+```{r}
+y <- rnorm(120, 10, 3)
+x <- rep(LETTERS[1:4], each=30)
+y[x=="B"] <- y[x=="B"]+rnorm(30, 1)
+y[x=="C"] <- y[x=="C"]+rnorm(30, 2)
+y[x=="D"] <- y[x=="D"]+rnorm(30, 3)
+df6 <- data.frame(x=x, y=y)
+ggplot(df6, aes(x, y)) + geom_boxplot()
+```
+
+strangly enough doing a boxplot without groups takes a little work:
+
+```{r}
+df6$z <- rep(" ", length(y))
+ggplot(df6, aes(z, y)) + geom_boxplot() + xlab("")
+```
+
+There is a modern version of this graph called a violin plot:
+
+```{r}
+ggplot(df6, aes(z, y)) + geom_violin() + xlab("")
+```
+
+###Barcharts
+
+```{r}
+x <- sample(LETTERS[1:5], size=1000, replace=TRUE, prob = 6:10)
+df7 <- data.frame(x=x)
+ggplot(df7, aes(x)) + 
+  geom_bar(alpha=0.75, fill="lightblue") +
+  xlab("")
+```
+
+Say we want to draw the graph based on percentages. Of course we could just calculate them and then do the graph. Here is another way
+
+```{r}
+ggplot(df7, aes(x=x)) + 
+  geom_bar(aes(y= (..count..)/sum(..count..)),
+      alpha=0.75, fill="lightblue") +
+  labs(x="", y="Percentages")
+```
+
+Notice how this works: in geom_bar we use a new aes, but the values in it are calculated from the old data frame.
+
+Finally an an example of a contingency table: 
+
+```{r}
+df7$y <- sample(c("X", "Y"), size=1000, replace=TRUE, prob=2:3)
+ggplot(df7, aes(x=x, fill = y)) + 
+  geom_bar(position = "dodge") + 
+    scale_y_continuous(labels=scales::percent) +
+    labs(x="", y="Percentages", fill="Y") 
+```
+
+##Axis Ticks and Legend Keys
+
+Let's return to the basic plot of mpg by hp. Let's say we want to change the axis tick marks:
+
+```{r}
+ggplot(mtcars, aes(hp, mpg)) + geom_point() +
+  scale_x_continuous(breaks = seq(50, 350, by=25)) +
+  scale_y_continuous(breaks = seq(0, 50, by=10))
+```
+
+sometimes we want to do graphs without any tick labels. This is useful for example for maps and also for confidential data, so the viewer sees the relationship but can't tell the sizes:
+
+```{r}
+ggplot(mtcars, aes(hp, mpg)) + geom_point() +
+  scale_x_continuous(labels = NULL) +
+  scale_y_continuous(labels = NULL)
+```
+
+By default ggplot2 draws the legends on the right. We can however change that. We can also change appearance of the legend. Recall that the basic graph is in *plt2*. Then
+
+```{r}
+plt2 +
+  theme(legend.position = "bottom") +
+  guides(color=guide_legend(nrow = 1, override.aes = list(size=4)))
+```
+
+##Saving the graph
+
+It is very easy to save a ggplot2 graph. Simply run
+
+```{r eval=FALSE}
+ggsave("myplot.pdf")
+```
+
+it will save the last graph to disc.
+
+One issue is figure sizing. You need to do this so that graph looks "good". Unfortunately this depends on where it ends up. A graph that looks good on a webpage might look ugly in a pdf. So it is hard to give any general guidelines.
+
+If you use R markdown, a good place to start is with the chunk arguments
+fig.with=6 and out.width="70%". In fact on top of every R markdown file I have a chunk with
+
+library(knitr)  
+opts_chunk$set(fig.width=6, fig.align = "center",  
+   out.width = "70%", warning=FALSE, message=FALSE)
+
+so that automatically every graph is sized that way. I also change the default behavior of the chunks to something I like better!

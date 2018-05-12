@@ -1,0 +1,170 @@
+---
+header-includes: \usepackage{color}
+output:
+  html_document: default
+  pdf_document:
+    fig_caption: no
+---
+<style>
+table, th, td { text-align:right; }
+th, td {padding: 10px;}
+</style>
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+whichcomp <- strsplit(getwd(),"/")[[1]][3]
+load(paste0("c:/users/", whichcomp, "/Dropbox/Resma3/Resma3.RData"))
+require(knitr)
+require(ggplot2)
+require(grid)
+```
+`r rmd$basefontsize()`
+
+#Object-Oriented Programming
+
+Like C++ and just about every other programming language R is object oriented. This is huge topic and we will only discuss the the basic ideas. It is also only worthwhile (and in fact absolutely necessary) when writing large programs, at least several 100 lines.
+
+We start with the following:
+
+```{r}
+x <- rnorm(100)
+a <- ecdf(x)
+plot(a)
+a <- density(x)
+plot(a)
+```
+
+so also we call the same command (plot) we get different graphs, one of of the empirical distribution function and the other a non-parametric density estimate.
+
+But how does R know what do do in either case? The reason is that each object has a class property:
+
+```{r}
+a <- ecdf(x)
+class(a)
+a <- density(x)
+class(a)
+```
+
+There are also many different plot functions (or methods)
+
+```{r}
+methods(plot)
+```
+
+so what happens is that when we call plot it examines the class property, and the pick the specific plot method that corresponds to it. 
+
+R actually has three different ways to use object-oriented programming, called S3, S4 and RC. We won't go into the details and which of them is more useful ander what circumstances. In the following example we use S3.
+
+Say we work for a store. At the end of each day we want to create a short report that 
+
+-  gives the number of sales, their mean and standard deviation for each salesperson.  
+-  does a boxplot of the sales, grouped by salesperson
+
+Say the data is a data.frame where the first column is the amount of a sale and the second column identifies the salesperson. So it might look like this:
+
+```{r echo=5}
+x <- round(rchisq(40, 4)*10, 2)
+salesperson <- c("Jack", "Jim", "Mary", "Ann")
+z <- factor(sample(salesperson, size=40, replace=T), 
+        levels = salesperson, ordered = TRUE)
+dta <- data.frame(Sales=x, Salesperson=z)
+kable(dta[1:5,])
+```
+
+Here is the non-object oriented solution:
+
+```{r}
+report <- function(dta) {
+  salesperson <- unique(dta[, 2])
+  tbl <- matrix(0, length(salesperson), 3)
+  rownames(tbl) <- salesperson
+  colnames(tbl) <- c("Sales", "Mean", "SD")
+  tbl[, 1] <- tapply(dta[, 1], dta[, 2], length)
+  tbl[, 2] <- round(tapply(dta[, 1], dta[, 2], mean), 2)
+  tbl[, 3] <- round(tapply(dta[, 1], dta[, 2], sd), 2)
+  print(tbl)
+  boxplot(dta[, 1]~dta[, 2], horizontal=TRUE)
+}
+report(dta)
+```
+
+Here is the object oriented one. First we have to define a new class:
+
+```{r}
+as.sales <- function(x) {
+  class(x) <- "sales"
+  return(x)
+}
+```
+
+Next we have to define the methods:
+
+```{r}
+stats <- function(x) UseMethod("stats")
+stats.sales <- function(x) {
+  salesperson <- unique(x[[2]])
+  tbl <- matrix(0, length(salesperson), 3)
+  rownames(tbl) <- salesperson
+  colnames(tbl) <- c("Sales", "Mean", "SD")
+  tbl[, 1] <- tapply(x[[1]], x[[2]], length)
+  tbl[, 2] <- round(tapply(x[[1]], x[[2]], mean), 2)
+  tbl[, 3] <- round(tapply(x[[1]], x[[2]], sd), 2)
+  tbl
+}
+```
+
+```{r}
+plot <- function(x) UseMethod("plot")
+plot.sales <- function(x) 
+  boxplot(x[[1]]~x[[2]], horizontal=TRUE)
+```
+
+and now we can run
+
+```{r}
+dta <- as.sales(dta)
+stats(dta)
+plot(dta)
+```
+
+So far not much has been gained. But let's say that sometimes we also have information on the whether the sales person was on the morning or on the afternoon shift, and we want to include this in our report. One great feature of object-oriented programing is *inheritance*, that is we can define a new class that already has all the features of the old one, plus whatever new one we want.
+
+so say now the data is
+
+```{r, echo=4}
+tms <- c("Morning", "Afternoon")
+u <-  factor(sample(tms, size=40, replace=T), 
+        levels = tms, ordered = TRUE)
+dta1 <- data.frame(Sales=x, Salesperson=z, Time=u)
+kable(dta1[1:5, ])
+```
+
+
+```{r error=T}
+class(dta1) <- c("salestime", "sales")
+plot(dta1)
+```
+
+and so we see that because dta1 is also of class sales plot still works. But we can also define its own plot method:
+
+```{r error=T}
+plot <- function(x) UseMethod("plot")
+plot.salestime <- function(x) {
+  par(mfrow=c(1,2))
+  Sales <- x$Sales[x$Time=="Morning"]
+  Salesperson <- x$Salesperson[x$Time=="Morning"]
+  boxplot(Sales~Salesperson, main="Morning")
+  Sales <- x$Sales[x$Time=="Afternoon"]
+  Salesperson <- x$Salesperson[x$Time=="Afternoon"]
+  boxplot(Sales~Salesperson, main="Afternoon")
+  
+}
+plot(dta1)
+```
+
+generally every class has at least three methods:
+
+-  print  
+-  summary (stats)  
+-  plot
+
+

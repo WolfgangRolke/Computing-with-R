@@ -1,0 +1,96 @@
+---
+header-includes: \usepackage{color}
+output:
+  html_document: default
+  pdf_document:
+    fig_caption: no
+runtime: shiny
+---
+<style>
+table, th, td { text-align:right; }
+th, td {padding: 10px;}
+</style>
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+whichcomp <- strsplit(getwd(),"/")[[1]][3]
+load(paste0("c:/users/", whichcomp, "/Dropbox/Resma3/Resma3.RData"))
+library(knitr)
+opts_chunk$set(fig.width=6, fig.align = "center", 
+      out.width = "70%", warning=FALSE, message=FALSE)
+library(ggplot2)
+library(grid)
+```
+`r rmd$basefontsize()`
+
+#Interactive Web Applications with shiny
+
+The applications in this section require a computer with R to run.
+
+```{r}
+library(shiny)
+```
+
+shiny is a package that has routines to create interactive web applications that run in a browser. Every app has to files:
+
+-  *ui* contains information about the layout of the page  
+-  *server* has the R routine that create the content of the page.
+
+Let's begin by creating a page that does the following: it generate a data set with n observations from a standard normal distribution and then draws the histogram. The user can choose n:
+
+```{r eval=FALSE}
+ui <- fluidPage(
+  numericInput("n", "Sample Size", 1000),
+  plotOutput("plot1")
+)
+server <- function(input, output) {
+  output$plot1 <- renderPlot({
+    x <- rnorm(input$n)  
+    bw <- diff(range(x))/50
+    ggplot(data.frame(x=x), aes(x)) +
+    geom_histogram(color = "black", fill = "white", binwidth = bw) + 
+    labs(x="x", y="Counts")
+  })
+}
+shinyApp(ui, server)
+```
+
+Now if you have this R markdown document in RStudio you can hit knit and it will create a webpage with the shiny app inside. However, this webpage will mostly run as a stand-alone page, without R. I have written this page instead in such a way that you can run the app by running the command
+
+```{r eval=FALSE}
+runUrl("http://academic.uprm.edu/wrolke/Computing with R/shiny/example1.zip")
+```
+
+To start writing a small app simply go to File > New File > Shiny Web App. If you copy paste the programs above into it and then click on Run App, you can see the app as well.
+
+Next we improve the app in three ways:
+
+-  the layout 
+-  add the possibility to change the number of bins
+-  add a title
+
+```{r eval=FALSE}
+ui <- fluidPage(
+  titlePanel("Histogram App"),
+  sidebarLayout(
+    sidebarPanel(
+      numericInput("n", "Sample Size", 1000),
+      textInput("nbins", "Number of bins", "50", width = "20%")
+    ),
+    mainPanel(
+      plotOutput("plot1")
+    )  
+))
+server <- function(input, output) {
+  output$plot1 <- renderPlot({
+    x <- rnorm(input$n)  
+    bw <- diff(range(x))/as.numeric(input$nbins)
+    ggplot(data.frame(x=x), aes(x)) +
+      geom_histogram(color = "black", fill = "white", binwidth = bw) + 
+      labs(x="x", y="Counts")
+  })
+}
+shinyApp(ui, server)
+```
+
+notice also that instead of a numericInput I used a textInput, although nbins is meant to be a number. I often do this becasue I find the appearance of text inputs more pleasing. I can of course always turn it into a number with *as.numeric*.
+

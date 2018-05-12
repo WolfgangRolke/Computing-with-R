@@ -1,0 +1,203 @@
+---
+header-includes: \usepackage{color}
+output:
+  html_document: default
+  pdf_document:
+    fig_caption: no
+---
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+whichcomp <- strsplit(getwd(),"/")[[1]][3]
+load(paste0("c:/users/", whichcomp, "/Dropbox/Resma3/Resma3.RData"))
+
+require(knitr)
+require(ggplot2)
+require(grid)
+require(leaps)
+```
+`r rmd$basefontsize()`
+
+<style>
+table, th, td { text-align:right; }
+th, td {padding: 10px;}
+</style>
+
+#Subsetting / Data Wrangling
+
+##Vectors
+
+Consider the following vector:
+
+```{r echo=3}
+x <- round(runif(10,0,10), 1)
+names(x) <- LETTERS[1:10]
+x
+```
+
+The elements of a vector are accessed with the bracket [ ] notation:
+
+```{r}
+x[3]
+x[1:3]
+x[c(1, 3, 8)]
+x[-3]
+x[-c(1, 2, 5)]
+x["C"]
+x[c("A","D")]
+```
+
+Another way to subset a vector is with logical conditions:
+
+```{r}
+x[x > 4]
+x[x>4 & x<7]
+```
+
+It is also possible to replace values in a vector:
+
+```{r}
+x[x<2] <- 0
+x
+```
+
+This can be useful for example to code a variable:
+
+```{r, echo=2:5}
+Gender <- sample(c("Male", "Female"), size=10, replace = T)
+Gender
+GenderCode <- rep(0, length(Gender))
+GenderCode[Gender=="Male"] <- 1
+GenderCode
+```
+
+
+
+###Matrices and Data Frames
+
+Consider the following data frame:
+
+```{r, echo=6}
+set.seed(111)
+Age <- sample(18:25, size=10, replace=T)
+GPA <- round(runif(10, 2, 4), 1)
+Gender <- sample(c("Male", "Female"), size=10, replace=T)
+students <- data.frame(Age, GPA, Gender)
+students
+```
+
+There are a variety of ways to do subsetting:
+
+```{r}
+students[, 1]
+students[[1]]
+students$Age
+```
+
+And yet another way to do this:
+
+```{r eval=FALSE}
+attach(students)
+```
+```{r}
+Age
+```
+
+Although these seem to do the same there actually subtle differences.
+
+Notice that in each case R also does some type conversion, from a data frame to a vector. It is possible to tell R not to do that:
+
+```{r}
+students[, 1, drop=FALSE]
+```
+
+but this does not work for the [[1]] or $Age versions.
+
+```{r}
+students[1:3, 1]
+students[-2, ]
+students[1:4, -1]
+students[Age>20, ]
+```
+
+You can have several conditions, put together with & (AND), | (OR) and ! (NOT), but some care is needed:
+
+```{r}
+students[Age>=20 & Age<=22, 1]
+```
+
+is fine but 
+
+```{r eval=FALSE}
+students[20 <= Age <= 22, 1]
+```
+
+does not work. 
+
+##Useful logic commands:
+
+```{r}
+x<-1; y<-2; z<-3
+any(c(x, y, z)>2.5)
+all(c(x, y, z)>2.5)
+```
+
+```{r}
+x <- 1:3; y <- 1:3 
+x == y
+identical(x, y)
+all.equal(x, y)
+```
+
+*identical* compares the internal representation of the data and returns TRUE if the objects are strictly identical, and FALSE otherwise.
+
+*all.equal* compares the “near equality” of two objects, and returns TRUE or displays a summary of the diﬀerences. The latter function takes the approximation of the computing process into account when comparing numeric values. The comparison of numeric values on a computer is sometimes surprising!
+
+```{r}
+0.9 == (1 - 0.1)
+identical(0.9, 1 - 0.1)
+all.equal(0.9, 1 - 0.1)
+```
+
+but
+
+```{r}
+0.9 == (1.1 - 0.2)
+identical(0.9, 1.1 - 0.2)
+all.equal(0.9, 1.1 - 0.2)
+```
+
+How come $1.1-0.2 \ne 0.9$? This is because of machine precision issues:
+
+```{r}
+all.equal(0.9, 1.1 - 0.2, tolerance = 1e-16) 
+```
+
+
+##subset command
+
+```{r}
+subset(students, Age>20)
+subset(students, Age>20 & Gender=="Male")
+subset(students, Age>20, select = Gender)
+subset(students, Age>20, select = Gender, drop=TRUE)
+```
+
+Notice that this last one results in a vector.
+
+##Lists
+
+consider this list:
+
+```{r, echo=4}
+Location <- c("San Juan", "Mayaguez", "Ponce")
+Age <- c(20, 23, 25, 21, 23)
+smpl <- list(Location=Location, Age=Age)
+smpl
+```
+
+```{r}
+smpl[[1]]
+smpl$Location
+```
+
+

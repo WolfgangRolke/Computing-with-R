@@ -1,0 +1,127 @@
+---
+header-includes: \usepackage{color}
+output:
+  html_document: default
+  pdf_document:
+    fig_caption: no
+---
+<style>
+table, th, td { text-align:right; }
+th, td {padding: 10px;}
+</style>
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+whichcomp <- strsplit(getwd(),"/")[[1]][3]
+load(paste0("c:/users/", whichcomp, "/Dropbox/Resma3/Resma3.RData"))
+library(knitr)
+opts_chunk$set(fig.width=6, fig.align = "center", 
+      out.width = "70%", warning=FALSE, message=FALSE)
+rm(select)
+```
+`r rmd$basefontsize()`
+
+#Dates with lubridate
+
+```{r}
+library(tidyverse)
+library(lubridate)
+```
+
+For a more detailed discussion see [Dates and Times Made Easy with lubridate](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=6&ved=0ahUKEwjbm6-wvd_aAhUFneAKHRucD6cQFghjMAU&url=https%3A%2F%2Fwww.jstatsoft.org%2Farticle%2Fview%2Fv040i03%2Fv40i03.pdf&usg=AOvVaw1oHgFlV3bI-jAlcLyrugha)
+
+At first glance working with dates and times doesn't seem so complicated, but consider the following questions:
+
+-  Where all of these years leap years: 1800, 1900, 2000?  
+-  Does every day have 24 hours?  
+-  Does every minute have 60 seconds?
+
+The answer to all these questions is: N0
+
+-  in principle every year divisible by 4 is a leap year, except if it is also divisible by 100, but not if also divisible by 400! So 1800 and 1900 were not leap years. 2000 was.
+
+-  In countries that have Summer Time there are two days with 23 and 25 hours, respectively.
+
+-  Even the above is not enough to bring the time it takes the earth to orbit the sun in perfect alignment with the calender year, so every now and then there is a minute that has 61 seconds, called a leap second. Since this system of correction was implemented in 1972, 27 leap seconds have been inserted, the most recent on December 31, 2016 at 23:59:60.
+
+There are also many regional differences in how date and time are written:
+
+-  USA: 4/29/2018 2.30pm  
+-  Germany: 29/4/2018 14.30
+
+
+Imagine you need to analyse some stock market data, starting from 1980 to today and in second intervals. You would need to include all of these details!
+
+###Create a date object
+
+to get todays time and date:
+
+```{r}
+today()
+now()
+```
+
+there are a number of ways to create a specific date object from a string:
+
+```{r}
+ymd("2018-04-29")
+mdy("April 29th, 2018")
+dmy("29-April-2018")
+```
+
+this also works:
+
+```{r}
+ymd(20180429)
+```
+
+to add time info use an underscore and the format:
+
+```{r}
+ymd_hm("2018-04-29 2:30 PM")
+dmy_hms("29-April-2018 2:30:45 PM")
+```
+
+As an example we will use the data set *flights* in the package *nycflights13*. It has airline on-time data for all flights departing NYC in 2013.
+
+```{r}
+library(nycflights13)
+flights %>% print(n=4)
+```
+
+Let's start by calculating the hour and minutes of the departure from the dep-time. For this we can use %/% for integer devision and %% for modulo:
+
+```{r}
+flights %>% 
+  mutate(hour=dep_time %/% 100,
+         minute=dep_time %% 100) ->
+  flights
+```
+
+In this tibble the parts of the time and date info are in several columns. Let's start by putting them together:
+
+```{r}
+flights %>% 
+  select(year, month, day, hour, minute) %>% 
+  print(n=4)
+```
+
+To combine the different columns into one date/time object we can use the command *make_datetime*:
+
+```{r}
+flights %>% 
+  select(year, month, day, hour, minute) %>% 
+  mutate(departure = make_datetime(year, month, day, hour, minute)) ->
+  flights
+flights %>% select(departure) %>% print(n=4)
+```
+
+##Time Spans
+
+lubridate has a numbe of dunctions to do arthmetic with dates. For example, my age is
+
+```{r}
+today()
+my.age <- today()-ymd(19610602)
+as.duration(my.age)
+```
+

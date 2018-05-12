@@ -1,0 +1,227 @@
+---
+header-includes: \usepackage{color}
+output:
+  html_document: default
+  pdf_document:
+    fig_caption: no
+---
+<style>
+table, th, td { text-align:right; }
+th, td {padding: 10px;}
+</style>
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+whichcomp <- strsplit(getwd(),"/")[[1]][3]
+load(paste0("c:/users/", whichcomp, "/Dropbox/Resma3/Resma3.RData"))
+library(knitr)
+opts_chunk$set(fig.width=6, fig.align = "center",
+      out.width = "70%", warning=FALSE, message=FALSE)
+library(ggplot2)
+library(grid)
+```
+`r rmd$basefontsize()`
+
+#Graphs
+
+In this section we will discuss some graphs that are part of base R. Later we will study more advanced graphics, but it is still a good idea to know how to draw a base graph.
+
+##Barcharts
+
+Say we have the data on the number of freshman, sophomores etc at some college:
+
+```{r, echo=FALSE}
+student.levels <- c("Freshman", "Sophomore", "Junior", "Senior")
+students <- sample(student.levels, size=1000, replace = TRUE, prob = 6:3)
+st.y <- factor(students, levels = student.levels, ordered = TRUE)
+
+students.ord <- table(st.y)
+kable(students.ord, col.names = c("Class", "Counts"))
+```
+
+```{r}
+head(students)
+barplot(table(students))
+```
+
+But this is not quite right, Sophomores should come second. In general, when we have a categorical variable which has an ordering we should turn it into a factor:
+
+```{r}
+students.fac <- factor(students, 
+      levels = c("Freshman", "Sophomore", "Junior", "Senior"), 
+      ordered = TRUE)
+tbl.students.fac <- table(students.fac)
+barplot(tbl.students.fac)
+```
+
+There are a number of arguments we find in most graphics routines:
+
+```{r}
+barplot(tbl.students.fac, main = "Our Students",
+        xlab = "Class", ylab = "Counts")
+```
+
+and then there are arguments specific to the graph:
+
+```{r}
+barplot(tbl.students.fac, main = "Our Students",
+        xlab = "Class", ylab = "Counts", 
+        horiz = TRUE, density = 10,
+        col = c("lightblue", "mistyrose",
+                "lightcyan", "lavender"),)
+```
+
+##Histogram
+
+```{r}
+x <- rnorm(1000, 100, 30)
+hist(x, breaks=50, main = "IQ",
+        xlab = "IQ", ylab = "Counts")
+```
+
+Often the hist command is useful for its side effect of counting:
+
+```{r}
+hist(x, breaks=c(0, 50, 80, 100, 120, 150, 250), plot = FALSE)$counts
+```
+
+##Boxplots
+
+```{r}
+boxplot(x, horizontal = TRUE)
+```
+
+##Normal Probability Plot
+
+```{r}
+qqnorm(x)
+qqline(x)
+```
+
+##Scatterplot
+
+```{r}
+attach(faithful)
+plot(Eruptions, Waiting.Time, xlab = "Length of Last Eruption",
+     ylab="Time unitl Next Eruption", main="Old Faithful Guyser")
+```
+
+Let's add the least squares regression fit to the graph:
+
+```{r}
+plot(Eruptions, Waiting.Time, xlab = "Length of Last Eruption",
+     ylab="Time unitl Next Eruption", main="Old Faithful Guyser")
+abline(lm(Waiting.Time~Eruptions), lwd=2, lty=2)
+```
+
+Consider the data set mtcars, which is part of base R. It has data on 32 different cars:
+
+```{r}
+head(mtcars)
+```
+
+say we wish to study the relationship of mpg (Miles per Gallon) and hp (Horsepower) but also include information on the number of cylinders (either 4, 6 or 8):
+
+```{r message=FALSE}
+attach(mtcars)
+cols <- rep("blue", 32)
+cols[cyl==6] <- "green"
+cols[cyl==8] <- "red"
+plot(hp, mpg, xlab="Horsepower", ylab="Miles per Gallon",
+     col=cols, pch=20)
+legend(250, 33, paste(2*2:4, "Cylinders"),
+       pch=rep(20, 3), col = c("blue", "green", "red"))
+```
+
+##Multiple Graphs
+
+sometimes we want to combine several garphs into one
+
+```{r}
+par(mfrow=c(2, 2))
+hist(rnorm(1000), 50, main="Normal Distribution")
+hist(rt(1000, 2), 50, main="t Distribution, df=2")
+hist(runif(1000), 50, main="Uniform Distribution")
+hist(rchisq(1000, 2), 50, 
+     main=expression(paste(chi^2, " Distribution, df=2")))
+```
+
+This works fine for rectangular arrays. For mor complicted graphs we have the layout command. Let's create a scatterplot of mpg by hp with marginal boxplots:
+
+```{r}
+layout(matrix(c(2,0,1,3), 2, 2, byrow = TRUE), 
+             c(3,1), c(1,3), TRUE)
+par(mar = c(3, 3, 1, 1))
+plot(hp, mpg)
+par(mar = c(0, 3, 1, 1))
+boxplot(hp, axes = FALSE, horizontal = TRUE)
+par(mar = c(3, 0, 1, 1))
+boxplot(mpg, axes = FALSE)
+```
+
+##Functions to do graphs
+
+When I write a paper or a talk or anything else that requires some graph I always write a routine *plot.mytalk*, which has everything to recreate every graph. This is a great way to not only make changes if necessary but also to remind myself what I did back years ago when I wrote it.
+
+Caveat: these day R markdown can be used for the same purpose
+
+##Graphs that don't look like Graphs
+
+we can use R trae other type of pictures. Consider this diagram, which I use to illustrate the topic of Cause vs Effect:
+
+```{r, echo=FALSE}
+draw.cause.effect <- function() {
+  plot(c(10, 100), c(40, 100), axes=F, xlab="", ylab="", type="n")
+  text(15, 90, "Cause-Effect", cex=1.2, adj = 0)
+  text(c(20, 40), c(65, 65), c("X", "Y"), cex=1.1, adj=0)
+  arrows(25, 65, 38, 65)
+  text(56, 90, "Confounding Variable", cex=1.2, adj=0)
+  text(c(60, 70, 80), c(50, 75, 50), c("X", "Z", "Y"), cex=1.1, adj=0)
+  arrows(70, 70, 62, 55)  
+  arrows(70, 70, 78, 55)  
+  
+}
+draw.cause.effect()
+```
+
+it is actually done with these commands:
+
+```{r eval=FALSE}
+plot(c(10, 100), c(40, 100), axes=F, xlab="", ylab="", type="n")
+text(15, 90, "Cause-Effect", cex=1.2, adj = 0)
+text(c(20, 40), c(65, 65), c("X", "Y"), cex=1.1, adj=0)
+arrows(25, 65, 38, 65)
+text(56, 90, "Confounding Variable", cex=1.2, adj=0)
+text(c(60, 70, 80), c(50, 75, 50), c("X", "Z", "Y"), cex=1.1, adj=0)
+arrows(70, 70, 62, 55)  
+arrows(70, 70, 78, 55)  
+}
+```
+
+##Printing Graphs
+
+Often we need to get a graph as a png or a postscript file, so we can include in a webpage or a latex paper. I have to do this often enough I wrote a routine for it:
+
+```{r}
+graph.out <-
+function (f, foldername, graphname, format = "png") 
+{
+  file <- paste(foldername, graphname, ".", format, sep = "")
+  mcat(file)
+  if (format == "png") 
+      png(file)
+  if (format == "pdf") 
+      pdf(file)
+  if (format == "ps") 
+      postscript(file, horizontal = F, pointsize = 17)
+  if (format == "eps") {
+      setEPS()
+      postscript(file, horizontal = F, pointsize = 17)
+  }
+  f()
+  dev.off()
+  
+}
+```
+
+here *f* is a function that produces a graph
+

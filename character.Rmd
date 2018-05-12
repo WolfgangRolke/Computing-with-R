@@ -1,0 +1,446 @@
+---
+header-includes: \usepackage{color}
+output:
+  html_document: default
+  pdf_document:
+    fig_caption: no
+---
+
+<style>
+table, th, td { text-align:right; }
+th, td {padding: 10px;}
+</style>
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+whichcomp <- strsplit(getwd(),"/")[[1]][3]
+load(paste0("c:/users/", whichcomp, "/Dropbox/Resma3/Resma3.RData"))
+require(knitr)
+require(ggplot2)
+require(grid)
+```
+
+`r rmd$basefontsize()`
+
+#Character Manipulation
+
+```{r echo=FALSE}
+library(stringr)
+```
+
+working with character strings is one of the most common tasks in R. In this section we discuss some of the routines we have for that.
+
+Character strings can use single or double quotes:
+
+```{r}
+'this is a string'
+"this is a string"
+```
+
+Let's say we have a vector with the names of the states in the USA (plus DC and PR)
+
+```{r, echo=2}
+states <- agesexUS$State
+head(states)
+```
+
+to find out how long a string is use
+
+```{r}
+nchar(states)[1:4]
+```
+
+What state has the longest name?
+
+```{r}
+states[which(nchar(states) == max(nchar(states)))]
+```
+
+Say we want to shorten the strings to just the first three letters:
+
+```{r}
+substring(states, first=1, last=3)[1:4]
+```
+
+Now, though, several of the strings are the same ("Ala"). If that is a problem use
+
+```{r}
+abbreviate(states)[1:4]
+```
+
+this routine figures out what the length of the shortest string is that makes all of them unique (here 4). We can make it a little longer if we want:
+
+
+```{r}
+abbreviate(states, minlength = 6)[1:4]
+```
+
+Say we want the last 3 letters of the states names:
+
+```{r}
+substring(states, first=nchar(states)-2, last=nchar(states))[1:4]
+```
+
+Let's say we want all the states whose name starts with P:
+
+```{r}
+grep("P", states)
+```
+
+tells us those are the states at position 39 and 52, so now
+
+
+```{r}
+states[grep("P", states)]
+```
+
+or
+
+```{r}
+grep("P", states, value = TRUE)
+```
+
+Notice that we only got the states whose names have a capital P. What if we want all states with either p or P?
+
+```{r}
+grep(pattern = "[pP]", x = states, value = TRUE)
+```
+
+or we can use the function *tolower*, which turns all the letters into lower case:
+
+```{r}
+grep("p", tolower(states), value = TRUE)
+```
+
+Of course there is also a *toupper* function.
+
+There is also the *grepl* function, which returns TRUE if the string contains the pattern:
+
+```{r}
+grepl(pattern = "A", states)[1:6]
+```
+
+Suppose we want to replace all the A's with *'s:
+
+```{r}
+gsub("A", "*", states)[1:6]
+```
+
+There is also the *sub* function, which does the same as gsub but only to the first occurance:
+
+```{r}
+sub("a", "A", c("abba"))
+gsub("a", "A", c("abba"))
+```
+
+Let’s ask the following question: what is the distribution of the vowels in the names of the States?  For instance, let’s start with the number of a’s in each name.  There’s a very useful function for this purpose: *gregexpr*.  
+
+We can use it to get the number of times that a searched pattern is found in a character vector.  When there is no match, we get a value -1.
+
+```{r}
+positions_a <- gregexpr(pattern = "a", text = states, ignore.case = TRUE)
+positions_a[[1]]
+```
+
+tells us that in "Alabama" there are a's in positions 1, 3, 5 and 7.
+
+Now we need to go through all the states names and find out how many a's there are in each. Here is a fast way to do this. We will soon talk about the *apply* family of functions, don't worry about it for now.
+
+```{r}
+num_a <- sapply(positions_a, function(x) ifelse(x[1] > 0, length(x), 0))
+num_a
+```
+
+Now let's do this for all the vowels:
+
+```{r}
+vowels <- c("a", "e", "i", "o", "u")
+num_vowels <- rep(0, 5)
+names(num_vowels) <- vowels
+for(i in 1:5) {
+  positions <- gregexpr(pattern = vowels[i], 
+          text = states, ignore.case = TRUE)
+  num_vowels[i] <- sum(sapply(positions, 
+     function(x) ifelse(x[1] > 0, length(x), 0)))
+}
+num_vowels
+```
+
+(Here I am using a "for" loop, we will discuss this thing soon!)
+
+`r rmd$hr()`
+
+###paste
+
+One of the most useful commands in R is *paste*. It let's us put together various parts as a string:
+
+```{r}
+paste(1:3)
+paste("a", 1:3)
+paste("a", 1:3, sep=":")
+paste("a", 1:3, sep="")
+paste0("a", 1:3)
+```
+
+Notice that the last two are the same.
+
+If we want to make a single string use
+
+```{r}
+paste0("a", 1:3, collapse="")
+```
+
+paste "combines" stuff into a string. Sometimes we want to do the opposite:
+
+```{r}
+txt <- "This is a short sentence"
+strsplit(txt, " ")
+```
+
+notice that the result is a list, so often we use
+ 
+```{r}
+unlist(strsplit(txt, " "))
+```
+ 
+##Regular Expressions
+
+A *regular expression* (a.k.a. regex) is a special text string for describing a certain amount of text.  This “certain amount of text” receives the formal name of pattern.  Hence we say that a regular expression is a pattern that describes a set of strings. 
+
+Tools for working with regular expressions can be found in virtually all scripting languages (e.g.  Perl,  Python,  Java,  Ruby,  etc). R has  some  functions  for  working  with  regular  expressions  although  it  does  not  provide  the  wide  range  of  capabilities  that  other  scripting languages do.  Nevertheless, they can take us very far with some workarounds (and a bit of patience).
+
+To know more about regular expressions in general, you can find some useful information in the following resources:
+
+-  Regex wikipedia [http://en.wikipedia.org/wiki/Regular_expression](http://en.wikipedia.org/wiki/Regular_expression)
+
+-  Regular-Expressions.info website (by Jan Goyvaerts) [http://www.regular-expressions.info](http://www.regular-expressions.info)
+
+The main purpose of working with regular expressions is to describe patterns that are used to match against text strings.  Simply put, working with regular expressions is nothing more than pattern matching.
+
+The result of a match is either successful or not. The simplest version of pattern matching is to search for one occurrence (or all occurrences)
+of some specific characters in a string.  For example, we might want to search for the word "programming" in a large text document, or we might want to search for all occurrences of the string "apply" in a series of files containing R scripts.
+
+The most important use of regular expressions is in the replacement of a pattern, say using gsub. Regular expressions allow us to not just use specific characters as patterns but much more general things:
+
+Let's take the vector
+
+```{r echo=2}
+txt <- c("In", 2017, "there", "where", 17, "hurricanes")
+txt
+```
+
+Let's say I want to know which elements of the vector are (or at least could be) numeric:
+
+```{r}
+grepl("\\d", txt)
+```
+
+say we want to replace the spaces in a sentence with the underscore:
+
+```{r}
+gsub("\\s", "_", "Not a very interesting sentence")
+```
+
+We already used [pP] before to match both small and large cap p's. This is in fact a regular expression:
+
+```{r}
+gsub("[0-9]", "%", txt)
+```
+
+A ^ in front is NOT:
+
+```{r}
+gsub("[^0-9]", "%", txt)
+```
+
+say we have a sentence that is a mixture of characters and numbers and we want to pick out the numbers as numeric:
+
+```{r}
+txt
+as.numeric(txt[grepl("\\d", txt)])
+```
+
+##POSIX
+
+Closely related to the regex character classes we have what is known as
+POSIX  character classes. In R, POSIX character classes are represented with expressions inside double brackets [[ ]]. 
+
+[[:lower:]] Lower-case letters  
+[[:upper:]] Upper-case letters
+[[:alpha:]]  Alphabetic characters ([[:lower:]] and [[:upper:]])  
+[[:digit:]] Digits:  0, 1, 2, 3, 4, 5, 6, 7, 8, 9  
+[[:alnum:]] Alphanumeric characters ([[:alpha:]] and [[:digit:]])  
+[[:blank:]] Blank characters:  space and tab 
+[[:cntrl:]] Control characters  
+[[:punct:]] Punctuation characters:  !  ” # % & ’ ( ) * + , - .  / :  ;  
+[[:space:]] Space characters:  tab, newline, vertical tab, form feed,
+carriage return, and space  
+[[:xdigit:]] Hexadecimal digits:  0-9 A B C D E F a b c d e f  
+[[:print:]] Printable characters ([[:alpha:]], [[:punct:]] and space)
+[[:graph:]] Graphical characters ([[:alpha:]] and [[:punct:]])
+
+so we could also do this
+
+```{r}
+as.numeric(txt[grepl("[[:digit:]]", txt)])
+```
+
+
+##Some Examples
+
+###Palindrome
+
+a *palindrome* is a word that is the same when read forwards or backwards. Some examples are noon, civic, radar, level, rotor, kayak, reviver, racecar, redder, madam, and refer. Let's write a sequence of commands that take a sentence and return any palindromes. As an example, consider
+
+```{r}
+txt <- "At Noon the Meteorologist is checking the Radar"
+```
+
+which should result in the vector ("noon", "radar").
+
+First we need to split the sentence into words:
+
+```{r}
+wrds <- unlist(strsplit(txt, " "))
+wrds
+```
+
+Next we need to turn each word around:
+
+```{r}
+n <- length(wrds)
+rev.wrds <- rep("", n)
+for(i in 1:n) 
+  rev.wrds[i] <- paste(unlist(strsplit(wrds[i], ""))[nchar(wrds[i]):1], collapse = "")
+rev.wrds
+```
+
+Finally, let's check whether the words are the same, but taking into account that Noon is still a palindrome!
+
+```{r}
+wrds[tolower(wrds) == tolower(rev.wrds)]
+```
+
+###HTML Table
+
+Let's write a routine that takes a data frame and creates a vector of 
+characters which correspond to an html table.
+
+The general format of such a table is this
+
+```{r echo=FALSE}
+txt <- c(" <table border=\"1\">",
+         "<tr><th>First</th><th>Second</th</tr>",
+         "<tr><td>1.0</td><td>2.5</td</tr>",
+         "<tr><td>1.5</td><td>1.5</td</tr>",
+         "</table>")
+cat(paste(txt,"\n"))
+```
+
+which results in this table:
+
+<table border="1">
+<tr><th>First</th><th>Second</th</tr>
+<tr><td>1.0</td><td>2.5</td</tr>
+<tr><td>1.5</td><td>1.5</td</tr>
+</table>
+
+As an example consider this table for the data set *brainsize*:
+
+```{r echo=FALSE}
+knitr::kable(brainsize[1:5,])
+```
+
+First we write a routine that adds the tags to a vector:
+
+```{r}
+add.tags <- function(x, which="header") {
+  if(which=="header")
+     out <- paste0("<th>", x, "</th>", collapse="")
+  else
+    out <- paste0("<td>", x, "</td>", collapse="")
+  out
+}
+```
+
+and now we can write the routine:
+
+```{r}
+make.html.table <- function(x) {
+  txt <- c(add.tags(colnames(x), "header"),
+  apply(x, 1, add.tags, which="body"))
+  html.tbl <- c("<table border=\"1\">",
+      paste0("<tr>", txt, "</tr>"),
+      "</table>")
+  write(html.tbl, "clipboard", ncol=1)
+}  
+```
+
+Notice the routine writes the table to the clipboard. You can now run the routine, go to any html editor and simply paste the text in there.
+
+###Email Addresses
+
+Consider the web site of the Math department at [http://math.uprm.edu/academic/people.php](http://math.uprm.edu/academic/people.php)
+
+Let's say we want to write a routine that picks out all the email addresses.
+
+First we need to download the web site. This can be done with the scan command because as is explained in the help file the argument can be a *connection*, which includes URL's
+
+```{r eval=FALSE}
+txt <- scan("http://math.uprm.edu/academic/people.php", 
+      what="char", sep="\n")
+```
+
+```{r echo=FALSE}
+txt <- scan("C:\\Users\\Wolfgang\\Dropbox\\teaching\\Computing with R\\emails.txt", what="char", sep="\n")
+```
+
+Next we need to figure out what defines an email address. Obviously it needs to have the @ symbol, so let's go through the text and pick out those lines that have the @ symbol:
+
+```{r}
+sum(str_count(txt, "@"))
+txt <- grep("@", txt, value = TRUE)
+length(txt)
+```
+
+So the @ symbol appears 236 time. but strangly there are only 5 lines with @ symbols! That is because 
+
+```{r}
+substring(txt[1], 1, 500)
+```
+
+so on the website the addresses are in a table, which we read in as a single string. We can see that immediately after each email address is the text \</a\> , which is the html tag to end a link. Let's split up the text according to the \</a\> tag:
+
+```{r}
+txt <- unlist(str_split(paste(txt, collapse=""), "</a>"))
+txt[1:2]
+```
+
+Notice that we need to use the stringr routine str_split, because the basic R routine strsplit does not recognize regular expressions.
+
+Ok, next we have to eliminate all the lines that don't have a @ in it:
+
+```{r}
+txt <- grep("@", txt, value = TRUE)
+length(txt)
+```
+
+which is good because 2*118=236, and each address appeared twice in the table. So we got all of them.
+
+Finally we need to extract the email adress from each line. Checking them we see that just before each address is an empty space, so maybe this will work:
+
+```{r}
+txt <- unlist(str_split(txt, " "))
+txt <- grep("@", txt, value = TRUE)
+txt[1:4]
+```
+
+not quite, but now:
+
+```{r echo=-1}
+txt <- txt[-107]
+txt <- txt[!grepl("href", txt)]
+txt
+```
+
+
+
