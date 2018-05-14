@@ -41,7 +41,7 @@ require(grid)
 2.12 [Environments, libraries](environments.html)  
 2.13 [Costumizing R: .First, .Rprofile, Dropbox](customize.html)  
 
-##2  Extending R, Packages
+##3  Extending R, Packages
 
 3.1&nbsp; [ggplot2](ggplot2.html)  
 3.2&nbsp; [Rcpp](rcpp.html)  

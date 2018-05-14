@@ -37,6 +37,8 @@ Unfortunately getting going with github is not a simple process. You need to ins
 
 The main idea behind github is to branch a repository. Essentially that makes a complete copy. You can then make any changes, but without changing the *master* copy. Once you are certain your changes will stay you *commit* them back to the master. You can make such a branch of any repo that was declared public, which is most of them, even if it is not yours. Then if they make changes to the files, all you need to do is *pull* the repo and you also have the latest version!
 
+This course is available on github at [https://github.com/WolfgangRolke/Computing-with-R](https://github.com/WolfgangRolke/Computing-with-R)
+
 ##Setting up a new repo
 
 Go to https://github.com and make sure you are logged in.

@@ -4,7 +4,6 @@ output:
   html_document: default
   pdf_document:
     fig_caption: no
-runtime: shiny
 ---
 <style>
 table, th, td { text-align:right; }
@@ -37,7 +36,8 @@ shiny is a package that has routines to create interactive web applications that
 
 Let's begin by creating a page that does the following: it generate a data set with n observations from a standard normal distribution and then draws the histogram. The user can choose n:
 
-```{r eval=FALSE}
+**example1**
+```{r example1, eval=FALSE}
 ui <- fluidPage(
   numericInput("n", "Sample Size", 1000),
   plotOutput("plot1")
@@ -54,13 +54,14 @@ server <- function(input, output) {
 shinyApp(ui, server)
 ```
 
-Now if you have this R markdown document in RStudio you can hit knit and it will create a webpage with the shiny app inside. However, this webpage will mostly run as a stand-alone page, without R. I have written this page instead in such a way that you can run the app by running the command
+If you are on a computer that has R running with shiny installed you can run this and all the apps here with
 
 ```{r eval=FALSE}
-runUrl("http://academic.uprm.edu/wrolke/Computing with R/shiny/example1.zip")
+runGitHub("Computing-with-R", "WolfgangRolke", 
+          subdir = "shiny/example1")
 ```
 
-To start writing a small app simply go to File > New File > Shiny Web App. If you copy paste the programs above into it and then click on Run App, you can see the app as well.
+you can also do this: File > New File > Shiny Web App, copy-paste commands into file, click Run App
 
 Next we improve the app in three ways:
 
@@ -68,7 +69,7 @@ Next we improve the app in three ways:
 -  add the possibility to change the number of bins
 -  add a title
 
-```{r eval=FALSE}
+```{r example2, eval=FALSE}
 ui <- fluidPage(
   titlePanel("Histogram App"),
   sidebarLayout(
@@ -93,4 +94,230 @@ shinyApp(ui, server)
 ```
 
 notice also that instead of a numericInput I used a textInput, although nbins is meant to be a number. I often do this becasue I find the appearance of text inputs more pleasing. I can of course always turn it into a number with *as.numeric*.
+
+Next we will use one of the most useful commands in shiny: *conditionalPanel*. With this we can control what happens in the app depending on the users choices.
+
+Let's add the possibility to show a boxplot instead of the histogram. Notice that there are no bins in a boxplot, so we want to show the nbins input only when a histogram is done:
+
+
+```{r example3, eval=FALSE}
+ui <- fluidPage(
+  titlePanel("Histogram or Boxplot App"),
+  sidebarLayout(
+    sidebarPanel(
+      numericInput("n", "Sample Size", 1000),
+      selectInput("whichgraph", "What Graph?", 
+          choices=c("Histogram", "Boxplot"), selected="Boxplot"),
+      conditionalPanel(condition="input.whichgraph=='Histogram'",     
+         textInput("nbins", "Number of bins", "50", width = "20%")
+      )   
+    ),
+    mainPanel(
+      conditionalPanel(condition="input.whichgraph=='Histogram'",
+         plotOutput("plot1")
+      ),
+      conditionalPanel(condition="input.whichgraph=='Boxplot'",
+         plotOutput("plot2")
+      )   
+    )  
+  )   
+))
+server <- function(input, output) {
+  output$plot1 <- renderPlot({
+    x <- rnorm(input$n)  
+    bw <- diff(range(x))/as.numeric(input$nbins)
+    ggplot(data.frame(x=x), aes(x)) +
+      geom_histogram(color = "black", fill = "white", binwidth = bw) + 
+      labs(x="x", y="Counts")
+  })
+  output$plot2 <- renderPlot({
+    x <- rnorm(input$n)  
+    df <- data.frame(x=x, z=rep(" ", length(x)))
+    ggplot(df, aes(z, x)) + geom_boxplot() + xlab("")
+  })
+}
+shinyApp(ui, server)
+```
+
+Another useful feature is the ability to create tabs. Let's say we want to show the histogram on one tab and the boxplot on another:
+
+```{r example4, eval=FALSE}
+ui <- fluidPage(
+  titlePanel("Histogram or Boxplot App"),
+  sidebarLayout(
+    sidebarPanel(
+      numericInput("n", "Sample Size", 1000),
+      conditionalPanel(condition="input.mytabs=='Histogram'",     
+         textInput("nbins", "Number of bins", "50", width = "20%")
+      )   
+    ),
+    mainPanel(
+    tabsetPanel(
+          tabPanel("Histogram", plotOutput("plot1")),
+          tabPanel("Boxpot", plotOutput("plot2")),
+          id="mytabs"
+      )
+    )  
+  )  
+))
+```
+
+Notice again the use of conditionalPanel: now the nbins box appears when the Histogram tab is selected.
+
+Did you notice a slight flaw in the program? When we switch from one graph to the other the data is generated anew, so the graphsare not for the same data set. Let's fix this.
+
+Also let's say we want on another tab to show some summary statistics:
+
+
+```{r example5, eval=FALSE}
+ui <- fluidPage(
+  titlePanel("Histogram or Boxplot App"),
+  sidebarLayout(
+    sidebarPanel(
+      numericInput("n", "Sample Size", 1000),
+      conditionalPanel(condition="input.mytabs=='Histogram'",     
+         textInput("nbins", "Number of bins", "50", width = "20%")
+      )   
+    ),
+    mainPanel(
+    tabsetPanel(
+          tabPanel("Histogram", plotOutput("plot1")),
+          tabPanel("Boxpot", plotOutput("plot2")),
+          tabPanel("Summary Statistics", uiOutput("text1")),
+          id="mytabs"
+      )
+    )  
+  )  
+))
+server <- function(input, output) {
+  
+  data <- reactive({
+     rnorm(input$n)  
+  })
+
+  summaries <- reactive({
+     x <- data()
+     list(n=length(x), xbar=round(mean(x), 3), shat=round(sd(x), 3))
+  })
+
+  output$plot1 <- renderPlot({
+    bw <- diff(range(data()))/as.numeric(input$nbins)
+    ggplot(data.frame(x=data()), aes(x)) +
+    geom_histogram(color = "black", fill = "white", binwidth = bw) + 
+    labs(x="x", y="Counts")
+  })
+  
+  output$plot2 <- renderPlot({
+    x <- data()
+    df <- data.frame(x=x, z=rep(" ", length(x)))
+    ggplot(df, aes(z, x)) + geom_boxplot() + xlab("")
+  })
+  
+  output$text1 <- renderText({
+      lns <- "<table>"
+      lns[2] <- paste("<tr><th>Sample Size&nbsp;</th><td>", summaries()[1], "</td></tr")
+      lns[3] <- paste("<tr><th>Mean&nbsp;&nbsp;</th><td>", summaries()[2], "</td></tr")
+      lns[4] <- paste("<tr><th>Standard Deviation&nbsp;&nbsp;&nbsp;</th><td>", summaries()[3], "</td></tr")
+      lns[5] <- "</table>"
+      lns
+  })
+}
+shinyApp(ui, server)
+```
+
+This also shows that we can use html syntax in shiny. This is not a surprise because in the end it is a web page!
+
+shiny apps are incredible versatile, you can write apps with a lot of stuff in it. You can even make little movies:
+
+
+```{r example6, eval=FALSE}
+ui <- fluidPage(
+  titlePanel("2-D Random Walk"),
+  sliderInput("step","Step",
+     min=1, max=100, value=1, step=1,
+     animate=animationOptions(interval = 500, loop = FALSE)),
+  plotOutput("plot", width="500", height="500")
+)
+server <- function(input, output) {
+  data <- reactive({
+    x <- cumsum(c(rep(0, 10), rnorm(1000)))  
+    y <- cumsum(c(rep(0, 10), rnorm(1000)))
+    data.frame(x=x, y=y)
+  })
+
+  make.plot <- reactive({
+       xymax <- abs(max(data()))
+       ggplot(data(), aes(x, y)) +
+         lims(x=1.2*c(-xymax, xymax), y=1.2*c(-xymax, xymax)) +
+         labs(x="x", y="y")  
+  
+  })
+
+  output$plot <- renderPlot({
+ 
+    for(i in 1:input$step) {
+       plt <- make.plot() +
+         geom_point(data=data()[10*i, ],
+            aes(x,y), size=2, color="red") + 
+         geom_line(data=data()[1:(10*i), ], aes(x,y), 
+           size=0.25, color="blue", alpha=0.5)
+    }     
+    plt
+  })
+}
+
+shinyApp(ui, server)
+```
+
+##Create/Run/Distribute Shiny Apps
+
+There are a number of ways to run and distribute shiny apps
+
+1.  Create an app: 
+   -  small apps are easiest done within RStudio, as in our example1  
+   -  for larger apps you should have two separate files called ui.R and server.R is some folder, say myapp1. For example 1 they would look like this:
+  
+**ui.R**
+```{r eval=FALSE}
+shinyUI(fluidPage(
+  numericInput("n", "Sample Size", 1000),
+  plotOutput("plot1") 
+))
+```
+
+**server.R**  
+```{r eval=FALSE}
+shinyServer(function(input, output) {
+ output$plot1 <- renderPlot({
+    x <- rnorm(input$n)  
+    bw <- diff(range(x))/50
+    ggplot(data.frame(x=x), aes(x)) +
+    geom_histogram(color = "black", fill = "white", binwidth = bw) + 
+    labs(x="x", y="Counts")
+  })
+})
+```
+
+then in the console run
+
+```{r eval=FALSE}
+runApp("PATH/myapp1")
+```
+
+where PATH is the folder path to myapp1.
+
+2.  Distribute an app
+   -  you can upload the folder myapp1 to github and then use
+```{r eval=FALSE}
+runGitHub("reponame", "username", 
+          subdir = "shiny/myapp1")
+```
+
+here I  assume you have myapp1 in a folder called shiny.  
+   -  you can make a zip file out of the folder myapp1, upload it to a web site and then run
+```{r eval=FALSE}
+runUrl("http://websiteurl/shiny/myapp1.zip")
+```
+   -  go to [https://www.shinyapps.io][https://www.shinyapps.io], set up a (free) account. Then you can upload a few apps. The big advantage of this is that even people who don't have R can now run your app.
+   
 
