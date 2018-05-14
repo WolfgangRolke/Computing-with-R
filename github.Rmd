@@ -1,0 +1,84 @@
+---
+header-includes: \usepackage{color}
+output:
+  html_document: default
+  pdf_document:
+    fig_caption: no
+---
+<style>
+table, th, td { text-align:right; }
+th, td {padding: 10px;}
+</style>
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+whichcomp <- strsplit(getwd(),"/")[[1]][3]
+load(paste0("c:/users/", whichcomp, "/Dropbox/Resma3/Resma3.RData"))
+library(knitr)
+opts_chunk$set(fig.width=6, fig.align = "center", 
+      out.width = "70%", warning=FALSE, message=FALSE)
+library(ggplot2)
+library(grid)
+```
+`r rmd$basefontsize()`
+
+#Version Control, github
+
+Notice that the title doesn't read *with github*. This is because github is not an R package. It is much more general.
+
+Once you start working on larger projects (like a thesis?) you quickly run into the following problem: you consider a change to the existing document but you are not sure yet. So you make a copy. Then the same thing hapens again, and again ... Eventually you have 10 copies with strange names and no idea what is what. Version control is a general principle to keep track of all these changes. 
+
+It gets even more important when you begin to collaborate with others, and everyone makes changes to the same document.
+
+There are many version control systems available. In fact dropbox has a very rudimentary one, it keeps older versions of a file so you can restore it when needed. But one of the very best is github, located at [https://github.com/](https://github.com/). 
+
+For a detailed introduction to git, github and how they work with RStudio see [Happy git with R](http://happygitwithr.com)
+
+Unfortunately getting going with github is not a simple process. You need to install several programs. My advice is to follow the instructions on *Happy git with R* **precisely**.
+
+The main idea behind github is to branch a repository. Essentially that makes a complete copy. You can then make any changes, but without changing the *master* copy. Once you are certain your changes will stay you *commit* them back to the master. You can make such a branch of any repo that was declared public, which is most of them, even if it is not yours. Then if they make changes to the files, all you need to do is *pull* the repo and you also have the latest version!
+
+##Setting up a new repo
+
+Go to https://github.com and make sure you are logged in.
+
+Click green “New repository” button. Or, if you are on your own profile page, click on “Repositories”, then click the green “New” button.
+
+Repository name: myrepo 
+
+Public
+
+YES Initialize this repository with a README
+
+
+Click big green button “Create repository.”
+
+Copy the HTTPS clone URL to your clipboard 
+
+Now go to RStudio
+
+start with File > New Project > Version Control and choose git.
+
+paste the URL into the box and choose an appropriate folder.
+
+Open a file explorer window and go to that folder. You will now find a file README.md as well as an R project file in there.
+
+Copy any files you wish to be part of the repo into this folder.
+
+Go to RStudio and click on Git in the upper right corner, next to Environment etc. You see all these files, check the boxes next to them under Staged.
+
+Clickon Commit, type a meassage and click Commit. A new window will pop up, when it is done click Close. 
+
+Finally click Push. RStudio will now send those files to github. When it is done click on close
+
+Switch to your browser, refresh, and you should see those files.
+
+Click on an Rmd and you will see something interesting: these are quite readable. In essence you don't need to knit to html or pdf, if you use github the Rmd itself becomes a webpage.
+
+Now whenever you make a substancial change to one of these files, repeat the Commit-Push steps to upload the file to github.
+
+
+
+
+
+
+
