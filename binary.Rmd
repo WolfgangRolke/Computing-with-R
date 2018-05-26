@@ -1,0 +1,412 @@
+---
+title: ''
+output: html_document
+---
+
+---
+header-includes: \usepackage{color}
+output:
+  html_document: default
+  pdf_document:
+    fig_caption: no
+runtime: shiny
+---
+<style>
+table, th, td { text-align:right; }
+th, td {padding: 10px;}
+</style>
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+whichcomp <- strsplit(getwd(),"/")[[1]][3]
+load(paste0("c:/users/", whichcomp, "/Dropbox/Resma3/Resma3.RData"))
+library(knitr)
+opts_chunk$set(fig.width=6, fig.align = "center", 
+      out.width = "70%", warning=FALSE, message=FALSE)
+library(ggplot2)
+library(grid)
+```
+`r rmd$basefontsize()`
+
+#Case Study: Binary Numbers
+
+Let's write a function that adds together two binary numbers. A binary number is a sequence of 0's and 1's:
+
+$$
+\begin{aligned}
+&0=0     \\
+&1=1     \\
+&2=10     \\
+&3=11     \\
+&4=100     \\
+&5=101     \\
+&6=110   \\
+&7=111     \\
+&8=1000    \\
+\end{aligned}
+$$
+First we need to figure out how to represent these numbers in R. The easiest way is as a sequence of 0's and 1's.
+
+How does addition work? essentially we add them piece by piece from right to left, with a 1 carried over whenever there are two 1's. For example
+
+$$
+\begin{aligned}
+\text{ }&0010 \text{ }\text{ }\text{ }(2)\\
++\text{ }&0110 \text{ }\text{ }\text{ }(6)  \\
+=\text{ }&1000 \text{ }\text{ }\text{ }(8)\\
+\end{aligned}
+$$
+A general algorithm for addition looks like this:
+
+![](graphs/binary.addition.png)
+
+It uses some strange words, but those are not important to us. Here is the corresponding R function:
+
+```{r}
+binary_addition <- function(x, y) {
+#First make x and y of equal length and with one extra 
+#slot in case it's needed for carry over
+#Fill x and y with 0's as needed. 
+  n <- length(x)
+  m <- length(y)
+  N <- max(n, m)+1
+  x <- c(rep(0, N-n), x)
+  y <- c(rep(0, N-m), y)  
+  s <- rep(0, N) # for result
+  ca <- 0 #for carry over term
+  for(i in N:1) {
+      n <- x[i]+y[i]+ca
+      if(n<=1) {#no carry over
+        s[i] <- n
+        ca <- 0
+      }  
+      else {#with carry over
+        s[i] <- 0
+        ca <- 1
+      }
+    }
+  if(s[1]==0) s <- s[-1]#leading 0 removed if necessary
+  s
+}
+binary_addition(c(1, 0), c(1, 1, 0))
+```
+
+Now let's write our own infix addition operator:
+
+```{r}
+'%+%' <- function(x, y) binary_addition(x, y)
+c(1, 0) %+% c(1, 1, 0)
+```
+
+Notice a big problem with how we have defined binary numbers: how are we going to define a vector of them, as a vector of vectors? Lists might work, but would be a bit ugly. A better idea might be as a character string like \"0101\". But before we can handle that we will need to learn how to work with strings.
+
+Let's write two more functions:
+
+1)  *is.binary* should check whether a vector is (can be) a binary number. For this it has to consist entirely of 0's and 1's:
+
+```{r}
+is.binary <- function(x) {
+  if(all(x==0)) return(TRUE)
+  x <- x[x!=0]
+  x <- x[x!=1]
+  if(length(x)==0) return(TRUE)
+  return(FALSE)
+}
+is.binary(c(1, 0, 1, 1))
+is.binary(1)
+is.binary(0)
+is.binary(c(1, 2, 1, 1))
+```
+
+2)  *as.binary* should turn vectors into a binary number. For this we will use the following rules:
+
+   -  0 &rarr; 0, x &ne;0 &rarr; 1
+   -  FALSE &rarr; 0, TRUE &rarr; 1 
+   -  Anything else NA
+   
+
+```{r}
+as.binary <- function(x) {
+  if(is.logical(x)) return(as.numeric(x))
+  if(is.numeric(x)) return(ifelse(x==0, 0, 1))
+  NA
+}
+as.binary(c(0, 1, 2, 1, 2))
+as.binary(1:4 > 2)
+as.binary(0)
+as.binary(c(1, 2, 1, "a"))
+```
+
+##Decimal - Binary
+
+How can we turn a decimal into a binary? Notice the following
+
+$$
+\begin{aligned}
+&0=0=0\times2^0     \\
+&1=1=1\times2^0   \\
+&2=10=1\times2^1+0\times2^0     \\
+&3=11=1\times2^1+1\times2^0     \\
+&4=100=1\times2^2+0\times2^1+0\times2^0     \\
+&5=101=1\times2^2+0\times2^1+1\times2^0     \\
+&6=110=1\times2^2+1\times2^1+1\times2^0   \\
+&7=111=1\times2^2+1\times2^1+1\times2^0     \\
+&8=1000=1\times2^3+0\times2^2+0\times2^1+0\times2^0   \\
+\end{aligned}
+$$
+so the idea is to write x as in the form $\sum i_k 2^k$
+
+Let's try an example:
+
+$$
+26 = 16+10=2^4+8+2=2^4+2^3+2^1=(1, 1, 0, 1, 0)
+$$
+why 16? because it is $\max\left\{i \in N: 2^i<26\right\}$.
+
+For a general number m, how can we find out what this largest i is? We have
+
+$$
+\begin{aligned}
+&2^i \le m  \\
+&i\log(2)\le \log(m)  \\
+&i \le \log(m)/\log(2)  \\
+\end{aligned}
+$$
+and in fact if we use log base 2 we have $i=\text{floor}(\log(m, base=2))$!
+
+```{r}
+decimal.2.binary <- function(x) {
+    if(x==0) return(0)  
+    if(x==1) return(1)  
+    i <- floor(log(x, base=2))
+    bin.x <- rep(1, i+1)
+    x <- x-2^i
+    for(j in (i-1):0) {
+       if(2^j>x) 
+         bin.x[j+1] <- 0
+       else {
+         bin.x[j+1] <- 1
+         x <- x-2^j
+       }
+    }
+    bin.x[length(bin.x):1]
+}
+decimal.2.binary(7)
+decimal.2.binary(8)
+decimal.2.binary(26)
+```
+
+Of course, the other way around is much simpler:
+
+```{r}
+binary.2.decimal <- function(x) sum(x*2^(length(x):1-1))
+binary.2.decimal(c(1, 1, 1))
+binary.2.decimal(c(1, 0, 0, 0))
+binary.2.decimal(c(1, 1, 0, 1, 0))
+binary.2.decimal(decimal.2.binary(126))
+```
+
+![](graphs/binary.multiplication.png)
+
+##Binary as Character
+
+
+We have previously discussed binary arithmetic. There we used a simple vector of 0's and 1's. The main problem with that is that it is hard to vectorize the routines. Instead we will now use character sequences like "1001". 
+
+We have previously written several functions for this. We will want to reuse them but also adapt them to this new format. To do so we need to turn a character string into a vector of numbers and vice versa. Also we want our routines to be vectorized:
+
+-  Decimal to Binary
+
+```{r}
+decimal.2.binary <- function(x) {
+  n <- length(x)
+  y <- rep("0", n)
+  for(k in 1:n) {
+    if(x[k]==0 | x[k]==1) {  #simple cases 
+        y[k] <- x[k]
+        next
+    }    
+    i <- floor(log(x[k], base=2)) #largest power of 2 less than x
+    bin.x <- rep(1, i+1) #we will need i+1 0'1 and 1's, first is 1
+    x[k] <- x[k]-2^i 
+    for(j in (i-1):0) {
+       if(2^j>x[k]) 
+         bin.x[j+1] <- 0
+       else {
+         bin.x[j+1] <- 1
+         x[k] <- x[k]-2^j
+       }
+    }
+    y[k] <- paste(bin.x[length(bin.x):1], collapse="")
+  }
+  y
+}
+decimal.2.binary(c(7, 8, 26))
+```
+
+-  Binary to Decimal
+
+```{r}
+binary.2.decimal <- function(x){
+  n <- length(x)
+  y <- rep(0, n)
+  for(i in 1:n) {
+    tmp <- as.numeric(strsplit(x[i], "")[[1]])
+    y[i] <- sum(tmp*2^(length(tmp):1-1))
+  }
+  y
+}  
+binary.2.decimal(c("111", "1000", "11010"))
+binary.2.decimal(decimal.2.binary(126))
+decimal.2.binary(binary.2.decimal(c("100101")))
+```
+
+-  *is. binary*:
+
+```{r}
+is.binary <- function(x) {
+  n <- length(x)
+  y <- rep(TRUE, n)
+  for(i in 1:n) {
+      x.vec <- as.numeric(strsplit(x[i], "")[[1]])
+      if(all(x.vec==0)) {
+          y[i] <- TRUE 
+          next
+      }
+      x.vec <- x.vec[x.vec!=0]
+      x.vec <- x.vec[x.vec!=1]
+      if(length(x.vec)==0) y[i] <- TRUE 
+      else y[i] <- FALSE 
+  }
+  y
+}  
+is.binary(c("1001", "0", "11a1"))
+```
+
+-  addition
+
+Here I am going to reuse the routine we had already written:
+
+```{r}
+binary_addition <- function(x, y) {
+#First make x and y of equal length and with one extra 
+#slot in case it's needed for carry over
+#Fill x and y with 0's as needed. 
+  n <- length(x)
+  m <- length(y)
+  N <- max(n, m)+1
+  x <- c(rep(0, N-n), x)
+  y <- c(rep(0, N-m), y)  
+  s <- rep(0, N) # for result
+  ca <- 0 #for carry over term
+  for(i in N:1) {
+      n <- x[i]+y[i]+ca
+      if(n<=1) {#no carry over
+        s[i] <- n
+        ca <- 0
+      }  
+      else {#with carry over
+        s[i] <- 0
+        ca <- 1
+      }
+    }
+  if(s[1]==0) s <- s[-1]#leading 0 removed if necessary
+  s
+}
+binary_addition(c(1, 0), c(1, 1, 0))
+```
+
+
+
+```{r}
+binary.addition<- function(x, y) {
+  n <- length(x)
+  m <- length(y)
+  if(m!=n) cat("Vectors have to have the same length!\n")
+  s <- rep("0", n)
+  for(i in 1:n) {
+    x.vec <- as.numeric(strsplit(x[i], "")[[1]])
+    y.vec <- as.numeric(strsplit(y[i], "")[[1]])
+    tmp <- binary_addition(x.vec, y.vec)
+    s[i] <- paste(tmp, collapse="")
+  }
+  s
+}  
+binary.addition(c("0", "10", "1001"), c("0", "110", "1101"))
+```
+
+Let's turn this into an infix addition operator:
+
+```{r}
+'%+b%' <- function(x, y) binary.addition(x, y)
+x <- c("10", "1001", "100101", "11101001") 
+y <- c("101", "1001", "10101", "1001100") 
+binary.2.decimal(x)
+binary.2.decimal(y)
+z <- x %+b% y 
+x
+binary.2.decimal(z)
+```
+
+Let's define a new class of objects "binary numbers":
+
+```{r}
+as.binary <- function(x) {
+  class(x) <- "binary"
+  return(x)
+}
+```
+
+what methods might be useful here? Let's write two:
+
+-  print
+
+this is how our number will appear when we use print(x):
+
+```{r}
+print <- function(x) UseMethod("print")
+print.binary <- function(x) {
+  n <- length(x)
+  for(i in 1:length(x)) {
+    y <- as.numeric(strsplit(x[i], "")[[1]])
+    y <- paste(y, collapse = ".")
+    cat(y, "\n")
+  }
+
+}
+x <- as.binary(c("10", "1001", "100101"))
+print(x)
+```
+
+- summary
+
+what should we calculate as summary statistics? Let's do three:
+
+  - how many  
+  - most frequent (mode, NA if all only once)  
+  - percentage of 0's  
+  
+
+```{r}
+summary <- function(x) UseMethod("summary")
+summary.binary <- function(x) {
+  n <- length(x)
+  if(length(unique(x))==length(x)) mode <- NA
+  else {
+    z <- table(x)
+    z <- z[z==max(z)]
+    mode <- names(z)
+  }  
+  y <- paste(x, collapse = "") #one long string
+  y <- as.numeric(strsplit(y, "")[[1]]) #vector of 0's and 1's
+  y <- round(sum(y==0)/length(y)*100, 1)
+  cat("N =", n, "\n")
+  cat("Mode =", mode, "\n")
+  cat("% 0's =", y, "\n")
+}
+x <- sample(1:100, size=1000, replace=TRUE)
+x <- as.binary(decimal.2.binary(x))
+print(x[1:5])
+summary(x)
+```
+  
+  

@@ -16,9 +16,8 @@ load(paste0("c:/users/", whichcomp, "/Dropbox/Resma3/Resma3.RData"))
 library(knitr)
 opts_chunk$set(fig.width=6, fig.align = "center", 
       out.width = "70%", warning=FALSE, message=FALSE)
-rm(select)
 ```
-`r rmd$basefontsize()`
+`r hl()$basefontsize()`
 
 #Dates with lubridate
 
@@ -27,7 +26,7 @@ library(tidyverse)
 library(lubridate)
 ```
 
-For a more detailed discussion see [Dates and Times Made Easy with lubridate](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=6&ved=0ahUKEwjbm6-wvd_aAhUFneAKHRucD6cQFghjMAU&url=https%3A%2F%2Fwww.jstatsoft.org%2Farticle%2Fview%2Fv040i03%2Fv40i03.pdf&usg=AOvVaw1oHgFlV3bI-jAlcLyrugha)
+For a more detailed discussion see [Dates and Times Made Easy with lubridate](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=6&ved=0ahUKEwjbm6-wvd_aAhUFneAKHRucD6cQFghjMAU&url=https%3A%2F%2Fwww.jstatsoft.org%2Farticle%2Fview%2Fv040i03%2Fv40i03.pdf&usg=AOvVaw1oHgFlV3bI-jAlcLyrugha).
 
 At first glance working with dates and times doesn't seem so complicated, but consider the following questions:
 

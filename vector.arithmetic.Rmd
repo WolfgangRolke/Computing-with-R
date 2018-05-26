@@ -1,0 +1,256 @@
+---
+header-includes: \usepackage{color}
+output:
+  html_document: default
+  pdf_document:
+    fig_caption: no
+---
+<style>
+table, th, td { text-align:right; }
+th, td {padding: 10px;}
+</style>
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+whichcomp <- strsplit(getwd(),"/")[[1]][3]
+load(paste0("c:/users/", whichcomp, "/Dropbox/Resma3/Resma3.RData"))
+library(knitr)
+opts_chunk$set(fig.width=6, fig.align = "center", 
+      out.width = "70%", warning=FALSE, message=FALSE)
+library(ggplot2)
+library(grid)
+```
+`r hl()$basefontsize()`
+
+#Vector Arithmetic
+
+One of the most useful features of R is it's ability to do math on vectors:
+
+```{r}
+x <- 1:10
+x
+x^2
+sqrt(x)
+x^2*exp(-(x/10)^2)
+```
+
+```{r}
+y <- rep(1:2, 5)
+y
+x+y
+x^2+y^2
+```
+
+To some degree that also works for matrices:
+
+```{r}
+x <- matrix(1:10, nrow=2)
+x
+x^2
+```
+
+##Matrix Algebra
+
+R can also handle basic matrix calculations:
+
+```{r echo=3:6}
+x <- matrix(1:4, 2, 2, byrow = TRUE)
+y <- matrix(2, 2, 2)
+x
+y
+x*y
+x %*% y
+```
+
+```{r}
+rbind(1:3) %*% cbind(1:3)
+```
+
+we can use the *solve* command to solve a system of linear equations:
+```{r}
+solve(x)
+```
+
+or to find the inverse matrix:
+
+```{r}
+solve(x)
+```
+
+transposition is done with
+
+```{r}
+x
+t(x)
+```
+
+Other functions for matrices are *qr* for decomposition, *eigen* for computing eigenvalues and eigenvectors, and *svd* for singular value decomposition. There are also packages for dealing with things like sparse matrices etc.
+
+##Cycling
+
+consider the following:
+
+```{r}
+x <- 1:3
+y <- 1:4
+x+y
+```
+
+so although we are adding a vector of length 3 to a vector of length 4 R stil does it. it simply takes the shorter vector and starts it from the first element. It does however give a warning.
+
+
+```{r}
+x <- 1:3
+y <- 1:6
+x+y
+```
+
+here the length of the longer obejct is a multiple of the shorter one, so the shorter one "fits" into the longer one. Now R does not print a warning.
+
+In general you should try to avoid this sort of thing, it usually stems from an error in your program! The one exception is if one of the vectors is of length one:
+
+```{r}
+cbind(1:5, "A")
+```
+
+even then I recommend to write this as
+
+```{r}
+cbind(1:5, rep("A", 5))
+```
+
+just for clarities sake.
+
+##Vectorize
+
+When you write your own functions you should write them in such a way that they in turn are vectorized, that is can be applied to vectors. Here is one way to this. Consider the function *integrate*, which does numerical integration:
+
+```{r}
+f <- function(x) {x^2}
+I <- integrate(f, 0, 1)
+is.list(I)
+names(I)
+```
+
+as we see the result of a call to the integrate function is a list. The important part is the value, so we can write
+
+```{r}
+integrate(f, 0, 1)$value
+```
+
+but let's say we want to calculate this integral for an interval of the form [0, A], not just [0, 1]. Here A might be many possible values. We can do this:
+
+```{r}
+fA <- function (A) integrate(f, 0, A)$value
+fA(1)
+fA(2)
+```
+
+but not
+
+```{r eval=FALSE}
+fA(1:2)
+```
+
+so we need to "vectorize":
+ 
+```{r}
+fAvec <- Vectorize(fA)
+fAvec(c(1, 2))
+```
+ 
+This works fine, but does have some drawbacks. General functions like Vectorize have to work in a great many different cases, so they need to do a lot of checking, which takes time to do.  In practise it is often better to vectorize your routine yourself:
+
+
+```{r}
+fA.vec <- function (A) {
+  y <- 0*A
+  for(i in seq_along(A))
+    y[i] <- integrate(f, 0, A[i])$value
+  y
+}  
+fA.vec(c(1, 2))
+```
+
+##apply family of functions
+
+There is a set of routines that can be used to vectorize. Say we want to do a simulation to study the variance of the mean and the median.
+
+```{r cache=TRUE}
+sim1 <- function(n, B=1e4) {
+  y <- matrix(0, B, 2)
+  for(i in 1:B) {
+    x <- rnorm(n)
+    y[i, 1] <- mean(x)
+    y[i, 2] <- median(x)  
+  }
+  c(sd(y[, 1]), sd(y[, 2]))  
+}
+sim1(50)
+```
+
+Here is an alternative:
+
+```{r cache=TRUE}
+sim2 <- function(n, B=1e4) {
+  x <- matrix(rnorm(n*B), B, 50)
+  c(sd(apply(x, 1, mean)), sd(apply(x, 1, median)))
+}
+sim2(50)
+```
+
+Now this obviously has the advantage of being much shorter. 
+
+If you read books on R written more than a few year ago you find many comments warning against the use of loops. They used to be very slow, much slower than using apply. Let's check the speed of the calculation with the *microbenchmark* package:
+
+```{r cache=TRUE}
+library(microbenchmark)
+microbenchmark(sim1(50), times = 10)
+microbenchmark(sim2(50), times = 10)
+```
+
+so the loop is actually faster! A few versions ago the whole implementation of loops in R was rewritten, and these days they are actually quite fast!
+
+That still leaves the advantage of short code. There are variants of apply for other data structures:
+
+-  *lapply* for lists:
+
+```{r}
+x <- list(A=rnorm(10), B=rnorm(20), C=rnorm(30))
+lapply(x, mean)
+```
+
+as we see the result is again a list. Often we want it to be a vector. We could use *unlist*, or
+
+```{r}
+sapply(x, mean)
+```
+
+-  *tapply* 
+
+apply a function to the numbers in one vector, grouped by the values in another (categorical) vector:
+
+```{r}
+GPA <- round(runif(100, 2, 4), 1)
+Gender <- sample(c("Male", "Female"), 
+      size=100, replace=TRUE)
+tapply(GPA, Gender, mean)
+```
+
+Here is another less obvious example:
+
+```{r eval=FALSE}
+GPA <- round(runif(1000, 2, 4), 2)
+Gender <- sample(c("Male", "Female"), 
+      size=1000, replace=TRUE)
+par(mfrow=c(1,2))
+tapply(GPA, Gender, hist, breaks=50, main="", xlab="")
+```
+
+```{r echo=FALSE}
+GPA <- round(runif(1000, 2, 4), 2)
+Gender <- sample(c("Male", "Female"), 
+      size=1000, replace=TRUE)
+par(mfrow=c(1,2))
+invisible(tapply(GPA, Gender, hist, breaks=50, main="", xlab=""))
+```
+

@@ -6,21 +6,22 @@ output:
     fig_caption: no
 ---
 
-```{r, echo=FALSE, warning=FALSE, message=FALSE}
-whichcomp <- strsplit(getwd(),"/")[[1]][3]
-load(paste0("c:/users/", whichcomp, "/Dropbox/Resma3/Resma3.RData"))
-
-require(knitr)
-require(ggplot2)
-require(grid)
-require(leaps)
-```
-`r rmd$basefontsize()`
-
 <style>
 table, th, td { text-align:right; }
 th, td {padding: 10px;}
 </style>
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+whichcomp <- strsplit(getwd(),"/")[[1]][3]
+load(paste0("c:/users/", whichcomp, "/Dropbox/Resma3/Resma3.RData"))
+library(knitr)
+opts_chunk$set(fig.width=6, fig.align = "center", 
+      out.width = "70%", warning=FALSE, message=FALSE)
+library(ggplot2)
+library(grid)
+```
+`r hl()$basefontsize()`
+
 
 #Data Input/Output, Transfering R Objects
 
@@ -30,7 +31,6 @@ The basic functions to display information on the screen are
 
 ```{r echo=-1}
 x <- runif(10)
-x
 print(x)
 cat(x)
 ```
@@ -51,7 +51,7 @@ cat("The mean is :", round(mean(x), 2), "\n")
 
 The "\\n" is needed so that the cursor moves to the next line.
 
-Some times you need a high level of control over the output, for example when writting data to a file that then will be read by a computer program that want things just so. For this you can use the *sprintf* command.
+Some times you need a high level of control over the output, for example when writing data to a file that then will be read by a computer program that wants things just so. For this you can use the *sprintf* command.
 
 ```{r}
 sprintf("%f", pi)
@@ -66,7 +66,7 @@ sprintf("% f", pi)
 Here is another example. In Statistics we often find a p value. These should generally be quoted to three digits. But when the p value is less than $10^{-3}$ R uses scientific notation. If you want to avoid that do this
 
 ```{r}
-p <- c(0, 0.0001)
+p <- c(0, 0.213, 0.0001)
 p
 sprintf("%.3f", p)
 ```
@@ -79,18 +79,18 @@ Often the easiest thing to do is to use copy-paste on a vector and then simply *
 x <- scan("clipboard")
 ```
 
--  use the argument sep=";" to change the symbol that is being use as a spearator. The default is empty space, common cases include  commas and newline (\\n)  
+-  use the argument sep=";" to change the symbol that is being use as a separator. The default is empty space, common cases include  commas and newline (\\n)  
 
--  scan assumes that the  data is numerci, if not use the argument what="char".
+-  scan assumes that the  data is numeric, if not use the argument what="char".
 
 I need to do this so often I wrote a little routine for it:
 
 ```{r}
 getx <- function(sep="") {
-  options(warn=-1)
+  options(warn=-1) #It might give a warning, I don't care
   x <- scan("clipboard", what="character", sep=sep)
-  if(all(!is.na(as.numeric(x))))
-    x <- as.numeric(x)
+  if(all(!is.na(as.numeric(x)))) #are all elements numeric?
+    x <- as.numeric(x) #then make it numeric
   options(warn=0)
   x  
 }
@@ -107,11 +107,10 @@ Notice some features:
 If the data is in a stand-alone file saved on your hard drive you can also read it from there:
 
 ```{r eval=FALSE}
-x <- scan("c:\\folder\\file.R")
+x <- scan("c:/folder/file.R")
 ```
 
-
-Notice the use of / in writing folders. \\ does not work on Windows because it is already used for other things.
+Notice the use of / in writing folders. \\ does not work on Windows because it is already used for other things, \\\\ would work but is more work to type!
 
 scan has a lot of arguments:
 
@@ -119,9 +118,19 @@ scan has a lot of arguments:
 args(scan)
 ```
 
+the most useful are 
+
+-  what  
+-  sep  
+-  nmax maximum number of lines to read, useful if you don't know just how large the file is and want to read just some of it to check it out  
+-  skip  number of lines at beginning to skip, for example if there is some header.  
+-  quiet=FALSE  by default R will say how many lines have been read, this can be a nuisance if you have a routine that reads in many files.  
+-  blank.lines.skip=TRUE  does not read in empty lines. This is a problem if you want to write the file out again later and want it to look as much as possible like the original. 
+
+
 ##Data Frames
 
-the standard command to read data froma table into a data frame is *read.table*. 
+the standard command to read data from a table into a data frame is *read.table*. 
 
 ```{r eval=FALSE}
 x <- read.table("c:/folder/file.R")
@@ -144,14 +153,15 @@ knitr::kable(students)
 Now we can use
 
 ```{r eval=FALSE}
-read.table("c:/folder/student.data.R", header=TRUE, row.names = 1)
+read.table("c:/folder/student.data.R", 
+        header=TRUE, row.names = 1)
 ```
 
-the row.names=1 tells R to use the firs column as row names.
+the row.names=1 tells R to use the first column as row names.
 
-##Transfering Objects from one R to Another
+##Transfering Objects from one R to another
 
-Say you have a few data sets and routine you want to send to someone else. The easiest thing to do is use *dump* and *source*.
+Say you have a few data sets and routines you want to send to someone else. The easiest thing to do is use *dump* and *source*.
 
 ```{r eval=FALSE}
 dump(c("data1", " data2", "fun1"), "c:/folder/mystuff.R")
@@ -163,6 +173,12 @@ Now to read in the stuff simply use
 source("c:/folder/mystuff.R")
 ```
 
+I do this a lot, so I wrote myself these two routines:
+
+```{r}
+dp <- function (x) dump(x, "clipboard")
+sc <- function () source("clipboard")
+```
 
 ##Special File Formats
 
@@ -174,9 +190,11 @@ there are a number of packages written to help with data I/O. We will discuss so
 
 ##Working on Files
 
-R can also be used to create, copy, move and delete files on your hard drive. The routine are
+R can also be used to create, copy, move and delete files and folders on your hard drive. The routines are
 
-file.create(..., showWarnings = TRUE)  
+dir.create(...)  
+dir.exists(...)  
+file.create(...)  
 file.exists(...)  
 file.remove(...)  
 file.rename(from, to)  

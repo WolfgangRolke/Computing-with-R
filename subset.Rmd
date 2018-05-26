@@ -6,21 +6,21 @@ output:
     fig_caption: no
 ---
 
-```{r, echo=FALSE, warning=FALSE, message=FALSE}
-whichcomp <- strsplit(getwd(),"/")[[1]][3]
-load(paste0("c:/users/", whichcomp, "/Dropbox/Resma3/Resma3.RData"))
-
-require(knitr)
-require(ggplot2)
-require(grid)
-require(leaps)
-```
-`r rmd$basefontsize()`
-
 <style>
 table, th, td { text-align:right; }
 th, td {padding: 10px;}
 </style>
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+whichcomp <- strsplit(getwd(),"/")[[1]][3]
+load(paste0("c:/users/", whichcomp, "/Dropbox/Resma3/Resma3.RData"))
+library(knitr)
+opts_chunk$set(fig.width=6, fig.align = "center", 
+      out.width = "70%", warning=FALSE, message=FALSE)
+library(ggplot2)
+library(grid)
+```
+`r hl()$basefontsize()`
 
 #Subsetting / Data Wrangling
 
@@ -29,7 +29,7 @@ th, td {padding: 10px;}
 Consider the following vector:
 
 ```{r echo=3}
-x <- round(runif(10,0,10), 1)
+x <- round(runif(10, 0, 10), 1)
 names(x) <- LETTERS[1:10]
 x
 ```
@@ -53,14 +53,14 @@ x[x > 4]
 x[x>4 & x<7]
 ```
 
-It is also possible to replace values in a vector:
+It is also possible to replace values in a vector this way:
 
 ```{r}
 x[x<2] <- 0
 x
 ```
 
-This can be useful for example to code a variable:
+This can be useful, for example to code a variable:
 
 ```{r, echo=2:5}
 Gender <- sample(c("Male", "Female"), size=10, replace = T)
@@ -69,8 +69,6 @@ GenderCode <- rep(0, length(Gender))
 GenderCode[Gender=="Male"] <- 1
 GenderCode
 ```
-
-
 
 ###Matrices and Data Frames
 
@@ -102,9 +100,17 @@ attach(students)
 Age
 ```
 
-Although these seem to do the same there actually subtle differences.
+Although these seem to do the same there actually subtle differences. Consider this:
 
-Notice that in each case R also does some type conversion, from a data frame to a vector. It is possible to tell R not to do that:
+```{r}
+students[, 1]
+students[1]
+students[[1]]
+```
+
+In the first and last case R returns vector, in the second case a data frame with one column. 
+
+It is possible to tell R not to do this type conversion in the first case
 
 ```{r}
 students[, 1, drop=FALSE]
@@ -132,6 +138,28 @@ students[20 <= Age <= 22, 1]
 ```
 
 does not work. 
+
+###Lists
+
+Subsetting of lists is very similar to dataframes:
+
+```{r}
+mylist <- list(First=1:5, Second=LETTERS[1:8], Third=20:22)
+mylist[1]
+mylist[[1]]
+mylist$Second
+mylist[1:2]
+mylist[[1:2]]
+```
+
+so [1] returns a list with just one element whereas [[1]] and $ do type conversion to a vector if possible. [1:2] yields the first two elements of the list.
+
+The last one is strange, why is the result 2? Actually, it does this:
+
+```{r}
+mylist[[1]][2]
+```
+
 
 ##Useful logic commands:
 
@@ -173,7 +201,9 @@ all.equal(0.9, 1.1 - 0.2, tolerance = 1e-16)
 ```
 
 
-##subset command
+##*subset*
+
+Finally there is a command that was written for subsetting:
 
 ```{r}
 subset(students, Age>20)
@@ -183,21 +213,3 @@ subset(students, Age>20, select = Gender, drop=TRUE)
 ```
 
 Notice that this last one results in a vector.
-
-##Lists
-
-consider this list:
-
-```{r, echo=4}
-Location <- c("San Juan", "Mayaguez", "Ponce")
-Age <- c(20, 23, 25, 21, 23)
-smpl <- list(Location=Location, Age=Age)
-smpl
-```
-
-```{r}
-smpl[[1]]
-smpl$Location
-```
-
-

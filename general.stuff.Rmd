@@ -4,23 +4,23 @@ output:
   html_document: default
   pdf_document:
     fig_caption: no
+runtime: shiny
 ---
-
-```{r, echo=FALSE, warning=FALSE, message=FALSE}
-whichcomp <- strsplit(getwd(),"/")[[1]][3]
-load(paste0("c:/users/", whichcomp, "/Dropbox/Resma3/Resma3.RData"))
-
-require(knitr)
-require(ggplot2)
-require(grid)
-require(leaps)
-```
-`r rmd$basefontsize()`
-
 <style>
 table, th, td { text-align:right; }
 th, td {padding: 10px;}
 </style>
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+whichcomp <- strsplit(getwd(),"/")[[1]][3]
+load(paste0("c:/users/", whichcomp, "/Dropbox/Resma3/Resma3.RData"))
+library(knitr)
+opts_chunk$set(fig.width=6, fig.align = "center", 
+      out.width = "70%", warning=FALSE, message=FALSE)
+library(ggplot2)
+library(grid)
+```
+`r hl()$basefontsize()`
 
 #History
 
@@ -52,7 +52,7 @@ R can be run by itself using the command line interface, but it is usually much 
 
 Once R (or Rstudio) is opened you will see the >. This is the *command prompt*. It means R is waiting for you to do something!
 
-Don't like >? No sweat, you can change it (although I don't recoomend changing the prompt). Here is how:
+Don't like >? No sweat, you can change it (although I don't recommend changing the prompt). Here is how:
 
 ```{r eval=FALSE}
 options()(prompt="@")
@@ -60,17 +60,22 @@ options()(prompt="@")
 
 In fact, you can change almost anything with the options command.
 
+```{r echo=FALSE}
+n <- length(options())
+```
+
 ```{r}
 length(options())
 ```
 
-shows there are 63 of them. Two you might want to remember are
+shows there are `r n` of them. Two you might want to remember are
 
 ```{r}
 options()["digits"]
 pi
-options(digits=15)
+options(digits=5)
 pi
+options(digits=15) #reset to default!
 ```
 
 and
@@ -79,9 +84,9 @@ and
 options()$warn
 ```
 
-this tells R to warn about certain things. Those are not errors, just warnings, and usually they are ok. Sometimes though they are not needed but can be a nuisance, and then you can turn them off with
+this tells R to warn about certain things. Those are not errors, just warnings, and usually they are ok. Sometimes though they are not needed and can be a nuisance, and then you can turn them off with
 
-```{r}
+```{r eval=FALSE}
 options(warn=-1)
 ```
 
@@ -92,12 +97,11 @@ The standard setup is to have separate folders for each project. When starting a
 -  foldername.Rproj  is the RStudio project file  
 -  .RData is the R worksheet
 
-Personally I prefer to also have a distinct name for the Rdata worksheet. You can do that by running
+In the past the .RData file was the "heart" of R, and typically there was one for each project, with different names. RStudio wants you to essentially forget about it, there is actually an option in Tools > Global Options to just ignore any RData file. Personally (maybe because I am so used to it) I prefer to also have a distinct name for the Rdata worksheet. You can do that by running
 
 ```{r eval=FALSE}
 save.image("c:/folder/filename.RData")
 ```
-
 
 ##Assignments
 
@@ -117,27 +121,25 @@ x
 
 but for some good reasons is not the best way to go.
 
+RStudio has a lot of useful shortcuts, one of them is ALT - , which enters <- and even the spaces around it!
+
+Check out the list of keyboard shortcuts at Tools > Keyboards shortcuts
+
 ##Help!
 
 R has a help command. Let's say we want to find out about the *mean* command:
-
-```{r, eval=FALSE}
-help(mean)
-```
-
-or even quicker
 
 ```{r eval=FALSE}
 ?mean
 ```
 
-Another good command is *arg*, which lists the arguments of a routine:
+Another useful function is *arg*, which lists the arguments of a routine:
 
 ```{r}
 args(splot)
 ```
 
-*splot* is not a command that is part of R but one I wrote myself to make nice looking scatterplot. Unfortunately args often doesn't work well for basic R commands:
+*splot* is not a command that is part of R but one I wrote myself to make nice looking scatterplot. Unfortunately *args* often doesn't work well for basic R commands:
 
 ```{r}
 args(mean)
@@ -145,7 +147,7 @@ args(mean)
 
 ##ls, rm
 
-use the ls command to get a listing of the current objects in the worksheet:
+use the *ls* command to get a listing of the current objects in the worksheet:
 
 ```{r}
 ls()[1:5]
@@ -157,9 +159,15 @@ If there are many objects (the worksheet I have open right now has over 250!) yo
 ls(pattern = "^sa")
 ```
 
-the ^ in front means that ls will list all object whose name starts with sa. This is what is called a *regular expression*. These are general (non R) rules for specifying patters. They are a science all their own! 
+the ^ in front means that *ls* will list all object whose name starts with sa. This is what is called a *regular expression*. These are general (non R) rules for specifying patters. They are a science all their own, and we will need to have a look t them at some point.
 
-Often you create an object that is only need for a short time. If you want to get rid of it use rm (remove)
+If you need some more details on the objects you can use
+
+```{r}
+ls.str(pattern = "^sa")
+```
+
+Often you create an object that is only need for a short time. If you want to get rid of it use *rm* or (remove)
 
 ```{r}
 x <- 1:10
@@ -167,20 +175,25 @@ sum(x^3)
 rm(x)
 ```
 
-you can also remove many objects in one step. Let's say we have worked on a problem for a while and we created a number of objects. All of the start with "my". Now we can do this
+you can also remove many objects in one step. Let's say we have worked on a problem for a while and we created a number of objects. All of them start with "my". Now we can do this
 
 ```{r eval=FALSE}
 a <- ls(pattern = "^my")
 rm(list=a)
 ```
 
-In many of my projects I have a routine called *cleanup*:
+I have a routine called *cleanup*:
 
 ```{r}
 cleanup <- function () 
 {
-  oldstuff <- c("f","f1","n","m","a","A","b", "B", "i","j", "plt","plt1","plt2","x","xx","y","z", "xy")
+  options(warn=-1)
+  oldstuff <- c("f", "f1", "F","n", "m", "a", "A", "b", "B", 
+        "i", "j", "plt", "plt1", "plt2", "x", "xx", "y", 
+        "z", "u", "v", "xy", "out", "mu")
   rm(list=oldstuff, envir = .GlobalEnv)
+  options(warn = 0)
+  
 }
 ```
 
@@ -188,7 +201,7 @@ Notice the argument envir. We will talk about what that means soon.
 
 ##Naming Conventions
 
-It is good practice to have a consistent style when choosing names for oblects, functions etc. There is a detailed description at [https://google.github.io/styleguide/Rguide.xml](https://google.github.io/styleguide/Rguide.xml). Here are the most important ones:
+It is good practice to have a consistent style when choosing names for objects, functions etc. There is a detailed description at [https://google.github.io/styleguide/Rguide.xml](https://google.github.io/styleguide/Rguide.xml). Here are the most important ones:
 
 -  File Names
       
@@ -197,7 +210,6 @@ File names should end in .R and, of course, be meaningful.
 GOOD: predict_ad_revenue.R  
 BAD: foo.R
           
-
 -  Identifiers
           
 Don't use underscores ( _ ) or hyphens  ( - ) in identifiers. Identifiers should be named according to the following conventions.
@@ -207,12 +219,11 @@ The preferred form for variable names is all lower case letters and words separa
 GOOD: avg.clicks  
 BAD: avg_Clicks
 
-function names have initial capital letters and no dots.  Make function names verbs.         
+Make function names verbs.         
 
-GOOD: CalculateAvgClicks  
+GOOD: calculate.avg.clicks  
 BAD: calculate_avg_clicks
 
-            
 constants are named like functions but with an initial k.
           
 kConstantName 
@@ -224,15 +235,13 @@ Exception:  Spaces around ='s are optional when passing parameters in a function
           
 GOOD: x <- 1  
 BAD:  x<-1
-
-
           
 -  Do not place a space before a comma, but always place one after a comma.
 
 GOOD: x <- c(1, 2, 3)  
 BAD:  x <- c(1,2,3)
 
-`r rmd$vspace()`
+`r hl()$vspace()`
 
 These conventions always have a bit of personal style, which one might like or not. Here is another style rule:
 
@@ -242,3 +251,9 @@ GOOD: if (debug)
 BAD: if(debug)
 
 Now personally I really don't like this one and I don't use it!
+
+Instead of the . between words many people prefer to use camel back: 
+
+calculateMeans
+
+That is just fine, I would recommend however you stick with one or the other.

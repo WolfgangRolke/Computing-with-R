@@ -19,11 +19,11 @@ opts_chunk$set(fig.width=6, fig.align = "center",
 library(ggplot2)
 library(grid)
 ```
-`r rmd$basefontsize()`
+`r hl()$basefontsize()`
 
-#ggplot2
+#Graphics with ggplot2
 
-A large part of this chapter is taken from various works of Hadley Wickham. Among others [The layered grammar of graphics](http://byrneslab.net/classes/biol607/readings/wickham_layered-grammar.pdf) and [R for data Science](http://r4ds.had.co.nz/).
+A large part of this chapter is taken from various works of Hadley Wickham. Among others [The layered grammar of graphics](http://byrneslab.net/classes/biol607/readings/wickham_layered-grammar.pdf) and [R for Data Science](http://r4ds.had.co.nz/).
 
 ##Why ggplot2?
 
@@ -38,11 +38,13 @@ Advantages of ggplot2
 
 ##Grammar of Graphics
 
-In 2005 Wilkinson, Anand, and Grossman published the book "The Grammar of Graphics". In it he layed out a systematic way to describe any graph in terms of basic building blocks. ggplot2 is an implementation of his ideas.
+In 2005 Wilkinson, Anand, and Grossman published the book "The Grammar of Graphics". In it they layed out a systematic way to describe any graph in terms of basic building blocks. ggplot2 is an implementation of their ideas.
 
-The use of the grammar seems a bit strange here. The general meaning of the word grammar is: 
+The use of the word *grammar* seems a bit strange here. The general dictonary meaning of the word grammar is: 
 
 *the fundamental principles or rules of an art or science*
+
+so it is not only about language.
 
 As our running example we will use the *mtcars* data set. It is part of base R and has information on 32 cars:
 
@@ -52,7 +54,7 @@ kable(mtcars[1:6, ])
 
 Here we have two quantitative variables, and so the obvious thing to do is a scatterplot. But there are a number of different ways we can this:
 
-```{r echo=3:7, warning=FALSE}
+```{r warning=FALSE}
 attach(mtcars)
 par(mfrow=c(2, 2))
 plot(hp, mpg, main="Basic Graph")
@@ -71,9 +73,9 @@ Take the graph on the lower right. Here I made the plotting symbol bigger (with 
 plot(hp, mpg, cex=2, ylim=range(mpg)+c(-1, 1))
 ```
 
-and that is a bit of work because I have to figure out how to change the margins. In ggplot2 that sort of thing is taken car of automatically!
+and that is a bit of work because I have to figure out how to change the margins. In ggplot2 that sort of thing is taken care of automatically!
 
-Let's start by recreating the first graph above. We first have to turn the data into a data frame, the basic data structure for ggplots
+Let's start by recreating the first graph above. 
 
 ```{r}
 ggplot(mtcars, aes(hp, mpg)) + geom_point()
@@ -82,8 +84,8 @@ ggplot(mtcars, aes(hp, mpg)) + geom_point()
 this has the following logic:
 
 - *ggplot* sets up the graph  
--  it's first argument is the data set, as a data frame  
--  *aes* is the aestetic mapping. It connects the data to the graph  
+-  it's first argument is the data set (which has to be a dataframe)    
+-  *aes* is the *aestetic mapping*. It connects the data to the graph  
 -  *geom* is the geometric object (circle, square, line) to be used in the graph. Here it is points.
 
 **Note** ggplot2 also has the *qplot* command. This stands for *qick plot*
@@ -92,7 +94,7 @@ this has the following logic:
 qplot(hp, mpg, mtcars)
 ```
 
-This seems much easier at first (and it is) but the qplot command is also very limitted. Very quickly you want to do things that aren't possible with qplot, and so I won't dsicuss it further here.
+This seems much easier at first (and it is) but the qplot command is also very limitted. Very quickly you want to do things that aren't possible with qplot, and so I won't discuss it further here.
 
 **Note** consider the following variation:
 
@@ -117,20 +119,23 @@ Notice that the legend is a continous color scale. This is because the variable 
 
 ```{r}
 mtcars$faccyl <- factor(cyl, levels = c(4, 6, 8), ordered = TRUE) 
-ggplot(mtcars, aes(hp, mpg, color=faccyl)) + geom_point()
+ggplot(mtcars, aes(hp, mpg, color=faccyl)) +
+  geom_point()
 ```
 
 
 we can also change the shape of the plotting synbols:
 
 ```{r }
-ggplot(mtcars, aes(hp, mpg, shape=faccyl)) + geom_point()
+ggplot(mtcars, aes(hp, mpg, shape=faccyl)) + 
+  geom_point()
 ```
 
 or both:
 
 ```{r}
-ggplot(mtcars, aes(hp, mpg, shape=faccyl, color=faccyl)) + geom_point()
+ggplot(mtcars, aes(hp, mpg, shape=faccyl, color=faccyl)) +
+  geom_point()
 ```
 
 let's pretty up the graph a bit with some labels and a title. We will be playing around with this graph for a while, so I will save some intermediate versions:
@@ -143,7 +148,7 @@ plt2 <- plt1 +
 plt2
 ```
 
-Say we want to add the least squares regression lines for each gender:
+Say we want to add the least squares regression lines for cars with the same number of cylinders:
 
 ```{r}
 plt3 <- plt2 + geom_smooth(method = "lm", se=FALSE)
@@ -305,7 +310,7 @@ ggsave("myplot.pdf")
 
 it will save the last graph to disc.
 
-One issue is figure sizing. You need to do this so that graph looks "good". Unfortunately this depends on where it ends up. A graph that looks good on a webpage might look ugly in a pdf. So it is hard to give any general guidelines.
+One issue is figure sizing. You need to do this so that a graph looks "good". Unfortunately this depends on where it ends up. A graph that looks good on a webpage might look ugly in a pdf. So it is hard to give any general guidelines.
 
 If you use R markdown, a good place to start is with the chunk arguments
 fig.with=6 and out.width="70%". In fact on top of every R markdown file I have a chunk with

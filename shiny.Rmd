@@ -19,22 +19,21 @@ opts_chunk$set(fig.width=6, fig.align = "center",
 library(ggplot2)
 library(grid)
 ```
-`r rmd$basefontsize()`
+`r hl()$basefontsize()`
 
 #Interactive Web Applications with shiny
 
-The applications in this section require a computer with R to run.
 
 ```{r}
 library(shiny)
 ```
 
-shiny is a package that has routines to create interactive web applications that run in a browser. Every app has to files:
+shiny is a package that has routines to create interactive web applications that run in a browser. Every app has two files:
 
--  *ui* contains information about the layout of the page  
+-  *ui* contains information about the layout of the page (**u**ser **i**nterface) 
 -  *server* has the R routine that create the content of the page.
 
-Let's begin by creating a page that does the following: it generate a data set with n observations from a standard normal distribution and then draws the histogram. The user can choose n:
+Let's begin by creating a page that does the following: it generates a data set with n observations from a standard normal distribution and then draws the histogram. The user can choose n:
 
 **example1**
 ```{r example1, eval=FALSE}

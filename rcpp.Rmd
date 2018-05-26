@@ -19,17 +19,18 @@ opts_chunk$set(fig.width=6, fig.align = "center",
 library(ggplot2)
 library(grid)
 ```
-`r rmd$basefontsize()`
+`r hl()$basefontsize()`
 
 #Rcpp
 
 For this section you will need the Rcpp and the microbenchmark packages.
+
 ```{r}
 library(Rcpp)
 library(microbenchmark)
 ```
 
-Sometimes when you have some code that takes a while to run it is worthwhile to spend some time speading it up. One way to do this is to rewrite part of the code in C++.
+Sometimes when you have some code that takes a while to run it is worthwhile to spend some time speeding it up. One way to do this is to rewrite part of the code in C++.
 
 Say we have the following problem: we have a data set with points (x, y) and for each point we want to find the Euclidean distance to the origin $d=\sqrt{x^2+y^2}$. Here is a simple routine to do this:
 
@@ -47,15 +48,15 @@ Let's see how long this takes:
 ```{r cache=TRUE}
 x <- rnorm(1e6)
 y <- rnorm(1e6)
-microbenchmark(dist1(x, y))
+summary(microbenchmark(dist1(x, y)))["mean"]
 ```
-Now of course we can immediatley speed things up by vectorizing the routine:
+Now of course we can immediately speed things up by vectorizing the routine:
  
 ```{r cache=TRUE}
 dist2 <- function(x, y) {
   sqrt(x^2+y^2)
 }
-microbenchmark(dist2(x, y))
+summary(microbenchmark(dist2(x, y)))["mean"]
 ```
  
 Can we do even better?  
@@ -73,7 +74,7 @@ NumericVector dist3(NumericVector x, NumericVector y) {
 ```
 
 ```{r}
-microbenchmark(dist3(x, y))
+summary(microbenchmark(dist3(x, y)))["mean"]
 ```
 
 Notice that the above chunk starts like this:
@@ -94,16 +95,16 @@ NumericVector dist4(NumericVector x, NumericVector y) {
 ```
 
 ```{r}
-microbenchmark(dist4(x, y))
+summary(microbenchmark(dist4(x, y)))["mean"]
 ```
 
 Those of you who already know a bit of C++ are going to be quite amazed, because this is not even C++, it is sort of "vectorized" C++!
 
-Now the difference between 5.7 and 11.1 milliseconds might not seem like much, but imagine if we had to run this routine one million times, then the R routine would take $11*10^{-3}\times 10^6/3600=3$ hours, but the Cpp routine takes only 1.6 hours. Writing it takes literally 1 minute! (If you know how)  
+Now the difference between 3.3 and 12.1 milliseconds might not seem like much, but imagine if we had to run this routine one million times, then the R routine would take $12*10^{-3}\times 10^6/3600=3.3$ hours, but the Cpp routine takes only 1.5 hours. Writing it takes literally 1 minute! (If you know how)  
 
-To strart let's discuss a few differences between R and C++ syntax:
+To start let's discuss a few differences between R and C++ syntax:
 
--  in C++ every variable has to be expicitely defined.  
+-  in C++ every variable has to be explicitely defined.  
 -  in C++ (almost) every line ends in ;  
 -  vectors start with index 0, not 1  
 -  the for loop is for(int i=0;i<n;++i)
@@ -143,7 +144,7 @@ dist5(x[1:5], y[1:5])
 
 ##Sugar
 
-Not only is Rcpp vectorized, many standard R functions have been ported to Rcpp. For example, say we want to write a routine that simulates Brownian motion in R^2. That is, a stochastic process that moves as follows: if at time $t$ it is at $(x_0, y_0)$, then at time $t+\delta$ it is at $(x_0+\delta X, y_0+\delta Y)$ where $X,Y\sim N(0, 1)$.
+Not only is Rcpp vectorized, many standard R functions have been ported to Rcpp. For example, say we want to write a routine that simulates Brownian motion in $R^2$. That is, a stochastic process that moves as follows: if at time $t$ it is at $(x_0, y_0)$, then at time $t+\delta$ it is at $(x_0+\delta X, y_0+\delta Y)$ where $X,Y\sim N(0, 1)$.
 
 Note: generating stochastic process can be quite slow in R because they are difficult to vectorize, with one step of a loop depending on the previous one.
 
@@ -194,7 +195,7 @@ sum(x)
 sum_cpp(x)
 ```
 
-Notice the term *total+=x(i);* which is standard C++ shortand for *total+x(i);*
+Notice the term *total+=x(i);* which is standard C++ shortand for *total = total + x(i);*
 
 Now the same can be written as:
 
@@ -228,7 +229,7 @@ and the golden ratio is the limit
 $$
 \lim_{k \rightarrow \infty} \frac{n_k}{n_{k-1}}
 $$
-because of its defintion the Fibonacci numbers are most easily calculated using recursion:
+because of its definition the Fibonacci numbers are most easily calculated using recursion:
 
 ```{r}
 fibR <- function(n) {
@@ -266,11 +267,11 @@ microbenchmark(golden_ratio(10, fun=fibR))
 microbenchmark(golden_ratio(10, fun=fib_cpp))
 ```
 
-not only is the cpp version much faster, in this example R is actually quite useless: while it does recursion, doing it to often quicj=kly becomes a problem (because of memory issues). 
+not only is the cpp version much faster, in this example R is actually quite useless: while it does recursion, doing it to often quickly becomes a problem (because of memory issues). 
 
 ```{r cache=TRUE}
-microbenchmark(golden_ratio(30, fun=fibR), times = 10L)
-microbenchmark(golden_ratio(30, fun=fib_cpp), times = 10L)
+summary(microbenchmark(golden_ratio(30, fun=fibR), times = 10L))["mean"]
+summary(microbenchmark(golden_ratio(30, fun=fib_cpp), times = 10L))["mean"]
 ```
 
 ```{r cache=TRUE}
@@ -281,7 +282,7 @@ The actual value of the golden ratio is of course $\frac{1+\sqrt{5}}2 =1.618..$.
 
 ##Using C++ routines. 
 
-So far we used C++ to speed up calculations, and we could use Sugar to call standard R functions in the C++ routine. There is another use, though. C++ has been the main computing language in many fields for a long time, and so there exist a large number of excellent routine already written. Say you found one of these and want to use it in your R program. Here is how:
+So far we used C++ to speed up calculations, and we could use Sugar to call standard R functions in the C++ routine. There is another use, though. C++ has been the main computing language in many fields for a long time, and so there exist a large number of excellent routines already written. Say you found one of these and want to use it in your R program. Here is how:
 
 What we need to do is to write a Rcpp wrapper routine, that eventually calls the C++ subroutine. Here is an example:
 
@@ -315,3 +316,4 @@ double sum_of_squares (double x[], int n)
 sub_routine(1:10)
 ```
 
+The *sum_of_squares* routine is pure C++, like any you might find on the web!

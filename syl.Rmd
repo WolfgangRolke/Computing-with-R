@@ -1,0 +1,52 @@
+---
+header-includes: \usepackage{color} 
+output:
+  html_document: default
+  pdf_document:
+    fig_caption: no
+---
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+whichcomp <- strsplit(getwd(),"/")[[1]][3]
+load(paste0("c:/users/", whichcomp, "/Dropbox/Resma3/Resma3.RData"))
+require(knitr)
+require(ggplot2)
+require(grid)
+```
+`r hl()$basefontsize()`
+
+##Syllabus
+
+Professor: Dr. Wolfgang Rolke  
+Time and Place:  
+Tuesday, Thursday 7:30 - 8:45am  Ch115
+
+###Reading List:
+
+There are literally 100s of books about R, with new ones coming out almost every week. Here are some that I found useful:
+
+[Learning R](https://www.amazon.com/Learning-R-Richard-Cotton/dp/1449357105/ref=dp_rm_title_1)
+
+[Introduction to Data Science with R](http://shop.oreilly.com/product/0636920034834.do)
+
+[R Cookbook](https://www.amazon.com/Cookbook-OReilly-Cookbooks-Paul-Teetor/dp/0596809158/ref=dp_rm_title_0)
+
+[Advanced R](https://englianhu.files.wordpress.com/2016/05/advanced-r.pdf)
+
+###Office hours
+
+Tuesday, Thursday 12:00-12:30pm OF407  
+Tuesday, Thursday 3:15-5:15pm OF407 (by appointment)  
+Wednesday  1:30-3:00pm via email   
+email: wolfgang[dot]rolke[at]upr[dot]edu   
+
+when you send me an email `r hl()$fontcolor("ALWAYS")` start the subject line with ESMA6xxx
+
+###Grading:
+
+1.  Homework: 50%  
+2.  Midterm 25%  
+3.  Final 25%  
+
+###Homework
+
+all homeworks have to be done using RMarkdown and have to be submitted via Dropbox.

@@ -14,12 +14,14 @@ th, td {padding: 10px;}
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
 whichcomp <- strsplit(getwd(),"/")[[1]][3]
 load(paste0("c:/users/", whichcomp, "/Dropbox/Resma3/Resma3.RData"))
-require(knitr)
-require(ggplot2)
-require(grid)
+library(knitr)
+opts_chunk$set(fig.width=6, fig.align = "center", 
+      out.width = "70%", warning=FALSE, message=FALSE)
+library(ggplot2)
+library(grid)
 ```
+`r hl()$basefontsize()`
 
-`r rmd$basefontsize()`
 
 #Character Manipulation
 
@@ -35,6 +37,14 @@ Character strings can use single or double quotes:
 'this is a string'
 "this is a string"
 ```
+
+Say you want to type in a vector of names. Having to type all those quotes is hazzle, but there is a nice routine in the *Hmisc* package that helps:
+
+```{r}
+library(Hmisc)
+Cs(Joe, Jack, Ann, Laura)
+```
+
 
 Let's say we have a vector with the names of the states in the USA (plus DC and PR)
 
@@ -88,7 +98,6 @@ grep("P", states)
 
 tells us those are the states at position 39 and 52, so now
 
-
 ```{r}
 states[grep("P", states)]
 ```
@@ -99,7 +108,27 @@ or
 grep("P", states, value = TRUE)
 ```
 
-Notice that we only got the states whose names have a capital P. What if we want all states with either p or P?
+Here is another way to do this:
+
+```{r}
+states[startsWith(states, "P")]
+```
+
+Very useful is its partner:
+
+```{r}
+states[endsWith(states, "o")]
+```
+
+This can be used for example to find the files of a certain type in a folder:
+
+```{r}
+dir()[endsWith(dir(), ".Rmd")][1:5]
+```
+
+`r hl()$vspace()`
+
+Notice that above we only got the states whose names have a capital P. What if we want all states with either p or P?
 
 ```{r}
 grep(pattern = "[pP]", x = states, value = TRUE)
@@ -113,7 +142,7 @@ grep("p", tolower(states), value = TRUE)
 
 Of course there is also a *toupper* function.
 
-There is also the *grepl* function, which returns TRUE if the string contains the pattern:
+We have the *grepl* function, which returns TRUE if the string contains the pattern:
 
 ```{r}
 grepl(pattern = "A", states)[1:6]
@@ -132,18 +161,21 @@ sub("a", "A", c("abba"))
 gsub("a", "A", c("abba"))
 ```
 
-Let’s ask the following question: what is the distribution of the vowels in the names of the States?  For instance, let’s start with the number of a’s in each name.  There’s a very useful function for this purpose: *gregexpr*.  
+`r hl()$vspace()`
+
+Let’s ask the following question: what is the distribution of the vowels in the names of the states?  For instance, let’s start with the number of a’s in each name.  There’s a very useful function for this purpose: *gregexpr*.  
 
 We can use it to get the number of times that a searched pattern is found in a character vector.  When there is no match, we get a value -1.
 
 ```{r}
-positions_a <- gregexpr(pattern = "a", text = states, ignore.case = TRUE)
+positions_a <- gregexpr(pattern = "a", text = states, 
+                      ignore.case = TRUE)
 positions_a[[1]]
 ```
 
 tells us that in "Alabama" there are a's in positions 1, 3, 5 and 7.
 
-Now we need to go through all the states names and find out how many a's there are in each. Here is a fast way to do this. We will soon talk about the *apply* family of functions, don't worry about it for now.
+Now we need to go through all the states names and find out how many a's there are in each. Here is a fast way to do this, using one of the *apply* functions:
 
 ```{r}
 num_a <- sapply(positions_a, function(x) ifelse(x[1] > 0, length(x), 0))
@@ -156,7 +188,7 @@ Now let's do this for all the vowels:
 vowels <- c("a", "e", "i", "o", "u")
 num_vowels <- rep(0, 5)
 names(num_vowels) <- vowels
-for(i in 1:5) {
+for(i in seq_along(vowels)) {
   positions <- gregexpr(pattern = vowels[i], 
           text = states, ignore.case = TRUE)
   num_vowels[i] <- sum(sapply(positions, 
@@ -165,9 +197,7 @@ for(i in 1:5) {
 num_vowels
 ```
 
-(Here I am using a "for" loop, we will discuss this thing soon!)
-
-`r rmd$hr()`
+`r hl()$hr()`
 
 ###paste
 
@@ -187,6 +217,7 @@ If we want to make a single string use
 
 ```{r}
 paste0("a", 1:3, collapse="")
+paste0("a", 1:3, collapse="-")
 ```
 
 paste "combines" stuff into a string. Sometimes we want to do the opposite:
@@ -228,10 +259,17 @@ txt <- c("In", 2017, "there", "where", 17, "hurricanes")
 txt
 ```
 
-Let's say I want to know which elements of the vector are (or at least could be) numeric:
+Let's say I want to pick out those elements of the vector that are (or at least could be) numeric. Here is one way to do it:
 
 ```{r}
-grepl("\\d", txt)
+as.numeric(txt)
+txt[!is.na(as.numeric(txt))]
+```
+
+or we can use regexp:
+
+```{r}
+txt[grepl("\\d", txt)]
 ```
 
 say we want to replace the spaces in a sentence with the underscore:
@@ -252,12 +290,6 @@ A ^ in front is NOT:
 gsub("[^0-9]", "%", txt)
 ```
 
-say we have a sentence that is a mixture of characters and numbers and we want to pick out the numbers as numeric:
-
-```{r}
-txt
-as.numeric(txt[grepl("\\d", txt)])
-```
 
 ##POSIX
 
@@ -391,7 +423,7 @@ txt <- scan("http://math.uprm.edu/academic/people.php",
 ```
 
 ```{r echo=FALSE}
-txt <- scan("C:\\Users\\Wolfgang\\Dropbox\\teaching\\Computing with R\\emails.txt", what="char", sep="\n")
+txt <- scan("C:\\Users\\Wolfgang\\Dropbox\\teaching\\Computing-with-R\\emails.txt", what="char", sep="\n")
 ```
 
 Next we need to figure out what defines an email address. Obviously it needs to have the @ symbol, so let's go through the text and pick out those lines that have the @ symbol:
@@ -443,4 +475,205 @@ txt
 ```
 
 
+###Example: Binary Arithmetic
 
+We have previously discussed binary arithmetic. There we used a simple vector of 0's and 1's. The main problem with that is that it is hard to vectorize the routines. Instead we will now use character sequences like "1001". 
+
+We have previously written several functions for this. We will want to reuse them but also adapt them to this new format. To do so we need to turn a character string into a vector of numbers and vice versa. Also we want our routines to be vectorized:
+
+-  Decimal to Binary
+
+```{r}
+decimal.2.binary <- function(x) {
+  n <- length(x)
+  y <- rep("0", n)
+  for(k in 1:n) {
+    if(x[k]==0 | x[k]==1) {  #simple cases 
+        y[k] <- x[k]
+        next
+    }    
+    i <- floor(log(x[k], base=2)) #largest power of 2 less than x
+    bin.x <- rep(1, i+1) #we will need i+1 0'1 and 1's, first is 1
+    x[k] <- x[k]-2^i 
+    for(j in (i-1):0) {
+       if(2^j>x[k]) 
+         bin.x[j+1] <- 0
+       else {
+         bin.x[j+1] <- 1
+         x[k] <- x[k]-2^j
+       }
+    }
+    y[k] <- paste(bin.x[length(bin.x):1], collapse="")
+  }
+  y
+}
+decimal.2.binary(c(7, 8, 26))
+```
+
+-  Binary to Decimal
+
+```{r}
+binary.2.decimal <- function(x){
+  n <- length(x)
+  y <- rep(0, n)
+  for(i in 1:n) {
+    tmp <- as.numeric(strsplit(x[i], "")[[1]])
+    y[i] <- sum(tmp*2^(length(tmp):1-1))
+  }
+  y
+}  
+binary.2.decimal(c("111", "1000", "11010"))
+binary.2.decimal(decimal.2.binary(126))
+decimal.2.binary(binary.2.decimal(c("100101")))
+```
+
+-  *is. binary*:
+
+```{r}
+is.binary <- function(x) {
+  n <- length(x)
+  y <- rep(TRUE, n)
+  for(i in 1:n) {
+      x.vec <- as.numeric(strsplit(x[i], "")[[1]])
+      if(all(x.vec==0)) {
+          y[i] <- TRUE 
+          next
+      }
+      x.vec <- x.vec[x.vec!=0]
+      x.vec <- x.vec[x.vec!=1]
+      if(length(x.vec)==0) y[i] <- TRUE 
+      else y[i] <- FALSE 
+  }
+  y
+}  
+is.binary(c("1001", "0", "11a1"))
+```
+
+-  addition
+
+Here I am going to reuse the routine we had already written:
+
+```{r}
+binary_addition <- function(x, y) {
+#First make x and y of equal length and with one extra 
+#slot in case it's needed for carry over
+#Fill x and y with 0's as needed. 
+  n <- length(x)
+  m <- length(y)
+  N <- max(n, m)+1
+  x <- c(rep(0, N-n), x)
+  y <- c(rep(0, N-m), y)  
+  s <- rep(0, N) # for result
+  ca <- 0 #for carry over term
+  for(i in N:1) {
+      n <- x[i]+y[i]+ca
+      if(n<=1) {#no carry over
+        s[i] <- n
+        ca <- 0
+      }  
+      else {#with carry over
+        s[i] <- 0
+        ca <- 1
+      }
+    }
+  if(s[1]==0) s <- s[-1]#leading 0 removed if necessary
+  s
+}
+binary_addition(c(1, 0), c(1, 1, 0))
+```
+
+
+
+```{r}
+binary.addition<- function(x, y) {
+  n <- length(x)
+  m <- length(y)
+  if(m!=n) cat("Vectors have to have the same length!\n")
+  s <- rep("0", n)
+  for(i in 1:n) {
+    x.vec <- as.numeric(strsplit(x[i], "")[[1]])
+    y.vec <- as.numeric(strsplit(y[i], "")[[1]])
+    tmp <- binary_addition(x.vec, y.vec)
+    s[i] <- paste(tmp, collapse="")
+  }
+  s
+}  
+binary.addition(c("0", "10", "1001"), c("0", "110", "1101"))
+```
+
+Let's turn this into an infix addition operator:
+
+```{r}
+'%+b%' <- function(x, y) binary.addition(x, y)
+x <- c("10", "1001", "100101", "11101001") 
+y <- c("101", "1001", "10101", "1001100") 
+binary.2.decimal(x)
+binary.2.decimal(y)
+z <- x %+b% y 
+x
+binary.2.decimal(z)
+```
+
+Let's define a new class of objects "binary numbers":
+
+```{r}
+as.binary <- function(x) {
+  class(x) <- "binary"
+  return(x)
+}
+```
+
+what methods might be useful here? Let's write two:
+
+-  print
+
+this is how our number will appear when we use print(x):
+
+```{r}
+print <- function(x) UseMethod("print")
+print.binary <- function(x) {
+  n <- length(x)
+  for(i in 1:length(x)) {
+    y <- as.numeric(strsplit(x[i], "")[[1]])
+    y <- paste(y, collapse = ".")
+    cat(y, "\n")
+  }
+
+}
+x <- as.binary(c("10", "1001", "100101"))
+print(x)
+```
+
+- summary
+
+what should we calculate as summary statistics? Let's do three:
+
+  - how many  
+  - most frequent (mode, NA if all only once)  
+  - percentage of 0's  
+  
+
+```{r}
+summary <- function(x) UseMethod("summary")
+summary.binary <- function(x) {
+  n <- length(x)
+  if(length(unique(x))==length(x)) mode <- NA
+  else {
+    z <- table(x)
+    z <- z[z==max(z)]
+    mode <- names(z)
+  }  
+  y <- paste(x, collapse = "") #one long string
+  y <- as.numeric(strsplit(y, "")[[1]]) #vector of 0's and 1's
+  y <- round(sum(y==0)/length(y)*100, 1)
+  cat("N =", n, "\n")
+  cat("Mode =", mode, "\n")
+  cat("% 0's =", y, "\n")
+}
+x <- sample(1:100, size=1000, replace=TRUE)
+x <- as.binary(decimal.2.binary(x))
+print(x[1:5])
+summary(x)
+```
+  
+  

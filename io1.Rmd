@@ -19,7 +19,7 @@ opts_chunk$set(fig.width=6, fig.align = "center",
 library(ggplot2)
 library(grid)
 ```
-`r rmd$basefontsize()`
+`r hl()$basefontsize()`
 
 #Input/Output Part 2
 
@@ -35,16 +35,23 @@ x <- round(rnorm(B), 3)
 y <- round(rnorm(B), 3)
 z <- sample(letters[1:5], size=B, replace=TRUE)
 xyz <- data.frame(x, y, z)
+head(xyz, 3)
 dir.create("c:/tmpdata")
 library(rio)
 export(xyz, "c:/tmpdata/mytestdata.csv")
 detach(2)
+rm(xyz)
 ```
 
 ```{r}
 library(rio)
-head(import("c:/tmpdata/mytestdata.csv"))
+head(import("c:/tmpdata/mytestdata.csv"), 3)
 ```
+
+###Minitab to R
+
+rio has the ability to read Minitab files. Unfortunately they have to be in the portable format, and Minitab stopped useing that some vversuins ago. So the easiest thing to do is save files a in Minitab as .csv.
+ 
  
 ##readr
 
@@ -66,7 +73,7 @@ proc.time()-tm
 
 ##data.table
 
-Similar to read.table but faster and more convenient. 
+Similar to read.table but faster and more convenient. the command is called *fread*:
 
 ```{r}
 library(data.table)
@@ -74,3 +81,11 @@ tm <- proc.time()
 head(fread("c:/tmpdata/mytestdata.csv"), 2)
 proc.time()-tm
 ```
+
+This command is what I would recommend if you deal with a Big Data. These days we classify data as follows:
+
+-  big data (a few hundred thousand rows, about 20 MB)  
+-  Big Data (5 million rows, about 1GB)  
+-  Bigger Data (over 100 million rows, over 10GB)
+
+In the case of Bigger Data you can no longer have all of it in memory, but it becomes necessary to use a hard drive as memory. A useful package for that is *bigmemory*.

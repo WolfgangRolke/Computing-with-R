@@ -1,0 +1,583 @@
+---
+header-includes: \usepackage{color}
+output:
+  html_document: default
+  pdf_document:
+    fig_caption: no
+---
+<style>
+table, th, td { text-align:right; }
+th, td {padding: 10px;}
+</style>
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+require(knitr)
+opts_chunk$set(fig.width=6, fig.align = "center", 
+      out.width = "70%", warning=FALSE, message=FALSE)
+require(ggplot2)
+require(grid)
+```
+`r hl()$basefontsize()`
+
+#Writing functions
+
+##How?
+
+R has several ways to write your own function:
+
+-  RStudio: click on File > New File > R Scipt. A new empty window pops up. Type fun, hit enter, and  the following text appears:
+
+name <- function(variables) {
+
+}
+
+change the name, save the file as myfun.R with File > Save. Now type in the code. When done click the Source button. 
+
+-  fix: In the R console run 
+
+```{r eval=FALSE}
+fix(myfun)
+```
+
+now a window with an editor pops up and you can type in the code. When you are done click on Save. If there is some syntax error DON'T run fix again, instead run
+
+```{r eval=FALSE}
+myfun <- edit()
+```
+
+-  Open any code editor outside of RStudio, type in the code, save it as myfun.R, go to the console and run 
+
+```{r eval=FALSE}
+source('R/myfun.R')
+```
+
+Which of these is best? In large part that depends on your preferences. In my case, if I expect to need that function just for a bit I use the fix option. If I expect to need that function again later I start with the first method, but likely soon open the .R file outside RStudio because I can move that window around onto a second monitor.
+
+There are some useful keyboard shortcuts here. If the curser is on some lie in the editor you can hit
+
+-  CTRL-Enter run current line or section  
+-  CTRL-ALT-B run from beginning to line  
+-  CTRL-Shift-Enter run complete chunk 
+-  CTRL-Shift-P rerun previous
+
+##Basic programmming structures in R
+
+R has all the standard programming features:
+
+###Conditionals if-else
+
+```{r}
+f <- function(x) {
+  if(x>0) y <- log(x)
+  else y <- NA
+  y
+}
+f(2)
+f(-2)
+```
+
+A useful variation on the if statement is the *switch* statement:
+
+```{r}
+centre <- function(x, type) {
+  switch(type,
+         mean = mean(x),
+         median = median(x),
+         trimmed = mean(x, trim = .1))
+}
+x <- rcauchy(10)
+centre(x, "mean")
+centre(x, "median")
+centre(x, "trimmed")
+```
+
+special R construct: ifelse
+
+```{r}
+x <- sample(1:10, size=7, replace = TRUE)
+x
+ifelse(x<5, "Yes", "No")
+```
+
+###Loops
+
+there are three standard loops in R:
+
+####for loop
+
+```{r}
+y <- vector("integer", 10)
+for(i in 1:10) y[i] <- i*(i+1)/2
+y
+```
+
+sometimes we don't know the length of y ahead of time, then we can use
+
+```{r}
+for(i in seq_along(y)) y[i] <- i*(i-1)^2
+y
+```
+
+If there is more than one statement inside a loop use curly braces:
+
+```{r}
+for(i in seq_along(y)) {
+  y[i] <- i*(i-1)^2
+  if(y[i]>100) y[i] <- 100
+}
+y
+```
+
+####while loop
+
+this is useful if we don't know how often the loop needs to run. Let's say we want to do a simulation of rolling three dice and we want to find the probability of a "triple" (all three dice equal)
+
+```{r}
+k <- 0
+while (length(table(x))>1) {
+  k <- k+1
+  x <- sample(1:6, size=3, replace=TRUE)
+}
+k
+```
+
+####repeat loop
+
+similar to while loop, except that check is done at the end
+
+```{r}
+k <- 0
+repeat {
+  k <- k+1
+  x <- sample(1:6, size=3, replace=TRUE)
+  if(length(table(x))==1) break
+}
+k
+```
+
+Notice that a while and repeat loop could in principle run forever. I usually include a counter that ensures the loop will eventually stop:
+
+```{r}
+k <- 0
+counter <- 0
+repeat {
+  k <- k+1
+  counter <- counter+1
+  x <- sample(1:6, size=3, replace=TRUE)
+  if(length(table(x))==1 | counter>1000) break
+}
+k
+```
+
+
+##Some general advice on computer programming
+
+-  Start small
+
+Even if ultimately you want to write a "big" program, first write a small one, a special case. 
+
+-  then add to it, piece by piece
+
+-  test often
+
+and don't add more until you have a working program
+
+-  break it up in pieces (modularity) 
+
+If your program gets too big, break it up into several smaller self-contained programs
+
+-  Comment, Comment, Comment
+
+write lots of comments. This is not only so that someone else can understand you program, but so that your future-self can as well!
+
+##Finding Errors, Debugging
+
+There are essentially two type of errors:
+
+-  syntax  
+-  run-time 
+
+A syntax error is a bad piece of code, such as missing braces etc. You will get an error message from R when you try to read such code into R, for example with source. In general these are fairly easy to find, R will tell you the line where (more or less) the error is.
+
+-  run-time errors occur when at some point in the execution an illegal command is to be executed. If that happens R generally stops the program and returns an error.
+
+Finding a run-time error can be very time consuming. Here are some simple things to do:
+
+-  add print statements 
+
+In order to find out where in the execution a problem occurs you might add a print statement in a few places. Sometime that should print out some values of interest, some times it might just be  print("A")  print("B") etc.
+
+-  when an error occurs depending on a random number, use set.seed so it will always occur at the same spot:
+
+```{r}
+set.seed(1111)
+```
+
+-  R has some routines to help with debugging, such traceback, debug and browser. For some explanations of these read [https://support.rstudio.com/hc/en-us/articles/205612627-Debugging-with-RStudio](https://support.rstudio.com/hc/en-us/articles/205612627-Debugging-with-RStudio)
+
+##Functional Programming
+
+In R everything is an object, and objects can be passed to and returned from functions. This includes functions!
+
+Condsider the example from above:
+
+```{r}
+centre <- function(x, type) {
+  switch(type,
+         mean = mean(x),
+         median = median(x),
+         trimmed = mean(x, trim = .1))
+}
+x <- rcauchy(10)
+c(centre(x, "mean"), centre(x, "median"), centre(x, "trimmed"))
+```
+
+We could just as easily have written it this way:
+
+```{r}
+centre.alt1 <- function(x, fun) {
+  fun(x)
+}
+c(centre.alt1(x, mean), centre.alt1(x, median))
+```
+
+How about the last one, the trimmed mean? Here we also need to pass an argument (trim=0.1) on to function inside centre.alt. One way would be to define the function explicitely:
+
+```{r}
+centre.alt1(x, function(x) {mean(x, trim = 0.1)})
+```
+
+Notice that here the function we created doesn't have a name. It is called an *anonymous* function.
+
+There is another way to pass an argument on to a function, the ... syntax:
+
+```{r}
+centre.alt2 <- function(x, fun, ...) {
+  fun(x, ...)
+}
+centre.alt2(x, mean, trim=0.1)
+```
+
+Finally, a function can also be the output of a function:
+
+```{r}
+centre.alt3 <- function(type) {
+  switch(type,
+         mean = mean,
+         median = median,
+         trimmed = function(x) {mean(x, trim = .1)})
+}
+c(centre.alt3("mean")(x), centre.alt3("median")(x), 
+  centre.alt3("trimmed")(x))
+```
+
+Sometimes it is better to return a list of functions:
+
+```{r}
+centre.alt4 <- function(type) {
+  list(Mean = mean,
+       Median = median,
+       Trimmed = function(x) {mean(x, trim = .1)})
+}
+c(centre.alt4()$Mean(x), centre.alt4()$Median(x), 
+  centre.alt4()$Trimmed(x))
+```
+
+###Turning a string into a function.
+
+Let's say we want to write a function that reads some text from a file. The text is actually the name of an R function, and we want to execute that function. We can use the following (very famous or infamous!) construct:
+
+```{r}
+txt <- "exp(-x^2)"
+fun <- function(x) eval(parse(text=txt))
+x <- 0.5
+c(exp(-x^2), fun(x))
+```
+
+###Computing on the Language
+
+Consider this example:
+
+```{r}
+x <- seq(-1, 1, length=250)
+square <- x^2
+plot(x, square, type = "l")
+```
+
+Notice something strange? In the graph we have not only the values of x and square, also the names "x" and "square", used as labels. How is this done? Could we use the name of the variables also (for example) in the title of the graph?
+
+The R functions we need for this are *deparse* and *substitute*:
+
+```{r}
+myplot <- function(x, y) {
+  yname <- deparse((substitute(y)))
+  plot(x, y, type="l", main=yname)
+}
+myplot(x, square)
+```
+
+Notice the call to the function *rm*:
+
+```{r echo=-c(1:2)}
+a <- ls()
+rm(list = a);rm(a)
+ls()
+x <- 1
+ls()
+rm(x)
+ls()
+x <- 1
+rm("x")
+ls()
+```
+
+Apparently it does not matter whether we call rm with or without quotes, it works either way. There are a number such routines, for example *library*. 
+
+How does this work?
+
+Let's write one:
+
+```{r}
+f <- function(expr) {
+  sexpr <- substitute(expr)
+  if(!is.character(sexpr))
+    sexpr <- deparse(sexpr)
+  sexpr
+}
+f(z)
+f("z")
+```
+
+so either way now we have a character string.
+
+There is a nice function in R to draw graphs of functions called *curve*:
+
+```{r}
+curve(x^2*sin(2*pi*x), 0, 1)
+```
+
+notice how the function is entered here, without quotes. So it is not a character string.
+
+Let's write our own curve routine. In addition we are going to show the function as the title! Finally, our routine will also allow us to pass two parameters to the function.
+
+```{r}
+mycurve <- function(fn, A=0, B=1, np=250, par1=0, par2=0) {
+  sexpr <- deparse(substitute(fn))
+  x <- seq(A, B, length=np)
+  f <- function(x) eval(parse(text=sexpr), 
+            list(x=x, par1=par1, par2=par2))
+  y <- f(x)
+  sexpr <- gsub("par1", par1, sexpr)
+  sexpr <- gsub("par2", par2, sexpr)
+  plot(x, y, type="l", main=parse(text=sexpr))
+}
+mycurve(x^par1*sin(par2*pi*x), par1=2, par2=4)
+mycurve(dnorm(x, par1, par2), A=0, B=20, par=10, par2=3)
+```
+
+##Infix functions
+
+In R every object is either a data set or a function. As a general principle, if it does something it is a function. This is true even for  things that don't look that way, for example the addition operation *+*:
+
+```{r}
+1 + 2
+```
+
+In fact we can write this explicitely as a function:
+
+```{r}
+'+'(1, 2)
+```
+
+
+Because these types of functions are sitting between their arguments they are called *infix* operators, in contrast to *prefix* operators that have the name of the function first.
+
+Because they are functions we can write our own. User-written prefix functions always have to start and end with %. 
+
+###Case Study: Binary Arithmetic
+
+In our everyday world we use 10 digits to express numbers, a system called decimal. There is however nothing special about 10 (except that we have 10 fingers and toes!) In fact, computer only use 2 digits, 0 and 1 (or on and off) a system called binary. Every decimal number has an equivalent binary, and one can do arithmetic in either system. 
+
+Note that we will restrict ourselves to integers only.
+
+Here are the first numbers:
+$$
+\begin{aligned}
+&0=0     \\
+&1=1     \\
+&2=10     \\
+&3=11     \\
+&4=100     \\
+&5=101     \\
+&6=110   \\
+&7=111     \\
+&8=1000    \\
+\end{aligned}
+$$
+We want to implement a system that allows us to work with binary numbers in R.
+
+First we need to figure out how to represent these numbers in R. The easiest way is as a sequence of 0's and 1's, like (1, 0, 1) (equivalent to 5).
+
+We begin by writing some routines that convert a number in the decimal system to a binary and vice versa:
+
+How can we turn a decimal into a binary? Notice the following
+
+$$
+\begin{aligned}
+&0=0=0\times2^0     \\
+&1=1=1\times2^0   \\
+&2=10=1\times2^1+0\times2^0     \\
+&3=11=1\times2^1+1\times2^0     \\
+&4=100=1\times2^2+0\times2^1+0\times2^0     \\
+&5=101=1\times2^2+0\times2^1+1\times2^0     \\
+&6=110=1\times2^2+1\times2^1+1\times2^0   \\
+&7=111=1\times2^2+1\times2^1+1\times2^0     \\
+&8=1000=1\times2^3+0\times2^2+0\times2^1+0\times2^0   \\
+\end{aligned}
+$$
+so the idea is to write x in the form $\sum i_k 2^k$
+
+Let's try an example:
+
+$$
+26 = \\
+2^4+2^3+2^1 = \\
+(1, 1, 0, 1, 0)
+$$
+why $2^4$? because it is $\max\left\{i \in N: 2^i<26\right\}$.
+
+For a general number m, how can we find out what this largest i is? We have
+
+$$
+\begin{aligned}
+&2^i \le m  \\
+&i\log(2)\le \log(m)  \\
+&i \le \log(m)/\log(2)  \\
+\end{aligned}
+$$
+and in fact if we use log base 2 we have $i=\text{floor}(\log(m, base=2))$!
+
+```{r}
+decimal.2.binary <- function(x) {
+    if(x==0) return(0)  #simple cases 
+    if(x==1) return(1)  
+    i <- floor(log(x, base=2)) #largest power of 2 less than x
+    bin.x <- rep(1, i+1) #we will need i+1 0'1 and 1's, first is 1
+    x <- x-2^i 
+    for(j in (i-1):0) {
+       if(2^j>x) 
+         bin.x[j+1] <- 0
+       else {
+         bin.x[j+1] <- 1
+         x <- x-2^j
+       }
+    }
+    bin.x[length(bin.x):1]
+}
+decimal.2.binary(7)
+decimal.2.binary(8)
+decimal.2.binary(26)
+```
+
+Of course, the other way around is much simpler:
+
+```{r}
+binary.2.decimal <- function(x) sum(x*2^(length(x):1-1))
+binary.2.decimal(c(1, 1, 1))
+binary.2.decimal(c(1, 0, 0, 0))
+binary.2.decimal(c(1, 1, 0, 1, 0))
+binary.2.decimal(decimal.2.binary(126))
+```
+
+How does addition work? essentially we add the numbers piece by piece from right to left, with a 1 carried over whenever there are two 1's. For example
+
+$$
+\begin{aligned}
+\text{ }&0010 \text{ }\text{ }\text{ }(2)\\
++\text{ }&0110 \text{ }\text{ }\text{ }(6)  \\
+=\text{ }&1000 \text{ }\text{ }\text{ }(8)\\
+\end{aligned}
+$$
+A general algorithm for addition is given here:
+
+![](graphs/binary.addition.png)
+
+It uses some strange words, but those are not important to us. Here is the corresponding R function:
+
+```{r}
+binary_addition <- function(x, y) {
+#First make x and y of equal length and with one extra 
+#slot in case it's needed for carry over
+#Fill x and y with 0's as needed. 
+  n <- length(x)
+  m <- length(y)
+  N <- max(n, m)+1
+  x <- c(rep(0, N-n), x)
+  y <- c(rep(0, N-m), y)  
+  s <- rep(0, N) # for result
+  ca <- 0 #for carry over term
+  for(i in N:1) {
+      n <- x[i]+y[i]+ca
+      if(n<=1) {#no carry over
+        s[i] <- n
+        ca <- 0
+      }  
+      else {#with carry over
+        s[i] <- 0
+        ca <- 1
+      }
+    }
+  if(s[1]==0) s <- s[-1]#leading 0 removed if necessary
+  s
+}
+binary_addition(c(1, 0), c(1, 1, 0))
+```
+
+Let's turn this into an infix addition operator. we could just call it %+% but instead I will call it %+b% so the chances of this name already being used by R somewhere else are small.
+
+```{r}
+'%+b%' <- function(x, y) binary_addition(x, y)
+x <- c(1, 0) # 2
+y <- c(1, 1, 0) # 6
+x %+b% y #2+6=8
+```
+
+Notice a big problem with how we have defined binary numbers: how are we going to define a vector of them, as a vector of vectors? Lists might work, but would be a bit ugly. A better idea might be as a character string like \"0101\". But before we can handle that we will need to learn how to work with strings.
+
+Let's write two more functions:
+
+1)  *is.binary* should check whether a vector is (can be) a binary number. For this it has to consist entirely of 0's and 1's:
+
+```{r}
+is.binary <- function(x) {
+  if(all(x==0)) return(TRUE)
+  x <- x[x!=0]
+  x <- x[x!=1]
+  if(length(x)==0) return(TRUE)
+  return(FALSE)
+}
+is.binary(c(1, 0, 1, 1))
+is.binary(1)
+is.binary(0)
+is.binary(c(1, 2, 1, 1))
+```
+
+2)  *as.binary* should turn vectors into a binary number. For this we will use the following rules:
+
+   -  0 &rarr; 0, x &ne;0 &rarr; 1
+   -  FALSE &rarr; 0, TRUE &rarr; 1 
+   -  Anything else NA
+   
+
+```{r}
+as.binary <- function(x) {
+  if(is.logical(x)) return(as.numeric(x))
+  if(is.numeric(x)) return(ifelse(x==0, 0, 1))
+  NA
+}
+as.binary(c(0, 1, 2, 1, 2))
+as.binary(1:4 > 2)
+as.binary(0)
+as.binary(c(1, 2, 1, "a"))
+```
+

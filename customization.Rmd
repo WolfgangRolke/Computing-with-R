@@ -5,12 +5,22 @@ output:
   pdf_document:
     fig_caption: no
 ---
+
 <style>
 table, th, td { text-align:right; }
 th, td {padding: 10px;}
 </style>
 
-<fontsize="+1">
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+whichcomp <- strsplit(getwd(),"/")[[1]][3]
+load(paste0("c:/users/", whichcomp, "/Dropbox/Resma3/Resma3.RData"))
+library(knitr)
+opts_chunk$set(fig.width=6, fig.align = "center", 
+      out.width = "70%", warning=FALSE, message=FALSE)
+library(ggplot2)
+library(grid)
+```
+`r hl()$basefontsize()`
 
 #Costumizing R: .First, .Rprofile, Dropbox
 
@@ -21,25 +31,27 @@ There are quite a few things that one might want to change from the defaults of 
 
 Note that the . in front means that you can't see this object when you run ls().
 
-The .First is part of the.RData file whereas the .Rprofile is separate.
+The .First is part of the .RData file whereas the .Rprofile is separate.
 
 When R starts it looks for a file called .Rprofile and executes any commands therein. Then it runs the routine .First.
 
 Well, at least that is how it used to be when we were using the command console. For reasons never explained (and much complained about by the users) RStudio ignores the .First file at startup, so we will need to have a work around.
 
-Let's start with a simple. Rprofile. This is a stand-alone file usually loacted in your default working directory. You can find out what is by running
+Let's start with a simple. Rprofile. This is a stand-alone file usually loacted in your default working directory. You can find out where it is by running
 
 ```{r eval=FALSE}
 dir("~")
 ```
 
-So here is what it might look like:
+So here is what it (part of mine) looks like:
 
 
 options(help_type="html")  
 options(show.signif.stars=FALSE)  
 options(stringsAsFactors=FALSE)  
-library("ggplot2")  
+library(ggplot2)  
+library(wolfr)
+library(moodler)
 .MyEnv <- new.env()   
 .MyEnv$sc <- function() source("clipboard")  
 .MyEnv$dp <- function(x) { dump(x,"clipboard") }  
@@ -54,15 +66,13 @@ if("First.R" %in% dir()) {
 }  
 cat("\nSuccessfully loaded .Rprofile at", date(), "\n")  
 
-So it changes a few options, loads a library, makes a new environment and defines a few functions. Finally it checks the directory from where the Rproject was started to see whether it contains a file .First.R. If so it loads and executes it as well. 
+So it changes a few options, loads some libraries, makes a new environment and defines a few functions. Finally it checks the directory from where the Rproject was started to see whether it contains a file First.R. If so it loads and executes it as well. 
 
-Say this project is about writting a shiny app, then the .First.R would have the line
+Say this project is about writing a shiny app, then the .First.R would have the line
 
 library(shiny)
 
-Notice because a single .Rprofile sits in the default working directory the same one gets executed everytime I start RStudio, but different working directories might have different .Firsts (or none) 
-
-My own .Rprofile is a lot longer, you can see (and download) it at [http://academic.uprm.edu/wrolke/research/.Rprofile](http://academic.uprm.edu/wrolke/research/.Rprofile)
+Notice because a single .Rprofile sits in the default working directory the same one gets executed everytime I start RStudio, but different working directories might have different First.R's (or none) 
 
 ##Dropbox
 

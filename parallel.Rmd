@@ -19,7 +19,7 @@ opts_chunk$set(fig.width=6, fig.align = "center",
 library(ggplot2)
 library(grid)
 ```
-`r rmd$basefontsize()`
+`r hl()$basefontsize()`
 
 #Parallel and GPU Computing
 
@@ -97,7 +97,7 @@ proc.time()-tm
 
 and so this took only about 6 seconds!
 
-Did it really calculate the same thing? Lets see. Please note that snow returns a list, one for each cluster:
+Did it really calculate the same thing? Let's see. Please note that parallel returns a list, one for each cluster:
 
 
 ```{r}
@@ -120,7 +120,7 @@ We previously discussed the apply family of functions. If one of these is what y
 
 So say we have a large matrix and want to find the maximum in each row:
 
-```{r}
+```{r cache=TRUE}
 B <- 1e5
 A <- matrix(runif(10*B), B, 10)
 tm <- proc.time()
@@ -131,7 +131,7 @@ a <- parRapply(cl, A, max)
 proc.time()-tm
 ```
 
-In general the easiest case of parallizing a calculation is if you have already used the *lapply* command: Let's say we have the scores of students on  anumber of exams. Because each exam had a different number of students we have the data organized as a list: 
+In general the easiest case of parallizing a calculation is if you have already used the *lapply* command: Let's say we have the scores of students in a number of exams. Because each exam had a different number of students we have the data organized as a list: 
 
 ```{r echo=5:7}
 grades <- list(Exam_1=round(rnorm(10, 70, 5)), 
@@ -145,7 +145,7 @@ length(grades)
 
 Now we want to find the minimum , mean, standard deviation and maximum of each exam. We can do that with
 
-```{r}
+```{r cache=TRUE}
 z <- lapply(grades, 
         function(x) {round(c(min(x), mean(x), sd(x), max(x)), 1)} 
       )
@@ -154,7 +154,7 @@ z[1:2]
 
 and to run this in parallel:
 
-```{r}
+```{r cache=TRUE}
 z <- parLapply(cl, grades, function(x) {c(min(x), mean(x), sd(x), max(x))} )
 z[1:2]
 ```
@@ -174,7 +174,7 @@ However, there was one area are were such chips were in fact developed, namely o
 
 Not all cards, however, will work. The most widely available ones are NVIDIA, but some others work as well.
 
-To do gpu programming you need to get the *gpuR* library. Unlike most libraries this one is distributed as a *source*, so before ou can use it it needs to be compiled. This will happen automatically but does take a bit of time.
+To do gpu programming you need to get the *gpuR* library. Unlike most libraries this one is distributed as a *source*, so before you can use it it needs to be compiled. This will happen automatically but does take a bit of time.
 
 To make sure you have all that is needed install the package and then run
 
@@ -187,119 +187,22 @@ The gpuR package has mostly routines for matrix algebra. So let's say we have a 
 
 ```{r}
 A <- matrix(rnorm(100), 10, 10)
-microbenchmark(solve(A))
+summary(microbenchmark(solve(A)))["mean"]
 ```
 
-To use gpuR we have to turn the matrix into a gpuR  object, and then we can run solve again:
+To use gpuR we have to turn the matrix into a gpuR object, and then we can run solve again:
 
 ```{r}
 A_gpuR <- vclMatrix(A, type="float")
-microbenchmark(solve(A_gpuR))
+summary(microbenchmark(solve(A_gpuR)))["mean"]
 ```
 
 Most linear algebra methods have been created to be executed for the
 gpuMatrix and gpuVector objects.   These  methods  include  basic  arithmetic functions %*%, +, -, \*, /, t, , crossprod, tcrossprod, colMeans, colSums, rowMean,  and rowSums.  
 
-Math  functions  include sin, asin, sinh, cos, acos, cosh, tan, atan,
-tanh,exp,log,log10,exp,abs,max, andmin. Additional operations include some linear algebra routines such as cov(Pearson Covariance) and eigen.  
+Math functions include sin, asin, sinh, cos, acos, cosh, tan, atan,
+tanh, log, log10, exp, abs, max, andmin. Additional operations include some linear algebra routines such as cov(Pearson Covariance) and eigen.  
 
 A few ’distance’ routines have also been added with the dist and
 distance (for pairwise) functions. These currently include ’Euclidean’ and ’SqEuclidean’ methods.
 
-###Example
-
-We have previously done a simulation to study the least squares estimates of the regression line. We used the *lm* command to get them, but there would have been a very simple way to speed up the simulation by calculating the estimates directly. *lm* calculates not just the coefficients but a lot of other stuff we are not right now interested in. So again we have a model of the form $y=\beta_0 + \beta_1 x$ and we have vectors $x$ and and $y$ of data. Then we find
-
-$$
-\begin{aligned}
-&S_{xx}= \sum  x^2 - n\sum x^2\\
-&S_{xy}= \sum x y- n \sum x \sum y\\
-&\hat{\beta_1}    = \frac{S_{xy}}{S_{xx}}\\
-&\hat{\beta_0}    = \bar{y}-\hat{\beta_1}\bar{x}\\
-\end{aligned}
-$$
-and so we can write the simulation routine as follows:
-
-```{r cache=TRUE}
-sim1_lm <- function(param) {
-  beta0<-param[1]; beta1<-param[2]; sigma<-param[3]
-  n<-param[4]; B=param[5]
-  coefs <- matrix(0, B, 2)
-  x <- 1:n
-  for(i in 1:B) {
-    y <- beta0+beta1*x+rnorm(n, 0, sigma)
-    s_xx <- sum(x^2)-n*mean(x)^2
-    s_xy <- sum(x*y)-n*mean(x)*mean(y)
-    coefs[i, 2] <- s_xy/s_xx
-    coefs[i, 1] <- mean(y)-coefs[i, 2]*mean(x)
-  }
-  coefs
-}
-tm <- proc.time()
-z1 <- sim_lm(c(5, 2, 3, 20, 50000))
-proc.time()-tm
-tm <- proc.time()
-z1 <- sim1_lm(c(5, 2, 3, 20, 50000))
-proc.time()-tm
-```
-
-So now let's extend our study to the coefficients of multiple regression. That is we have a model of the form
-
-$$
-y=\beta_0 + \sum_{i=1}^k \beta_i x_i 
-$$
-
-Again the estimators can be found explicitely as follows. First we write the model in matrix notation as $y=Ax$ where A is a matrix where the first column is all 1's (for the constant) and the $i^{th}$ column is the $x_i$. Then the vector of estimates is given by 
-
-$$
-\hat{\beta} = (A^TA)^{-1}A^Ty
-$$
-
-In the simulation above we assumed the x's to be fixed (1:n). Here we will generate them from U[0, 1]. So we have the routine
-
-```{r cache=TRUE}
-simk1 <- function(params) {
-  k <- params[1]
-  n <- params[2]
-  sigma <- params[3]
-  B <- params[4]
-  beta <- params[-c(1:4)]
-  coefs <- matrix(0, B, k+1)
-  for(i in 1:B) {
-    A <- matrix(runif(n*k), ncol=k)
-    y <-  beta[1] + A%*%cbind(beta[-1]) + rnorm(n, 0, sigma)  
-    A <- cbind(1, A)
-    coefs[i, ] <- c(solve(t(A)%*%A)%*%t(A)%*%cbind(y))
-  }
-  coefs
-}
-tm <- proc.time()
-z1 <- simk1(c(3, 100, 1, 10000, 1, 2, 3, 4))
-proc.time()-tm
-tm <- proc.time()
-```
-
-Now let's rewrite this using gpu:
-
-```{r eval=F}
-simk2 <- function(params) {
-  k <- params[1]
-  n <- params[2]
-  sigma <- params[3]
-  B <- params[4]
-  beta <- params[-c(1:4)]
-  coefs <- matrix(0, B, k+1)
-  for(i in 1:B) {
-    A <- matrix(runif(n*k), ncol=k)
-    y <-  beta[1] + A%*%cbind(beta[-1]) + rnorm(n, 0, sigma)  
-    A1 <- vclMatrix(cbind(1, A), type="float")
-    z <- solve(t(A1)%*%A1)%*%t(A1)%*%cbind(y)
-    coefs[i, ] <- c(as.matrix(z))
-  }
-  coefs
-}
-tm <- proc.time()
-z1 <- simk2(c(3, 100, 1, 10000, 1, 2, 3, 4))
-proc.time()-tm
-tm <- proc.time()
-```

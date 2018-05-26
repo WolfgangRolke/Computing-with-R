@@ -14,8 +14,6 @@ th, td {padding: 10px;}
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
 whichcomp <- strsplit(getwd(),"/")[[1]][3]
 load(paste0("c:/users/", whichcomp, "/Dropbox/Resma3/Resma3.RData"))
-rm(select)
-rm(select)
 library(knitr)
 opts_chunk$set(fig.width=6, fig.align = "center", 
       out.width = "70%", warning=FALSE, message=FALSE)
@@ -23,7 +21,7 @@ library(ggplot2)
 library(grid)
 ```
 
-`r rmd$basefontsize()`
+`r hl()$basefontsize()`
 
 #Character Manipulation with stringr
 
@@ -82,7 +80,7 @@ states %>%
 x[vowels]
 ```
 
-`r rmd$hr()`
+`r hl()$hr()`
 
 *stringr* provides  functions  for  both  
 
@@ -114,7 +112,7 @@ str_c("It", "is",  "a", "nice", "day", "today",
       sep="-")
 ```
 
-next str_length. Compared to nchar(), can handle more data types, for example factors:
+next str_length. Compared to nchar() it can handle more data types, for example factors:
 
 ```{r}
 some_factor <- factor(c(1, 1, 1, 2, 2, 2), 
@@ -156,7 +154,7 @@ txt <- c("some", " text", "with ", " white ", "space")
 str_trim(txt)
 ```
 
-One operation that one needs to do quite often is to extract the last (few) letters from words. Using substring is tricky if the words don't have the same lengths:
+An operation that one needs to do quite often is to extract the last (few) letters from words. Using substring is tricky if the words don't have the same lengths:
 
 ```{r}
 substring(txt, nchar(txt)-1, nchar(txt))
@@ -185,6 +183,8 @@ dracula <- gutenberg_download(345)
 dracula
 ```
 
+Why 345? This is the id number used by the Gutenberg web site to identify this book. Go to their website and check out what other books they have (there are over 57000 as of 2018).
+
 The first column is the gutenber_id, so we can get rid of that
 
 ```{r}
@@ -206,7 +206,7 @@ library(tidytext)
 stop_words
 ```
 
-So we now want to go through dracula and remove all the apperances of any of the words in stop_words. This can be done with the *dplyr* command *anti_join*. However the two lists need to have the same column names, and in dracula it is *text* whereas in stop_words it is *word*. Again, the library *tidytext* has a command:
+So we now want to go through dracula and remove all the appearances of any of the words in stop_words. This can be done with the *dplyr* command *anti_join*. However the two lists need to have the same column names, and in dracula it is *text* whereas in stop_words it is *word*. Again, the library *tidytext* has a command:
 
 ```{r}
 dracula %>% 
@@ -223,6 +223,8 @@ dracula %>%
   count(word, sort=T)
 ```
 
+so *time* is the most common word, it appears 390 times in the book.
+
 How do the words in Dracula compare to another famous fiction book of the era, The Time Machine, by H. G. Wells? This is book #35 in the gutenberg catalogue:
 
 ```{r cache=TRUE}
@@ -238,7 +240,7 @@ time.machine %>%
   count(word, sort=T)
 ```
 
-Actually, time is the most common word in both books!
+Actually, time is the most common word in both books (not a surprise in a book called The Time Machine!)
 
 Can we do a graphical display of the word frequencies? We will need some rutines from yet another package called *tidyr*.
 

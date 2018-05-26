@@ -19,29 +19,33 @@ opts_chunk$set(fig.width=6, fig.align = "center",
 library(ggplot2)
 library(grid)
 ```
-`r rmd$basefontsize()`
+`r hl()$basefontsize()`
 
-#Version Control, github
+#Version Control and Collaboration, github
 
 Notice that the title doesn't read *with github*. This is because github is not an R package. It is much more general.
 
 Once you start working on larger projects (like a thesis?) you quickly run into the following problem: you consider a change to the existing document but you are not sure yet. So you make a copy. Then the same thing hapens again, and again ... Eventually you have 10 copies with strange names and no idea what is what. Version control is a general principle to keep track of all these changes. 
 
-It gets even more important when you begin to collaborate with others, and everyone makes changes to the same document.
+It gets even more important when you begin to collaborate with others, and everyone makes changes to the same document, possibly at the same time.
 
-There are many version control systems available. In fact dropbox has a very rudimentary one, it keeps older versions of a file so you can restore it when needed. But one of the very best is github, located at [https://github.com/](https://github.com/). 
+There are many version control systems available. In fact Dropbox has a very rudimentary one, it keeps older versions of a file so you can restore it when needed. But one of the very best is github, located at [https://github.com/](https://github.com/). 
 
-For a detailed introduction to git, github and how they work with RStudio see [Happy git with R](http://happygitwithr.com)
+For a detailed introduction to git, github and how they work with RStudio see [Happy git with R](http://happygitwithr.com).
 
 Unfortunately getting going with github is not a simple process. You need to install several programs. My advice is to follow the instructions on *Happy git with R* **precisely**.
 
 The main idea behind github is to branch a repository. Essentially that makes a complete copy. You can then make any changes, but without changing the *master* copy. Once you are certain your changes will stay you *commit* them back to the master. You can make such a branch of any repo that was declared public, which is most of them, even if it is not yours. Then if they make changes to the files, all you need to do is *pull* the repo and you also have the latest version!
 
-This course is available on github at [https://github.com/WolfgangRolke/Computing-with-R](https://github.com/WolfgangRolke/Computing-with-R)
+This course (the Rmds) is available on github at [https://github.com/WolfgangRolke/Computing-with-R](https://github.com/WolfgangRolke/Computing-with-R). 
 
 ##Setting up a new repo
 
-Go to https://github.com and make sure you are logged in.
+github is independent of R and/or RStudio. You can use it for any purpose, even storing your poetry. RStudio however was designed to work closely with github, and I will discuss how to use gitub in this way.
+
+`r hl()$vspace()`
+
+Start by going to https://github.com and make sure you are logged in. Of course on your first visit you have to create an account.
 
 Click green “New repository” button. Or, if you are on your own profile page, click on “Repositories”, then click the green “New” button.
 
@@ -54,7 +58,9 @@ YES Initialize this repository with a README
 
 Click big green button “Create repository.”
 
-Copy the HTTPS clone URL to your clipboard 
+Copy the HTTPS clone URL to the clipboard 
+
+`r hl()$vspace()`
 
 Now go to RStudio
 
@@ -68,7 +74,7 @@ Copy any files you wish to be part of the repo into this folder.
 
 Go to RStudio and click on Git in the upper right corner, next to Environment etc. You see all these files, check the boxes next to them under Staged.
 
-Clickon Commit, type a meassage and click Commit. A new window will pop up, when it is done click Close. 
+Click on Commit, type a meassage and click Commit. A new window will pop up, when it is done click Close. 
 
 Finally click Push. RStudio will now send those files to github. When it is done click on close
 

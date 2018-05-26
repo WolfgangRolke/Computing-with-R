@@ -5,6 +5,7 @@ output:
   pdf_document:
     fig_caption: no
 ---
+
 <style>
 table, th, td { text-align:right; }
 th, td {padding: 10px;}
@@ -13,11 +14,13 @@ th, td {padding: 10px;}
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
 whichcomp <- strsplit(getwd(),"/")[[1]][3]
 load(paste0("c:/users/", whichcomp, "/Dropbox/Resma3/Resma3.RData"))
-require(knitr)
-require(ggplot2)
-require(grid)
+library(knitr)
+opts_chunk$set(fig.width=6, fig.align = "center", 
+      out.width = "70%", warning=FALSE, message=FALSE)
+library(ggplot2)
+library(grid)
 ```
-`r rmd$basefontsize()`
+`r hl()$basefontsize()`
 
 #Generate Radnom Variates
 
@@ -30,13 +33,12 @@ Everything starts with generating X~1~, X~2~, .. iid U[0,1]. These are simply ca
 - quantum random number generators  
 - ...
 
-The R package *random* has the routine randomNumbers which gets random numbers from a web site which generates them based on (truely random) atmospheric phenomena.
+The R package *random* has the routine *randomNumbers* which gets random numbers from a web site which generates them based on (truely random) atmospheric phenomena.
 
 ```{r message=FALSE}
 require(random)
 randomNumbers(20, 0, 100)
 ```
-
 
 ##Pseudo-Random Numbers
 
@@ -134,7 +136,7 @@ $$
 R however defines it as the number of failures until the first success, and so it uses
 
 $$
-P(X*=x)=\text{dgeom}(x, p)=p(1-p)^x\text{, }x=0,1,2,..
+P(X^*=x)=\text{dgeom}(x, p)=p(1-p)^x\text{, }x=0,1,2,..
 $$
 Of course this is easy to fix. If you want to generate the "usual" geometric do
 
@@ -160,7 +162,7 @@ cor(x)[1, 2]
 If you can't find a package you have write your own! Here is a simple routine that will generate random variates from any function fun (given as a character vector) in one dimension on a finite interval:
 
 ```{r}
-rPIT <- function (n, fun, A, B) 
+r.pit <- function (n, fun, A, B) 
 {
   f <- function(x) eval(parse(text=fun))
   m <- min(2 * n, 1000)
@@ -174,10 +176,12 @@ rPIT <- function (n, fun, A, B)
 }
 ```
 
+*pit* stands for *probability integral transform*, which is a theorem in probability theory that explains why this works.
+
 Let's try it out:
 
 ```{r}
-y <- rPIT(1000, "x^2", 0, 1)
+y <- r.pit(1000, "x^2", 0, 1)
 hist(y, 50, freq=FALSE, main="")
 curve(3*x^2, 0, 1, add=TRUE)
 ```
@@ -187,8 +191,8 @@ notice that the function doesn't even have to be normalized!
 or a bit more complicated:
 
 ```{r}
-y <- rPIT(1000, "x*sin(2*pi*x)^2", 0, 1)
+y <- r.pit(1000, "x*sin(2*pi*x)^2", 0, 1)
 hist(y, 50, freq=FALSE, main="")
 ```
 
-Want to know why this routine works? Come to my course ESMA5015 Simulation!
+Want to learn how to generate data from any random vector? Come to my course ESMA5015 Simulation!
