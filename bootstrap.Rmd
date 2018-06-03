@@ -1,0 +1,202 @@
+---
+header-includes: \usepackage{color}
+output:
+  html_document: default
+  pdf_document:
+    fig_caption: no
+---
+<style>
+table, th, td { text-align:right; }
+th, td {padding: 10px;}
+</style>
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+whichcomp <- strsplit(getwd(),"/")[[1]][3]
+load(paste0("c:/users/", whichcomp, "/Dropbox/teaching/Resma3/Resma3.RData"))
+library(knitr)
+opts_chunk$set(fig.width=6, fig.align = "center", 
+      out.width = "70%", warning=FALSE, message=FALSE)
+library(ggplot2)
+library(grid)
+```
+`r hl()$basefontsize()`
+
+#The Bootstrap
+
+The idea of the Bootstrap is rather strange: say we have some data from some distribution and we want to use it to estimate some parameter $\theta$. We have a formula (a *statistic*) $T(x_1, .. , x_n)$. What is the standard error in this estimate? That is, what is $sd[T(X_1, .. , X_n)]$?
+
+Sometimes we can do this mathematically: Let's assume that the $X_i$ are *iid* (independent and identically distributed)
+
+$$
+\begin{aligned}
+&\theta    = E[X]\\
+&T(x_1, .. , x_n)    = \frac1{n} \sum_{i=1}^n x_i\\
+&Var[T(X_1, .. , X_n)]  = E \left[ \left( T(X_1, .. , X_n) - E[T(X_1, .. , X_n)] \right)^2  \right]\\
+&E[T(X_1, .. , X_n)] = E[\frac1{n} \sum_{i=1}^n X_i] = \frac1{n} \sum_{i=1}^n E[X_i] = \frac1{n} n \theta = \theta \\
+&Var[T(X_1, .. , X_n)]  = E \left[ \left( \frac1{n}\sum_{i=1}^n X_i - \theta \right)^2  \right] = \\
+&E \left[ \left( \frac1{n}\sum_{i=1}^n (X_i - \theta ) \right)^2  \right] \\
+
+&\frac1{n^2} \left[ \sum_{i=1}^n E(X_i - \theta )^2 + \sum_{i,j=1,i \ne j}^n E(X_i - \theta )(X_j - \theta )  \right] =\\
+&\frac1{n^2} \left[ n E(X_1 - \theta )^2 + 0  \right] = \frac1{n}Var[X_1]\\
+\end{aligned}
+$$
+But let's say that instead of the mean we want to estimate $\theta$ with the median. Now what is the $sd[\text{median}(x_1,..,x_n)]$? This can still be done analytically, but is already much more complicated. 
+
+It would of course be easy if we could simulate from the distribution:
+
+```{r}
+sim.theta <- function(B=1e4, n, mu=0, sig=1) {
+  x <- matrix(rnorm(B*n, mu, sig), B, n)
+  xbar <- apply(x, 1, mean)
+  med <- apply(x, 1, median)
+  round(c(sig/sqrt(n), sd(xbar), sd(med)), 3)
+}
+sim.theta(n=25)
+```
+
+But what do we do if didn't know that the data comes from the normal distribution? Then we can't simulate from $F$. We can, however simulate from the next best thing, namely the empirical distribution function *edf* $\hat F$. This is defined as:
+
+$$
+\hat F (x) = \frac1{n} \sum_{i=1}^n I_{(-\infty, x]} (X_i) = \frac{\# X_i \le x}{n}
+$$
+ 
+ Here are two examples:
+ 
+```{r}
+x <- rnorm(25)
+plot(ecdf(x))
+curve(pnorm(x), -3, 3, add=T)
+x <- rnorm(250)
+plot(ecdf(x))
+curve(pnorm(x), -3, 3, add = TRUE)
+```
+ 
+How does one simulate from $\hat F$? It means to *resample* from the data, that is randomly select numbers from x *with replacement* such that each observation has an equal chance of getting picked:
+
+```{r}
+x <- sort(round(rnorm(10, 10, 3), 1))
+x
+sort(sample(x, size=10, replace=T))
+sort(sample(x, size=10, replace=T))
+sort(sample(x, size=10, replace=T))
+```
+
+Now the Boostrap estimate of standard error is simply the sample standard deviation of the estimates of B such bootstrap samples:
+
+```{r}
+x <- rnorm(100, 10, 3)
+B <- 500
+z <- matrix(0, B, 2)
+for(i in 1:B) {
+  z[i, 1]<- mean(sample(x, size=100, replace=T))
+  z[i, 2]<- median(sample(x, size=100, replace=T))
+}
+round(c(3/sqrt(100), apply(z, 2, sd)), 3)
+```
+
+There is also a package that we can use:
+
+```{r}
+library(bootstrap)
+sd(bootstrap(x, 500, mean)$thetastar)
+sd(bootstrap(x, 500, median)$thetastar)
+```
+
+###Example 
+
+the *skewness* of a distribution is a measure of it's lack of symmetry. It is defined by
+
+$$
+\gamma_1=E\left[ \left( \frac{X-\mu}{\sigma}\right)^3\right]
+$$
+a standard estimator of $\gamma_1$ is
+
+$$
+\hat \gamma_1 = \frac{\frac1{n}\sum(x_i- \overline x)^3}{[\frac1{n-1}\sum(x_i- \overline x)^2]^{3/2}} = \frac{\frac1{n}\sum(x_i- \overline x)^3}{[\text{sd(x)}]^{3/2}}
+$$
+
+What is the standard error in this estimate? Doing this analytically would be quite an exercise, but:
+
+```{r echo=FALSE}
+set.seed(112)
+```
+
+
+```{r}
+curve(dnorm(x, 5, 2), 0, 15, col="blue", ylab="") 
+legend(8, 0.2, c("N(5, 2)",  "Gamma(2.5, 1/2)"), 
+    lty=c(1, 1), col=c("blue", "red"))
+curve(dgamma(x, 2.5, 1/2), 0, 15, add=TRUE, col="red")
+T.fun <- function(x) mean( (x-mean(x))^3 )/sd(x)^(3/2)
+x <- rnorm(250, 5, 2)
+sd(bootstrap(x, 500, T.fun)$thetastar)
+x <- rgamma(250, 2.5, 1/2)
+sd(bootstrap(x, 500, T.fun)$thetastar)
+```
+
+##Confidence Intervals
+
+There are two standard technics for using the Bootstrap to find confidence intervals:
+
+###Normal Theory
+
+Let's continue the discussion of the skewness, and put a 95% confidence interval on the estimates:
+
+```{r}
+x.normal <- rnorm(250, 5, 2)
+T.fun <- function(x) mean( (x-mean(x))^3 )/sd(x)^(3/2)
+thetastar.normal <- bootstrap(x.normal, 2000, T.fun)$thetastar
+df <- data.frame(x = thetastar.normal)
+bw <- diff(range(x))/50
+ggplot(df, aes(x)) +
+  geom_histogram(color = "black", fill = "white", binwidth = bw) + 
+  labs(x="x", y="Counts")
+x.gamma <- rgamma(250, 2.5, 1/2)
+thetastar.gamma <- bootstrap(x.gamma, 2000, T.fun)$thetastar
+df <- data.frame(x = thetastar.gamma)
+bw <- diff(range(x))/50
+ggplot(df, aes(x)) +
+  geom_histogram(color = "black", fill = "white", binwidth = bw) + 
+  labs(x="x", y="Counts")
+```
+
+Not that I increased the number of Bootstrap samples to 2000, which is standard when calculating confidence intervals.
+
+We can see that the bootstrap samples are reasonably normally distributed, so we can find the confidence intervals with
+
+```{r}
+T.fun(x.normal) + c(-1, 1)*qnorm(0.975)*sd(thetastar.normal)
+T.fun(x.gamma) + c(-1, 1)*qnorm(0.975)*sd(thetastar.gamma)
+```
+
+###Percentile Intervals
+
+An alternative way to find confidence intervals is by estimating the population  quantiles of the bootstrap sample with the sample quantiles:
+
+```{r}
+sort(thetastar.normal)[2000*c(0.025, 0.975)]
+sort(thetastar.gamma)[2000*c(0.025, 0.975)]
+```
+
+###More Advanced Intervals
+
+There are a number of ways to improve the performance of bootstrap based confidence intervals. One of the more popular ones is called *nonparametric bias-corrected and accelerated (BCa) intervals*. The package *bootstrap* has the routine *bcanon*. The intervals are the found via the percentile method but the percentile are found with
+
+$$
+\begin{aligned}
+&\alpha_1 = \Phi \left( \widehat {z_0}  + \frac{\widehat {z_0}+ z_\alpha}{1-\hat a (\widehat {z_0}+ z_\alpha)} \right) \\
+&\alpha_2 = \Phi \left( \widehat {z_0}  + \frac{\widehat {z_0}+ z_{1-\alpha}}{1-\hat a (\widehat {z_0}+ z_{1-\alpha})} \right)
+\end{aligned}
+$$
+here
+
+-  $\Phi$ is the standard normal cdf  
+-  $\alpha$ is from the desired confidence level  
+-  $\widehat {z_0}$ is a bias-correctio factor  
+-  $\hat a$ is called acceleration.
+
+```{r}
+bcanon(x.normal, 2000, T.fun, alpha=c(0.025, 0.975))$conf
+bcanon(x.gamma, 2000, T.fun, alpha=c(0.025, 0.975))$conf
+```
+

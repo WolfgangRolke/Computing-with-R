@@ -1,9 +1,9 @@
 ---
 header-includes: \usepackage{color}
 output:
+  html_document: default
   pdf_document:
     fig_caption: no
-  html_document: default
 ---
 
 <style>
@@ -13,7 +13,7 @@ th, td {padding: 10px;}
 
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
 whichcomp <- strsplit(getwd(),"/")[[1]][3]
-load(paste0("c:/users/", whichcomp, "/Dropbox/Resma3/Resma3.RData"))
+load(paste0("c:/users/", whichcomp, "/Dropbox/teaching/Resma3/Resma3.RData"))
 library(knitr)
 opts_chunk$set(fig.width=6, fig.align = "center", 
       out.width = "70%", warning=FALSE, message=FALSE)
@@ -23,7 +23,7 @@ library(stringr)
 ```
 `r hl()$basefontsize()`
 
-#ESMA 6xxx Computing with R
+#ESMA 6835 Computing with R
 
 [Syllabus](syl.html)
 
@@ -47,8 +47,9 @@ library(stringr)
 2.10 [Data input/output, transfering R objects](io.html)   
 2.11 [Graphs](graphs.html)  
 2.12 [Model Notation](model.notation.html)  
-2.13 [Environments, libraries](environments.html)    
-2.14 [Costumizing R: .First, .Rprofile, Dropbox](customization.html)  
+2.13 [Numerical Methods](numerical.methods.html)  
+2.14 [Environments, libraries](environments.html)    
+2.15 [Costumizing R: .First, .Rprofile, Dropbox](customization.html)  
 
 ##3  Extending R, Packages
 
@@ -59,8 +60,16 @@ library(stringr)
 3.5&nbsp; [The pipe, dplyr, tibbles, tidyverse](pipe.html)  
 3.6&nbsp; [Character manipulation with strngr](character1.html)  
 3.7&nbsp; [Dates with lubridate](dates.html)  
-3.8&nbsp; [Version Control and Collaboration with github](github.html)  
-3.9&nbsp; [Interactive Apps with shiny](shiny.html)  
+3.8&nbsp; [Factors with forcats](forcats.html)  
+3.9&nbsp; [Iteration with purrr](purrr.html)  
+3.10  [Interactive Apps with shiny](shiny.html)  
+3.11  [Version Control and Collaboration with github](github.html)  
 
 
 ##4  Statistics with R
+
+4.1  [Estimation](estimation.html)  
+4.2  [The Bootstrap](bootstrap.html)  
+4.3  [Curve Fitting](curve.fitting.html)  
+
+

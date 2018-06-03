@@ -1,0 +1,379 @@
+---
+header-includes: \usepackage{color}
+output:
+  html_document: default
+  pdf_document:
+    fig_caption: no
+---
+<style>
+table, th, td { text-align:right; }
+th, td {padding: 10px;}
+</style>
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+whichcomp <- strsplit(getwd(),"/")[[1]][3]
+load(paste0("c:/users/", whichcomp, "/Dropbox/teaching/Resma3/Resma3.RData"))
+library(knitr)
+opts_chunk$set(fig.width=6, fig.align = "center", 
+      out.width = "70%", warning=FALSE, message=FALSE)
+library(ggplot2)
+library(grid)
+```
+`r hl()$basefontsize()`
+
+#Estimation
+
+In this chapter we will study the problem of parameter estimation. In its most general form this is as follows: we have a sample $X_1,..,X_n$ from some probability density $f(x;\theta)$. Here both x and $\theta$ might be vectors. Also we will use the term density for both the discrete and the continuous case. 
+
+The problem is to find an estimate of $\theta$ based on the data $X_1,..,X_n$, that is a function (called a *statistc*) $T(X_1,..,X_n)$ such that in some sense $T(X_1,..,X_n) \approx \theta$.
+
+Generally one also wants to have some idea of the accuracy of this estimate, that is one wants to calculate the standard error. Most commonly this is done by finding a *confidence interval*. 
+
+There are many ways to approach this problem, we will here only discuss the method of maximum likelihood. This works as follows. If the sample is independent the joint density is given by
+
+$$
+f(x_1,..,x_n; \theta) = \prod_{i=1}^n f(x_i, \theta)
+$$
+and the log-likelihood function is defined by
+
+$$
+l(\theta) = \sum_{i=1}^n \log f(x_i, \theta)
+$$
+the estimate of $\theta$ is then found by maximizing the function $l$. Let's call this $\hat \theta$.
+
+One major reason for the popularity of this method is the following celebrated theorem, due to Fisher: under some regularity conditions 
+
+$$
+\sqrt{n} (\hat \theta -\theta) \sim N(0, \sqrt{I^{-1}})
+$$
+where $I$ is the Fisher Information given by
+
+$$
+I(\theta)_{ij} = -E \left[ \frac{\partial^i\partial^j}{\partial \theta^i\partial \theta^j} \log f(x;\theta) \right]
+$$
+
+and so it is very easy to find a $(1-\alpha)100\%$ confidence interval for (say) $\theta_i$ as
+
+$$
+\hat \theta \pm z_{\alpha/2} \sqrt{I^{-1}_{ii}}
+$$
+where $z_{\alpha/2}$ is a quantile from the normal distribution found with
+
+```{r}
+qnorm(1-0.05/2)
+```
+
+
+###Example: 
+
+$X_1,..,X_n \sim N(\mu, \sigma)$, $\sigma$ known. 
+
+$$
+l(\mu) = \sum \log f(x_i, \mu)
+$$
+$$
+\begin{aligned}
+&f(x; \mu)    = \frac1{\sqrt{2 \pi \sigma^2}} \exp \left\{-\frac1{2\sigma^2} (x-\mu)^2 \right\}\\
+&l(\mu) = \sum \log f(x_i, \mu)    = \\
+& n \log(\frac1{\sqrt{2 \pi \sigma^2}})  - \frac1{2\sigma^2} \sum (x_i-\mu)^2 \\
+&\frac{d}{d \mu} l(\mu) = \frac1{\sigma^2}\sum (x_i-\mu)  = 0 \\
+&\hat \mu = \frac1n \sum x_i
+\end{aligned}
+$$
+
+Also
+
+$$
+\begin{aligned}
+& \frac{d}{d \mu} \log f(x; \mu)   = \frac1{\sigma^2}(x-\mu)\\
+& \frac{d^2}{d \mu^2} \log f(x; \mu)   = -\frac1{\sigma^2}   \\
+
+& \sqrt{n}(\hat \mu -\mu) \sim   N(0, \sigma) \\
+&\hat \mu \sim N(\mu, \sigma/\sqrt{n})
+\end{aligned}
+$$
+
+and we find the $(1-\alpha)100\%$ confidence interval to be
+
+$$
+\hat \mu \pm z_{\alpha/2}\sigma/\sqrt{n}
+$$
+this is of course the standard answer (for known $\sigma=1$).
+
+###Example
+
+$X_1,..,X_n \sim B (\alpha, \alpha)$. 
+
+Now 
+
+$$
+f(x; \alpha) = \frac{\Gamma(2\alpha)}{\Gamma(\alpha)^2}[x(1-x)]^{\alpha-1}
+$$
+
+so finding the mle analytically would require us to find the derivative of $\log \Gamma (\alpha)$, which is impossible. We will have to do this numerically.
+
+Let's start by creating an example data set:
+
+```{r}
+set.seed(111)
+n <- 150
+x <- rbeta(n, 2.5, 2.5)
+hist(x, 10)
+```
+
+Now
+
+```{r}
+ll <- function(a) {
+   -sum(log(dbeta(x, a, a)))
+} 
+tmp <- nlm(ll, 2.5)
+mle <- tmp$estimate  
+a <- seq(1, 5, length=250)
+y <- rep(0, 250)
+for(i in seq_along(a))
+  y[i] <- sum(log(dbeta(x, a[i], a[i])))
+plot(a, y, type="l")
+abline(v=mle)
+mle
+```
+
+How about the Fisher information? Now, we can't even find the first derivative, let alone the second one. We can however estimate it! In fact, we already have all we need.
+
+Notice that the Fisher Information is the expected value of the Hessian matrix, and by the theorem of large numbers $\frac1{n} \sum H \rightarrow I$. Now if we just replace $I$ with observed information we get:
+
+a $95\%$ confidence interval is given by
+
+```{r}
+hessian <- nlm(ll, 2.5, hessian = TRUE)$hessian
+mle + c(-1, 1)*qnorm(1-0.05/2)/sqrt(hessian)
+```
+
+Let's put all of this together and write a "find a confidence interval" routine:
+
+```{r}
+mle.est <- function(f, param, alpha=0.05, rg, do.graph=FALSE) {
+  ll <- function(a) {
+     -sum(log(f(a)))
+  } 
+  tmp <- nlm(ll, param, hessian = TRUE)
+  if(do.graph) {  #if you want to see the loglikelihood curve
+     a <- seq(rg[1], rg[2], length=250)
+     y <- rep(0, 250)
+     for(i in seq_along(a))
+        y[i] <- sum(log(f(a[i])))
+     plot(a, y, type="l")
+     abline(v=tmp$estimate)  
+  }
+  if(length(param)==1) {
+    ci <- tmp$estimate + c(-1, 1) *
+      qnorm(1-alpha/2)/sqrt(tmp$hessian)
+    names(ci) <- c("Lower", "Upper")
+  }
+  else {
+    I.inv <- solve(tmp$hessian) #find matrix inverse
+    ci <- matrix(0, length(param), 2)
+    colnames(ci) <- c("Lower", "Upper")
+    if(!is.null(names(param)))
+      rownames(ci) <- names(param)
+    for(i in seq_along(param)) 
+      ci[i, ] <- tmp$estimate[i] + 
+         c(-1, 1)*qnorm(1-alpha/2)*sqrt(I.inv[i, i])
+  }
+  list(mle=tmp$estimate, ci=ci)
+}
+```
+
+
+
+```{r}
+mle.est(function(a) {dbeta(x, a, a)}, param=2.5, 
+        rg=c(1, 5), do.graph = TRUE)
+```
+
+How about the normal case, where we know the correct answer? Let's compare them:
+
+```{r}
+x <- rnorm(25, 10, 1)
+c(mean(x), mean(x) + c(-1, 1)*qnorm(1-0.05/2)/sqrt(25))
+mle.est(function(a) {dnorm(x, a)},  param=10,
+        rg=c(5, 15), do.graph = TRUE)
+```
+
+And how about the multi dimensional parameter case? First again the normal check:
+
+```{r}
+x <- rnorm(200, 5.5, 1.8)
+param <- c(5.5, 1.8)
+names(param) <- c("mu", "sigma")
+mle.est(function(a) {dnorm(x, a[1], a[2])}, param=param)
+```
+
+and now for the Beta:
+
+```{r}
+x <- rbeta(200, 2.5, 3.8)
+param <- c(2.5, 3.8)
+names(param) <- c("alpha", "beta")
+mle.est(function(a) {dbeta(x, a[1], a[2])}, param=param)
+```
+
+###Example 
+
+The lengths of an eruption and the waiting time until the next eruption of the Old Faithful guyser in Yellowstone National Park have been studied many times. Lets's focus on the waiting times:
+
+```{r}
+Time <- faithful$Waiting.Time
+hist(Time, main="")
+```
+
+How can we model this data? It seems we might have a mixture of two normal distributions. Notice
+
+```{r}
+c(mean(Time[Time<65]), mean(Time[Time>65]))
+c(sd(Time[Time<65]), sd(Time[Time>65]))
+sum(Time<65)/length(Time)
+```
+
+so maybe a model like this would work:
+
+$$
+0.35N(54, 5.4) + 0.65N(80, 5.9)
+$$
+
+Let's see:
+
+```{r}
+hist(Time, main="", freq=FALSE, ylim=c(0, 0.05))
+curve(0.35*dnorm(x, 54, 5.4) + 0.65*dnorm(x, 80, 5.9), 40, 100, add=TRUE)
+```
+
+Not to bad!
+
+Can we do better? How about fitting for the parameters?
+
+```{r}
+x <- Time
+f <- function(a)  
+  a[1]*dnorm(x, a[2], a[3]) + (1-a[1])*dnorm(x, a[4], a[5])
+res <- mle.est(f, param=c(0.35, 54, 5.4, 80, 5.9))
+res
+```
+
+and this looks like
+
+```{r}
+hist(Time, main="", freq=FALSE, ylim=c(0, 0.05))
+curve(res$mle[1] * dnorm(x, res$mle[2], res$mle[3]) + 
+      (1-res$mle[1])*dnorm(x, res$mle[4], res$mle[5]), 40, 100,
+      add=TRUE)
+```
+
+Now this sounds good, and it is, however this is based on having a *large enough* sample. In order to be sure ours is large enough one usually has to do some kind of coverage study.
+
+###Hurricane Maria
+
+How many people died due to Hurricane Maria when it struck Puerto Rico on September 20, 2017? Dr Roberto Rivera and I tried to answer this question. We got the following information from the Department of Health: during the time period September 1st to September 19 there where 1582 deaths. During the period September 20 to October 31 there where 4319. 
+
+Now this means that during the time before the hurricane roughly $1587/19$ = `r round(1587/19, 1)` people died per day whereas in the $42$ days after the storm it was $4319/42$ = `r round(4319/42, 1)`, or $102.8-83.5 = 19.3$ more per day. This would mean a total of $42\times 19.3$ = `r 42*19.3` deaths cause by Maria in this time period.
+
+Can we find a 95% confidence interval? To start, the number of people who die on any one day is a Binomial random variable with n=3500000 (the population of Puerto Rico) and success(!!!) parameter $\pi$. Apparently before the storm we had $\pi = 83.5/3500000$. If we denote the probability to die due to Maria by $\mu$, we find the probability model
+
+$$
+f(x, y) = \text{dbinom}(1587, 19\times3500000, \pi) \\
+\text{dbinom}(4319, 42\times3500000, \pi+\mu)
+$$
+Let's see:
+
+```{r error=TRUE}
+N <- 3500000
+f <- function(a) -log(dbinom(1582, 19*N, a[1])) - 
+    log(dbinom(4319, 42*N, a[1]+a[2]))
+nlm(f, c(1582/19/3500000, (4319/42-1582/19)/3350000), hessian = TRUE)
+```
+
+Ohps, that didn't work. The problem is that the numbers for calculating the Hessian matrix become so small that it can not be done. 
+
+What to do? First we can try to use the usual Poisson approximation to the Binomial:
+
+```{r}
+f <- function(a) 
+  -log(dpois(1582, 19*a[1])) - log(dpois(4319, 42*(a[1]+a[2])))
+res <- nlm(f, c(80, 20), hessian = TRUE)
+res
+```
+
+and now
+
+```{r}
+round(42*(res$estimate[2] + 
+  c(-1, 1)*qnorm(1-0.05/2)*sqrt(solve(res$hessian)[2, 2])))
+```
+
+An even better solution is to do a bit of math:
+
+$$
+\begin{aligned}
+&\log \left\{ \text{dpois} (x, \lambda)  \right\}  = \\
+&\log \left\{ \frac{\lambda^x}{x!}e^{-\lambda} \right\}   = \\
+&x \log(\lambda) - \log(x!) - \lambda    = \\
+\end{aligned}
+$$
+
+```{r}
+f <- function(a) 
+  -1582*log(19*a[1]) + 19*a[1] -
+  4319*log(42*(a[1]+a[2])) + 42*(a[1]+a[2])
+res <- nlm(f, c(20, 80), hessian = TRUE)
+round(42*(res$estimate[2] + 
+  c(-1, 1)*qnorm(1-0.05/2)*sqrt(solve(res$hessian)[2, 2])))
+```
+
+By the way, in the paper we used a somewhat different solution based on the *profile likelihood*. In this case the answers are quite similar.
+
+The paper is [here](http://academic.uprm.edu/wrolke/research/Maria%20Deaths%20-%20Significance.pdf)
+
+UPDATE: After a long legal fight the Department of Health on June 1st 2018 finally updated the numbers:
+
+![](graphs/deaths.maria.png)
+
+Notice how in general the number of deaths is much higher in the winter than in the summer. So it may be best to just use the data from February to November:
+
+```{r}
+deaths.before <- 2315+2494+2392+2390+2369+2367+2321+2928-1317
+deaths.after <- 1317+3040+2671
+deaths.before/231 #Daily Deaths before Maria
+deaths.after/72 #Daily Deaths after Maria
+round(72*(deaths.after/72 - deaths.before/231)) #point estimate for total deaths due to Maria
+
+f <- function(a) 
+  -deaths.before*log(231*a[1]) + 231*a[1] -
+  deaths.after*log(72*(a[1]+a[2])) + 72*(a[1]+a[2])
+res <- nlm(f, c(20, 80), hessian = TRUE)
+round(72*(res$estimate[2] + 
+  c(-1, 1)*qnorm(1-0.05/2)*sqrt(solve(res$hessian)[2, 2])))
+```
+
+```{r}
+Months <- factor(unique(draft$Month), ordered=TRUE)
+Deaths <- c(2894, 2315, 2494, 2392, 2390, 2369, 2367, 
+            2321, 2928, 3040, 2671, 2820)
+ggplot(data=data.frame(x=1:12, y=Deaths), aes(x, y)) +
+  geom_point()
+```
+
+##Packages
+
+There are a number of packages available for maximum likelihood fitting:
+
+```{r}
+library(maxLik)
+x <- c(1582, 4319)
+f <- function(param) {
+  x[1]*log(19*param[1]) - 19*param[1] +
+  x[2]*log(42*(param[1]+param[2])) - 42*(param[1]+param[2])
+}
+maxLik(logLik=f, start=c(20, 80))
+```
+
+In general these just provide wrappers for the routines mentioned above.
