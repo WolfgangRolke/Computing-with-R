@@ -1,0 +1,275 @@
+---
+header-includes: \usepackage{color}
+output:
+  html_document: default
+  pdf_document:
+    fig_caption: no
+---
+<style>
+table, th, td { text-align:right; }
+th, td {padding: 10px;}
+</style>
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+whichcomp <- strsplit(getwd(),"/")[[1]][3]
+load(paste0("c:/users/", whichcomp, "/Dropbox/teaching/Resma3/Resma3.RData"))
+library(knitr)
+opts_chunk$set(fig.width=6, fig.align = "center", 
+      out.width = "70%", warning=FALSE, message=FALSE)
+library(ggplot2)
+library(grid)
+```
+`r hl()$basefontsize()`
+
+#Curve Fitting
+
+##Parametric Models
+
+Let's reconsider the Old Faithful data:
+
+```{r}
+head(faithful)
+ggplot(data=faithful, aes(x=Eruptions, y=Waiting.Time)) +
+  geom_point() +
+  geom_smooth(method="lm", se=FALSE)
+```
+
+Here we have added the *least squares regression line*, which if found by minimizing
+
+$$
+\sum_{i=1}^n \left(y_i- \beta_0 - \beta_1 x_i \right)^2
+$$
+
+using R we find
+
+```{r}
+fit.lm <- lm(Waiting.Time ~ Eruptions, data=faithful)
+summary(fit.lm)
+```
+
+Let's say we want to estimate the waiting time until the next eruption if the last lasted 2.5 minutes. Actually we want to find a 95% confidence interval:
+
+```{r}
+predict(fit.lm, newdata=list(Eruptions=2.5), interval = "prediction")
+```
+
+the argument interval = "prediction" indicates that we want to predict an individual response, as opposed to the mean response, which would be with interval = "confidence".
+
+Let's do this again, but this time with the bootstrap:
+
+```{r cache=TRUE}
+library(bootstrap)
+fun <- function(x) {
+  fit <- lm(Waiting.Time ~ Eruptions, data=faithful[x, ])
+  predict(fit, newdata=list(Eruptions=2.5))
+}
+int <- bcanon(1:dim(faithful)[1], 2000, fun, alpha=c(0.025, 0.975))$conf
+int
+```
+
+but this is quite different from the interval above!
+
+May these are the *confidence* intervals (aka for the mean response)? Let's see:
+
+```{r}
+predict(fit.lm, newdata=list(Eruptions=2.5), interval = "confidence")
+```
+
+that seems to be the case!
+
+How can we get the predicition interval using the bootstrap? First here are the formulas for the standard errors:
+
+$$
+\begin{aligned}
+&se_{c}    = \hat\sigma \sqrt{\frac1n+\frac{(x- \bar x)^2}{S_{xx}}}  \\
+&se_{p}    = \hat\sigma \sqrt{1+\frac1n+\frac{(x- \bar x)^2}{S_{xx}}}   \\
+&\frac{se_c^2}{\hat {\sigma^2}}   = \frac1n+\frac{(x- \bar x)^2}{S_{xx}}\\
+&1+\frac{se_c^2}{\hat {\sigma^2}}   = 1+\frac1n+\frac{(x- \bar x)^2}{S_{xx}}\\
+&se_c^2 + \hat \sigma^2   = \hat \sigma^2 \left( 1+\frac1n+\frac{(x- \bar x)^2}{S_{xx}} \right)\\
+& se_p =     \hat \sigma \sqrt{ 1+\frac1n+\frac{(x- \bar x)^2}{S_{xx}} } = \sqrt{ se_c^2 + \hat \sigma^2 }\\
+\end{aligned}
+$$
+but what is $\hat \sigma$? It is the standard deviation of the residuals, so
+
+```{r}
+se_c <- diff(int[, 2])/qnorm(0.975)/2
+sigma <- sd(fit.lm$residuals)
+se_p <- sqrt(se_c^2 + sigma^2)
+predict(fit.lm, newdata=list(Eruptions=2.5)) + 
+  c(-1, 1)*qnorm(0.975)*se_p
+```
+
+and that fits well with the result above.
+
+So far we have fit a linear model. Is there something to be gained by fitting a higher order polynomial?
+
+Doing so is easy, for the quadratic model we can just run 
+
+```{r}
+fit.quad <- lm(Waiting.Time ~ Eruptions + I(Eruptions^2), data=faithful)
+summary(fit.quad)
+```
+
+which looks like this:
+
+```{r}
+x <- seq(min(faithful$Eruptions), max(faithful$Eruptions), length=100)
+y <- coef(fit.quad)[1] + coef(fit.quad)[2]*x + coef(fit.quad)[3]*x^2
+ggplot(data=faithful, aes(x=Eruptions, y=Waiting.Time)) +
+  geom_point() +
+  geom_line(aes(x,y), data=data.frame(x=x, y=y), color="blue")
+```
+
+Is this a better model that the linear one? We can actually test for this:
+
+```{r}
+anova(fit.quad, fit.lm)
+```
+
+test the null hypothesis of no difference between the models. The p value is 0.00022, so we would reject the null.
+
+But why stop there? But before we go on we should make one change: our largest x value is about 5, $x^2=25$, $x^3=125$ etc. These numbers keep groing quite rapitedly. Standardizing them should help. In fact, R has a nice routine for us
+
+```{r}
+fit.quad <- lm(Waiting.Time ~ poly(Eruptions, 2), data=faithful)
+fit.cube <- lm(Waiting.Time ~ poly(Eruptions, 3), data=faithful)
+anova(fit.cube, fit.quad)
+```
+
+```{r}
+fit.4 <- lm(Waiting.Time ~ poly(Eruptions, 4), data=faithful)
+anova(fit.4, fit.cube)
+```
+
+```{r}
+fit.5 <- lm(Waiting.Time ~ poly(Eruptions, 5), data=faithful)
+anova(fit.5, fit.4)
+```
+
+and it seems we are done, the power 5 model is NOT stat. significantly better than the power 4 model.
+
+Again, what does this look like?
+
+```{r}
+y <- predict(fit.4, newdata=list(Eruptions=x))
+ggplot(data=faithful, aes(x=Eruptions, y=Waiting.Time)) +
+  geom_point() +
+  geom_line(aes(x,y), data=data.frame(x=x, y=y), color="blue")
+```
+
+Here is a different solution: there are a number of measures of how well a curve fits a set of data. The best known is the *coefficient of determination:*
+
+$$
+R^2 =\text{cor}(\text{Observed Values, Predicted Values} )^2\times 100\%
+$$
+It is not helpful for us in this problem, though, because a higher order polynomial can never have a worse fit, and therefore a smaller $R^2$. Instead we can use *Mallow's Cp*. It is sort of $R^2$ with a penalty for the number of terms used.
+
+We can do the following: let's define a polynomial of large enough degree so that it clearly overfits the data. Then we run all the possible regressions with any combination of the powers. We find the Cp statistic for each of these models and pick the best (aka the lowest Cp):
+
+```{r}
+library(leaps)
+x <- faithful$Eruptions
+x <- (x-mean(x))/sd(x)
+x2 <- x^2
+x3 <- x^3
+x4 <- x^4
+x5 <- x^5
+x6 <- x^6
+X <- cbind(x, x2, x3, x4, x5, x6)
+colnames(X) <- paste0("deg=", 1:6)
+z <- leaps(X, faithful$Waiting.Time)
+z
+I <- c(1:length(z$Cp))[z$Cp==min(z$Cp)]
+I
+z$Cp[I]
+c(1:6)[z$which[I, ]]
+```
+
+so this chooses a model with highest degree 4. 
+
+##Nonparametric Regression
+
+Consider the following graph:
+
+```{r}
+ggplot(data=faithful, aes(x=Eruptions, y=Waiting.Time)) +
+  geom_point() +
+  geom_smooth(se=FALSE)
+```
+
+what is this curve? It is nonparametric regression fit, that is there is no functional form specified. There are anumber of ways to fit such a curve, the one used here is called *loess*. we can do the fit ourselves:
+
+```{r}
+fit.loess <- loess(Waiting.Time ~ Eruptions, data=faithful)
+summary(fit.loess)
+```
+
+One thing we have lost is an understanding of the model, because now there is none! This does not matter, though, if our goal is prediction:
+
+```{r}
+tmp <- predict(fit.loess, newdata=list(Eruptions=2.5), se=TRUE)
+tmp
+```
+
+as with the lm command, the standard error is for a confidence interval, if we want a prediction interval we need to find
+
+```{r}
+sigma <- sd(fit.loess$residuals)
+se_p <- sqrt(tmp$se.fit^2 + sigma^2)
+tmp$fit + c(-1, 1)*qnorm(0.975)*se_p
+```
+
+Is the loess fit better than the power 4 fit? This is a tricky question to answer because here neither is a special case of the other (they are not *nested* models), so the simple F-test won't work. We would need to do something like *cross-validation*. 
+
+###Hurricane Maria Deaths
+
+Let's have another look at the number of feaths in Puerto Rico:
+
+![](graphs/deaths.maria.png)
+
+```{r}
+Deaths <- c(2744, 2403, 2427, 2259, 2340, 2145, 
+            2382, 2272, 2258, 2393, 2268, 2516,
+            2742, 2592, 2458, 2241, 2312, 2355,
+            2456, 2427, 2367, 2357, 2484, 2854,
+            2894, 2315, 2494, 2392, 2390, 2369, 
+            2367, 2321, 2928, 3040, 2671, 2820,
+            2821, 2448, 2643, 2218)
+Month <- 1:length(Deaths)
+ggplot(data=data.frame(x=Month, y=Deaths), aes(x, y)) +
+  geom_point()
+```
+
+Clearly antyhing after August 2017 is going to be effected by the hurricane, so let's concentrate for the moment on the time before:
+
+```{r}
+ggplot(data=data.frame(x=Month[1:27], y=Deaths[1:27]), aes(x, y)) +
+  geom_point() +
+  geom_smooth(method="lm", se=FALSE)
+```
+
+there seems to be a slight upward trend. Let's remove it from the data:
+
+```{r}
+fit.1 <- lm(Deaths[1:27] ~ Month[1:27])
+res.1 <-  resid(fit.1)
+ggplot(data=data.frame(x=Month[1:27], y=res.1[1:27]), aes(x, y)) +
+  geom_point() +
+  geom_smooth(method="lm", se=FALSE) +
+  geom_smooth(se=FALSE, span=.4)
+```
+
+In what is left we seem to have a kind of a sin wave. Let's fit that as well:
+
+```{r}
+f <- function(a) sum( (res.1[1:27] - a[1]*100*sin(a[2] +
+            2*pi*a[3]*Deaths[1:27]))^2 )
+optim(c(2, 2, 3/25), f)
+```
+
+
+```{r}
+plot(Month[1:27], res.1[1:27])
+curve(1.7*100*sin(2+2*pi*(0.5)*x), 0, 25, add=T)
+```
+
