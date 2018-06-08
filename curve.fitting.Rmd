@@ -11,6 +11,7 @@ th, td {padding: 10px;}
 </style>
 
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
+library(wolfr)
 whichcomp <- strsplit(getwd(),"/")[[1]][3]
 load(paste0("c:/users/", whichcomp, "/Dropbox/teaching/Resma3/Resma3.RData"))
 library(knitr)
@@ -197,7 +198,7 @@ ggplot(data=faithful, aes(x=Eruptions, y=Waiting.Time)) +
   geom_smooth(se=FALSE)
 ```
 
-what is this curve? It is nonparametric regression fit, that is there is no functional form specified. There are anumber of ways to fit such a curve, the one used here is called *loess*. we can do the fit ourselves:
+what is this curve? It is nonparametric regression fit, that is there is no functional form specified. There are a number of ways to fit such a curve, the one used here is called *loess*. we can do the fit ourselves:
 
 ```{r}
 fit.loess <- loess(Waiting.Time ~ Eruptions, data=faithful)
@@ -219,7 +220,78 @@ se_p <- sqrt(tmp$se.fit^2 + sigma^2)
 tmp$fit + c(-1, 1)*qnorm(0.975)*se_p
 ```
 
-Is the loess fit better than the power 4 fit? This is a tricky question to answer because here neither is a special case of the other (they are not *nested* models), so the simple F-test won't work. We would need to do something like *cross-validation*. 
+All nonparametric regression methods have a *tuning parameter*, that is a way to adjust the smoothness of the curve. In the case of the *loess* method it is called *span*. The default is 0.75 but we can change that:
+
+```{r}
+ggplot(data=faithful, aes(x=Eruptions, y=Waiting.Time)) +
+  geom_point() +
+  geom_smooth(se=FALSE) +
+  geom_smooth(se=FALSE, span=0.2, color="red") +
+  geom_smooth(se=FALSE, span=2, color="green")
+```
+
+so a smaller value of span leads to a more rugged curve.
+
+Is there a way to find an *optimal* span? One common idea is called *cross-validation*: 
+
+-  set aside some part of the data (called the *evaluation* data)  
+-  do the fit with the rest (called the *training* data)  
+-  use the model to predict for the evaluation data  
+-  compare the true responses fit the fitted one  
+-  repeat many times  
+-  find the average deviation
+
+How much of the data should be used for training and for evaluation? There are a number of common answers:
+
+-  leave-one-out cross-validation: just one observation for evaluation  
+-  k-fold cross-validation: k observations in evaluations set (often k=10)
+-  bootstrap cross-validation: choose a bootstrap sample, use it for traing evaluate on observations not is bootstrap sample. (this is often called the 0.632 rule because the probability for any one observation to be in the bootstrap sample is asymptotically $1-e^{-1} = 0.623$)
+
+Let's write a routine that finds the best span using 10-fold cross validation:
+
+```{r}
+cv <- function(y, x, span, k=10) {
+  n <- length(x)
+  m <- (n-n%%k)/k
+  dev <- rep(0, m+1)
+  for(i in 1:m) {
+    L <- ((i-1)*k+1):(i*k)
+    fit <- loess(y[-L] ~ x[-L], span=span)
+    yhat <- predict(fit, newdata=x[L])
+    dev[i] <- sum((y[L]-yhat)^2, na.rm = TRUE)
+  }
+  if(m*10<n) {
+    L <- (10*m):n
+    fit <- loess(y[-L] ~ x[-L], span=span)
+    yhat <- predict(fit, newdata=x[L])
+    dev[i+1] <- sum((y[L]-yhat)^2, na.rm = TRUE)
+  }
+  else dev <- dev[1:m]
+  mean(dev)
+}
+```
+
+```{r}
+sp <- seq(0.1, 1.5, 0.05)
+cv.vals <- 0*sp
+for(i in seq_along(sp)) 
+  cv.vals[i] <- cv(faithful$Waiting.Time, faithful$Eruptions,
+             span=sp[i])
+plot(sp, cv.vals)
+sp <- sp[cv.vals==min(cv.vals)]
+sp
+```
+
+```{r}
+fit <- loess(Waiting.Time ~ Eruptions, data=faithful,
+             span=sp)
+x <- seq(1.5, 5.5, length=250)
+y <- predict(fit, newdata=x)
+ggplot(data=faithful, aes(x=Eruptions, y=Waiting.Time)) +
+  geom_point() +
+  geom_line(data=data.frame(x=x, y=y), aes(x,y))
+```
+
 
 ###Hurricane Maria Deaths
 
