@@ -12,7 +12,7 @@ th, td {padding: 10px;}
 
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
 whichcomp <- strsplit(getwd(),"/")[[1]][3]
-load(paste0("c:/users/", whichcomp, "/Dropbox/Resma3/Resma3.RData"))
+load(paste0("c:/users/", whichcomp, "/Dropbox/teaching/Resma3/Resma3.RData"))
 library(knitr)
 opts_chunk$set(fig.width=6, fig.align = "center", 
       out.width = "70%", warning=FALSE, message=FALSE)
@@ -89,3 +89,177 @@ This command is what I would recommend if you deal with a Big Data. These days w
 -  Bigger Data (over 100 million rows, over 10GB)
 
 In the case of Bigger Data you can no longer have all of it in memory, but it becomes necessary to use a hard drive as memory. A useful package for that is *bigmemory*.
+
+##pdftools
+
+The pdf format is the most common document format on the internet, so quite often we are faced with the following problem: we want to extract some data from a pdf. Here we can use
+
+```{r}
+library(pdftools)
+```
+
+As an example consider the report on the [World Mortality Rate 2017](http://academic.uprm.edu/wrolke/esma6835/World-Mortality-2017-Data-Booklet.pdf). It has a large table with mortality information. We begin by downloading it:
+
+```{r eval=FALSE}
+download.file("http://academic.uprm.edu/wrolke/esma6835/World-Mortality-2017-Data-Booklet.pdf", "world-mortality.pdf", mode="wb")
+```
+ 
+and then turn it into a text file:
+
+```{r}
+txt <- pdf_text("world-mortality.pdf")
+nchar(txt)
+```
+
+Notice that the document has 24 pages, and each is read in as one character string.
+
+The data table starts on page 10, which is txt[12], and ends on page 19, which is txt[20]. Let's begin by making a long character string with each peace of text/numbers separate. We want to split the string at white spaces, which we can do with the reg expression
+
+```{r eval=FALSE}
+strsplit(txt, "\\s+")[[1]]
+```
+
+However, notice that some countries have a superscript (which is also separated from the name by a white space) and that the large numbers have one white space in between also. So what we need to do is split if there are two or more white spaces:
+
+```{r}
+txt <- paste(txt[12:20], collapse = " ")
+txt <- strsplit(txt, "\\s{2,}")[[1]]
+```
+
+There is however a problem: some large numbers are written with a single space between (for example Africa 10 596), so now there is a character vector "10 596" which we want to turn into a number:
+
+```{r}
+as.numeric("10 596")
+```
+
+so we need to remove those  white spaces. It would be easy to remove all of them, but then we would turn "Puerto Rico" into "PuertoRico", and we don't want that!
+
+```{r}
+for(i in seq_along(txt)) {
+  tmp <- strsplit(txt[i], "\\s+")[[1]]
+  if(length(tmp)==1) next #single item
+  if(any(is.na(as.numeric(tmp)))) next #some parts are character
+  txt[i] <- paste(tmp, collapse = "")   
+}
+```
+
+For some reasons some are not working (maybe there was more than one white space?), so we fix them directly:
+
+```{r}
+k <- seq_along(txt)[txt=="Western Africa"]
+txt[k+c(0,1)]
+txt <- txt[-(k+1)]
+k <- seq_along(txt)[txt=="China"]
+txt <- txt[-(k+1)]
+k <- seq_along(txt)[txt=="South-Central Asia"]
+txt <- txt[-(k+1)]
+k <- seq_along(txt)[txt=="Malaysia"]
+txt <- txt[-(k+1)]
+k <- seq_along(txt)[txt=="Azerbaijan"]
+txt <- txt[-(k+1)]
+k <- seq_along(txt)[txt=="Cyprus"]
+txt <- txt[-(k+1)]
+k <- seq_along(txt)[txt=="Republic of Moldova"]
+txt <- txt[-(k+1)]
+k <- seq_along(txt)[txt=="Northern Europe"]
+txt <- txt[-(k+1)]
+k <- seq_along(txt)[txt=="Norway"]
+txt <- txt[-(k+1)]
+k <- seq_along(txt)[txt=="Southern Europe"]
+txt <- txt[-(k+1)]
+k <- seq_along(txt)[txt=="Serbia"]
+txt <- txt[-(k+1)]
+k <- seq_along(txt)[txt=="Spain"]
+txt <- txt[-(k+1)]
+k <- seq_along(txt)[txt=="TFYR Macedonia"]
+txt <- txt[-(k+1)]
+k <- seq_along(txt)[txt=="Caribbean"]
+txt <- txt[-(k+1)]
+k <- seq_along(txt)[txt=="Guadeloupe"]
+txt <- txt[-(k+1)]
+k <- seq_along(txt)[txt=="NORTHERN AMERICA"]
+txt <- txt[-(k+1)]
+k <- seq_along(txt)[txt=="Micronesia"]
+txt <- txt[-(k+1)]
+```
+
+How can we pick out the parts of text that we want?
+
+Notice that the information starts with Burundi, so we remove everything before that:
+
+```{r}
+k <- seq_along(txt)[txt=="Burundi"]
+txt <- txt[k:length(txt)]
+```
+
+The last country is Tonga, so we remove everthing after it's row:
+
+```{r}
+k <- seq_along(txt)[txt=="Tonga"]
+txt <- txt[1:(k+13)]
+```
+
+
+Unfortunately the table is not contigues, eventually there is a page break and then the title text repeats. However, this part always starts with the words "World Mortality 2017" and ends with "(13)", so it is easy to remove all of them:
+
+```{r}
+k <- seq_along(txt)[txt=="World Mortality 2017"]
+j <- seq_along(txt)[txt=="(13)"]
+k
+j
+```
+
+so we see that the first "World Mortality 2017" is at position `r k[1]`, and the first "(13)" is at `r j[1]`, so we can remove everything in between.
+
+But wait: the top of page 13 reads "World Mortality 2017" on the left and "13"" on the right, but on page 14 it is "14"" on the left and "World Mortality 2017" on the right! These alternate, so we need
+
+```{r echo=FALSE}
+k[c(2, 4, 6, 8)] <- k[c(2, 4, 6, 8)]-1
+```
+
+Let's get rid of oll of this:
+
+```{r}
+for(i in 1:8) txt[k[i]:j[i]] <- NA
+txt <- txt[!is.na(txt)]
+```
+
+Now we can turn this into a data frame:
+
+```{r }
+data.tbl <- as.data.frame(matrix(txt, byrow = TRUE, ncol=14))
+for(i in 2:14) 
+  data.tbl[, i] <- as.numeric(data.tbl[, i])
+colnames(data.tbl) <- c("Country",
+  "Deaths", "Rate", "LifeExpectancy.Both", 
+  "LifeExpectancy.Males", "LifeExpectancy.Females", 
+  "InfantMortality", "UnderFive", "Prob15.60", "Prob0.70", 
+  "PercUnder5", "PercUnder5.25", "Perc25.65", "PercOver65")
+row.names(data.tbl) <- NULL
+```
+
+Let's check a few to make sure we got it right:
+
+```{r}
+k <- seq_along(txt)[txt=="Germany"]
+txt[k:(k+13)]
+k <- seq_along(txt)[txt=="Puerto Rico"]
+txt[k:(k+13)]
+```
+
+One final problem: every now and then the table has the means for various regions (Middle Africa, etc). There is no other way but to ged rid of them one by one. Just going through the list I can find their row numbers:
+`
+```{r}
+not.country <- c(21, 31, 39, 45, 62, 63, 72, 73, 79, 89,
+                 101, 120, 121, 132, 144, 157, 165, 166,
+                 184, 193, 207, 210)
+data.tbl <- data.tbl[-not.country, ]
+```
+
+Let's look at the life expectancy:
+
+```{r}
+kable(data.tbl[order(data.tbl[, "LifeExpectancy.Both"], decreasing = TRUE), c(1, 4)])
+```
+
+
