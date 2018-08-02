@@ -13,7 +13,7 @@ th, td {padding: 10px;}
 
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
 whichcomp <- strsplit(getwd(),"/")[[1]][3]
-load(paste0("c:/users/", whichcomp, "/Dropbox/Resma3/Resma3.RData"))
+load(paste0("c:/users/", whichcomp, "/Dropbox/teaching/Resma3/Resma3.RData"))
 library(knitr)
 opts_chunk$set(fig.width=6, fig.align = "center", 
       out.width = "70%", warning=FALSE, message=FALSE)
@@ -447,7 +447,7 @@ txt <- unlist(str_split(paste(txt, collapse=""), "</a>"))
 txt[1:2]
 ```
 
-Notice that we need to use the stringr routine str_split, because the basic R routine strsplit does not recognize regular expressions.
+Notice that here I use the routine *str_split* from the package *stringr* , because the basic R routine strsplit does not recognize regular expressions. Don't worry about this now, we will discuss the package *stringr* soon.
 
 Ok, next we have to eliminate all the lines that don't have a @ in it:
 
@@ -466,7 +466,7 @@ txt <- grep("@", txt, value = TRUE)
 txt[1:4]
 ```
 
-not quite, but now:
+almost, we just need to get rid of those lines starting with href:
 
 ```{r echo=-1}
 txt <- txt[-107]
@@ -474,6 +474,11 @@ txt <- txt[!grepl("href", txt)]
 txt
 ```
 
+If we wanted to send an email to all the people in the department we could now use the write command to copy them to the clipboard, switch to a mail program and copy them into the address box.
+
+Programs like these are routinely used to go through millions of websites and search for email addresses, which are then sent spam emails. This is why I only write mine like this:
+
+wolfgang[dot]rolke[at]upr[dot]edu
 
 ###Example: Binary Arithmetic
 

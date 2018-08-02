@@ -1,0 +1,161 @@
+---
+header-includes: \usepackage{color}
+output:
+  html_document: default
+  pdf_document:
+    fig_caption: no
+---
+
+<style>
+table, th, td { text-align:right; }
+th, td {padding: 10px;}
+</style>
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+whichcomp <- strsplit(getwd(),"/")[[1]][3]
+load(paste0("c:/users/", whichcomp, "/Dropbox/teaching/Resma3/Resma3.RData"))
+library(knitr)
+opts_chunk$set(fig.width=6, fig.align = "center", 
+      out.width = "70%", warning=FALSE, message=FALSE)
+library(ggplot2)
+library(grid)
+```
+`r hl()$basefontsize()`
+
+#Factors with forcats
+
+We have previously discussed factors, that is categorical data with fixed values and ordering. Now we will discuss the package *forcats*, which has a number of useful functions when working with factors.
+
+```{r}
+library(tidyverse)
+library(forcats)
+```
+
+Let's remind ourselves of the base R commands first. Consider the data set *draft*, with the results of the 1970s military draft:
+
+```{r}
+draft %>%
+  ggplot(aes(Day.of.Year, Draft.Number)) + 
+     geom_point()
+```
+
+Let's say instead we want to do a box plot of the draft numbers by month:
+
+```{r}
+draft %>%
+  ggplot(aes(Month, Draft.Number)) + 
+     geom_boxplot()
+```
+
+Now this is no good, the ordering of the boxes is alphabetic. So we need to change the variable Month to a factor:
+
+```{r}
+lvls <- c("Jan", "Feb", "Mar", "Apr", "May", "Jun",
+          "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+Month.fac <- factor(draft$Month, 
+                    levels = lvls, 
+                    ordered = TRUE)
+df <- data.frame(Month=Month.fac,
+                 Draft_Number=draft$Draft.Number)
+df %>%
+  ggplot(aes(Month, Draft_Number)) + 
+     geom_boxplot()
+```
+
+Quite often the order we want is the order in which the values appear in the data set, then we can use
+
+```{r eval=FALSE}
+lvls <- unique(draft$Month)
+```
+
+The forcats package includes a data set called gss_cat:
+
+```{r}
+gss_cat
+```
+ which has the results of the General Social Survey ([http://gss.norc.org](http://gss.norc.org)), which a survey in the US done by the University of Chicago. We will use it to illustrate forcats.
+ 
+Let's begin by considering the variable race:
+ 
+```{r}
+gss_cat$race %>% 
+  table()
+```
+
+We can do the same thing with tidyverse routines:
+
+```{r}
+gss_cat %>%
+  count(race)
+```
+
+Notice a bit of a difference: In the first case there is the Not applicable group but not in the second. This is because "race" is a factor and this is among its levels. The table command includes all levels, even if the count is 0, whereas count does not. This is likely what we want most times, but not all the times.
+
+By the way, we can always find out what the levels are:
+
+```{r}
+levels(gss_cat$race)
+```
+
+`r hl()$vspace()`
+
+Let's consider the average number of hours that a person spends watching TV per day, depending on their religion:
+
+```{r}
+gss_cat %>%
+  group_by(relig) %>%
+  summarize(
+    age = mean(age, na.rm = TRUE),
+    tvhours = mean(tvhours, na.rm = TRUE),
+    n = n()
+  ) ->
+  tv.relig
+tv.relig %>%
+  ggplot(aes(tvhours, relig)) +
+  geom_point()
+```
+
+This graph is hard to read, mainly because there is no ordering. But unlike Month the variable itself doesn't have any either. So maybe we should order by size:
+
+```{r}
+tv.relig %>%
+  ggplot(aes(tvhours, fct_reorder(relig, tvhours))) +
+  geom_point()
+```
+
+Let's see how income varies with age:
+
+```{r}
+gss_cat %>%
+  group_by(rincome) %>% 
+  summarize(
+    age = mean(age, na.rm = TRUE),
+    n = n()
+  ) -> 
+  rincome
+rincome %>%
+  ggplot(aes(age, rincome)) +
+  geom_point()  
+```
+
+What ordering makes the most sense here? There are two types of levels: those with actual numbers, and those like "Not applicable". We should probably separate them. 
+
+```{r}
+rincome %>%
+  ggplot(aes(age, fct_relevel(rincome, 
+          c("Not applicable", "Refuse", "No answer")))) +
+  geom_point()  
+
+```
+
+In a bar graph the most common ordering is by size:
+
+```{r}
+gss_cat %>% 
+  mutate(marital = marital %>% 
+         fct_infreq() %>% fct_rev()
+  ) %>% 
+  ggplot(aes(marital)) +
+     geom_bar()
+```
+

@@ -5,6 +5,7 @@ output:
   pdf_document:
     fig_caption: no
 ---
+
 <style>
 table, th, td { text-align:right; }
 th, td {padding: 10px;}
@@ -12,7 +13,7 @@ th, td {padding: 10px;}
 
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
 whichcomp <- strsplit(getwd(),"/")[[1]][3]
-load(paste0("c:/users/", whichcomp, "/Dropbox/Resma3/Resma3.RData"))
+load(paste0("c:/users/", whichcomp, "/Dropbox/teaching/Resma3/Resma3.RData"))
 library(knitr)
 opts_chunk$set(fig.width=6, fig.align = "center", 
       out.width = "70%", warning=FALSE, message=FALSE)
@@ -35,7 +36,7 @@ There are a number of packages that help here. I will discuss
 library(parallel)
 ```
 
-If you don't know how many proessors (called cores) you computer has you can check:
+If you don't know how many proessors (called cores) you computer has your can check:
 
 ```{r}
 detectCores()
@@ -49,7 +50,7 @@ num_cores <- detectCores()-1
 
 of them.
 
-Let's consider a simple simuation problem. We wish to study the least squares estimators of the least squares regression line. That is we have a data set of the form $(x, y)$ and we want to fit an equation of the form $y=\beta_0 + \beta_1 x$. The parameters $\beta_0$ and $\beta_1$ are estimated by minimizing the least squares criterion
+Let's consider a simple simuation problem. We wish to study the standard estimators of the least squares regression line. That is we have a data set of the form $(x, y)$ and we want to fit an equation of the form $y=\beta_0 + \beta_1 x$. The parameters $\beta_0$ and $\beta_1$ are estimated by minimizing the least squares criterion
 
 $$
 L(a, b) = \sum_{i=1}^n \left( y-a-bx \right)^2
@@ -59,58 +60,67 @@ We can use the R function *lm* to this:
 
 ```{r}
 x <- 1:20
-y <- 5+2*x+rnorm(10, 0, 3)
+y <- 5 + 2*x + rnorm(10, 0, 3)
 fit <- lm(y~x)
 plot(x, y)
 abline(fit)
 coef(fit)
 ```
 
-Now a simulation will be give numbers $n$, $\beta_0$, $\beta_1$ and $\sigma$, generate $B$ data sets and find the coefficients. Finally it will study the estimates.
+Now a simulation will be fix some numbers $n$, $\beta_0$, $\beta_1$ and $\sigma$, generate $B$ data sets and find the coefficients. Finally it will study the estimates.
 
 ```{r cache=TRUE}
 sim_lm <- function(param) {
-  beta0<-param[1]; beta1<-param[2]; sigma<-param[3]
-  n<-param[4]; B=param[5]
+  beta0 <- param[1]
+  beta1 <- param[2]
+  sigma <- param[3]
+  n <- param[4]
+  B <- param[5]
   coefs <- matrix(0, B, 2)
   x <- 1:n
   for(i in 1:B) {
-    y <- beta0+beta1*x+rnorm(n, 0, sigma)
+    y <- beta0 + beta1*x + rnorm(n, 0, sigma)
     coefs[i, ] <- coef(lm(y~x))
   }
   coefs
 }
 tm <- proc.time()
 z1 <- sim_lm(c(5, 2, 3, 20, 50000))
-proc.time()-tm
+tm <- round(proc.time()-tm)[3]
+tm
 ```
 
-so this takes almost 30 seconds. In real life we would repeat this now for different values of the parameters, so you see this can take quite some time. Instead let's parallelize the task:
+so this takes almost `r tm` seconds. In real life we would repeat this now for different values of the parameters, so you see this can take quite some time. Instead let's parallelize the task:
 
 ```{r}
 cl <- makeCluster(num_cores) 
 params <- c(5, 2, 3, 20, 10000)
 tm <- proc.time()
 z2<-clusterCall(cl, sim_lm, params)
-proc.time()-tm
+tm <- round(proc.time()-tm)[3]
+tm
 ```
 
-and so this took only about 6 seconds!
+and so this took only about `r tm` seconds!
 
 Did it really calculate the same thing? Let's see. Please note that parallel returns a list, one for each cluster:
 
 
 ```{r}
 par(mfrow=c(2, 2))
-hist(z1[, 1], 100, main=expression(paste(beta[0], ", Single")),
-     xlab="")
-hist(z1[, 2], 100, main=expression(paste(beta[1], ", Single")),
-     xlab="")
+hist(z1[, 1], 100, 
+     main = expression(paste(beta[0], ", Single")),
+     xlab = "")
+hist(z1[, 2], 100, 
+     main=expression(paste(beta[1], ", Single")),
+     xlab = "")
 a <- rbind(z2[[1]], z2[[2]], z2[[3]], z2[[4]], z2[[5]])
-hist(a[, 1], 100, main=expression(paste(beta[0], ", Parallel")),
-     xlab="")
-hist(a[, 2], 100, main=expression(paste(beta[1], ", Parallel")),
-     xlab="")
+hist(a[, 1], 100, 
+     main = expression(paste(beta[0], ", Parallel")),
+     xlab = "")
+hist(a[, 2], 100, 
+     main = expression(paste(beta[1], ", Parallel")),
+     xlab = "")
 
 ```
 
@@ -135,7 +145,7 @@ In general the easiest case of parallizing a calculation is if you have already 
 
 ```{r echo=5:7}
 grades <- list(Exam_1=round(rnorm(10, 70, 5)), 
-Exam_2=round(rnorm(10, 70, 5)))
+Exam_2 <- round(rnorm(10, 70, 5)))
 for(i in 3:50) grades[[i]] <- round(rnorm(10, 70, 5))
 names(grades) <- paste0("Exam_", 1:50)
 cat("Exam 1: ", grades$Exam_1, "\n")
@@ -147,7 +157,10 @@ Now we want to find the minimum , mean, standard deviation and maximum of each e
 
 ```{r cache=TRUE}
 z <- lapply(grades, 
-        function(x) {round(c(min(x), mean(x), sd(x), max(x)), 1)} 
+        function(x) {round(c(min(x), 
+                             mean(x), 
+                             sd(x), 
+                             max(x)), 1)} 
       )
 z[1:2]
 ```
@@ -155,7 +168,10 @@ z[1:2]
 and to run this in parallel:
 
 ```{r cache=TRUE}
-z <- parLapply(cl, grades, function(x) {c(min(x), mean(x), sd(x), max(x))} )
+z <- parLapply(cl, grades, function(x) {c(min(x), 
+                                          mean(x), 
+                                          sd(x), 
+                                          max(x))} )
 z[1:2]
 ```
 
@@ -170,7 +186,7 @@ stopCluster(cl)
 
 20 years ago or so there was a lot of talk about *massively parallel* computing. This was the idea of using 100s or 1000s of cpu's (*computer processing units*). It never went very far because such computers were way to expensive.
 
-However, there was one area are were such chips were in fact developed, namely on graphics cards. The difference is that these cpus are extrememly simple, they don't have to do much, just determine the colors of a few pixels. Eventually it occured to people that as long as the computations were simple as well, such *graphics processing units*, could also be used for other purposes. So if you computer has a dedicated graphics card you can do this.
+However, there was one area were such chips were in fact developed, namely for graphics cards. The difference is that these cpus are extrememly simple, they don't have to do much, just determine the colors of a few pixels. Eventually it occured to people that as long as the computations were simple as well, such gpu's (*graphics processing units*), could also be used for other purposes. So if your computer has a dedicated graphics card you can do this.
 
 Not all cards, however, will work. The most widely available ones are NVIDIA, but some others work as well.
 
@@ -197,12 +213,9 @@ A_gpuR <- vclMatrix(A, type="float")
 summary(microbenchmark(solve(A_gpuR)))["mean"]
 ```
 
-Most linear algebra methods have been created to be executed for the
-gpuMatrix and gpuVector objects.   These  methods  include  basic  arithmetic functions %*%, +, -, \*, /, t, , crossprod, tcrossprod, colMeans, colSums, rowMean,  and rowSums.  
+Most linear algebra methods have been created to be executed for the gpuMatrix and gpuVector objects.   These  methods  include  basic  arithmetic functions %*%, +, -, \*, /, t, , crossprod, tcrossprod, colMeans, colSums, rowMean,  and rowSums.  
 
-Math functions include sin, asin, sinh, cos, acos, cosh, tan, atan,
-tanh, log, log10, exp, abs, max, andmin. Additional operations include some linear algebra routines such as cov(Pearson Covariance) and eigen.  
+Math functions include sin, asin, sinh, cos, acos, cosh, tan, atan, tanh, log, log10, exp, abs, max, andmin. Additional operations include some linear algebra routines such as cov(Pearson Covariance) and eigen.  
 
-A few ’distance’ routines have also been added with the dist and
-distance (for pairwise) functions. These currently include ’Euclidean’ and ’SqEuclidean’ methods.
+A few ’distance’ routines have also been added with the dist and distance (for pairwise) functions. These currently include ’Euclidean’ and ’SqEuclidean’ methods.
 

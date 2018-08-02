@@ -4,16 +4,15 @@ output:
   html_document: default
   pdf_document:
     fig_caption: no
-runtime: shiny
 ---
 <style>
 table, th, td { text-align:right; }
 th, td {padding: 10px;}
-</style>
+</style> 
 
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
 whichcomp <- strsplit(getwd(),"/")[[1]][3]
-load(paste0("c:/users/", whichcomp, "/Dropbox/Resma3/Resma3.RData"))
+load(paste0("c:/users/", whichcomp, "/Dropbox/teaching/Resma3/Resma3.RData"))
 library(knitr)
 opts_chunk$set(fig.width=6, fig.align = "center", 
       out.width = "70%", warning=FALSE, message=FALSE)
@@ -32,11 +31,11 @@ The first working version of S was built in 1976, and operated on the GCOS opera
 
 By 1988, many changes were made to S and the syntax of the language. The New S Language (1988 Blue Book) was published to introduce the new features, such as the transition from macros to functions and how functions can be passed to other functions (such as apply).
 
-In the late 1990s At&T sold the S license to a private company that started to charge a lot of money for it. This lead to
+In the late 1990s AT&T sold the S license to a private company that started to charge a lot of money for it. This lead to
 
 ##R
 
-R is an implementation of the S programming language combined with lexical scoping semantics inspired by Scheme. There are some important differences between S andR, but much of the code written for S runs unaltered.
+R is an implementation of the S programming language combined with lexical scoping semantics inspired by Scheme. There are some important differences between S and R, but much of the code written for S runs unaltered.
 
 R was created by Ross Ihaka and Robert Gentleman at the University of Auckland, New Zealand, and is currently developed by the R Development Core Team, of which Chambers is a member. R is named partly after the first names of the first two R authors and partly as a play on the name of S. The project was conceived in 1992, with an initial version released in 1995 and a stable beta version in 2000.
 
@@ -44,7 +43,7 @@ R was created by Ross Ihaka and Robert Gentleman at the University of Auckland, 
 
 RStudio is a free and open-source integrated development environment (IDE) for R, a programming language for statistical computing and graphics. RStudio was founded by JJ Allaire, creator of the programming language ColdFusion. Hadley Wickham is the Chief Scientist at RStudio.
 
-Work on RStudio started at around December 2010,[9] and the first public beta version (v0.92) was officially announced in February 2011.[1] Version 1.0 was released on 1 November 2016. Version 1.1 was released on 9 October 2017.
+Work on RStudio started at around December 2010, and the first public beta version (v0.92) was officially announced in February 2011. Version 1.0 was released on 1 November 2016. Version 1.1 was released on 9 October 2017.
 
 R can be run by itself using the command line interface, but it is usually much nicer to use RStudio as a front end.
 
@@ -75,7 +74,7 @@ options()["digits"]
 pi
 options(digits=5)
 pi
-options(digits=15) #reset to default!
+options(digits=15) 
 ```
 
 and
@@ -139,7 +138,7 @@ Another useful function is *arg*, which lists the arguments of a routine:
 args(splot)
 ```
 
-*splot* is not a command that is part of R but one I wrote myself to make nice looking scatterplot. Unfortunately *args* often doesn't work well for basic R commands:
+*splot* is not a command that is part of R but one I wrote myself to make nice looking scatterplots. Unfortunately *args* often doesn't work well for basic R commands:
 
 ```{r}
 args(mean)
@@ -159,7 +158,7 @@ If there are many objects (the worksheet I have open right now has over 250!) yo
 ls(pattern = "^sa")
 ```
 
-the ^ in front means that *ls* will list all object whose name starts with sa. This is what is called a *regular expression*. These are general (non R) rules for specifying patters. They are a science all their own, and we will need to have a look t them at some point.
+the ^ in front means that *ls* will list all object whose name starts with sa. This is what is called a *regular expression*. These are general (non R) rules for specifying patters. They are a science all their own, and we will need to have a look at them at some point.
 
 If you need some more details on the objects you can use
 
@@ -167,7 +166,7 @@ If you need some more details on the objects you can use
 ls.str(pattern = "^sa")
 ```
 
-Often you create an object that is only need for a short time. If you want to get rid of it use *rm* or (remove)
+Often you create an object that is only needed for a short time. If you want to get rid of it use *rm*  (remove)
 
 ```{r}
 x <- 1:10
@@ -197,7 +196,11 @@ cleanup <- function ()
 }
 ```
 
-Notice the argument envir. We will talk about what that means soon.
+- it has the options(warn=-1) command because many of these names will not be present when I run the cleanup command, and each of those would result in a warning. I already know this, so I don't need the warning. At the end I reset to the default with options(warn = 0)
+
+- notice the empty line before the end of the function. This means there will be no return result. Without it the routine would return NULL.
+
+-  notice the argument envir. We will talk about what that means soon.
 
 ##Naming Conventions
 
@@ -222,12 +225,15 @@ BAD: avg_Clicks
 Make function names verbs.         
 
 GOOD: calculate.avg.clicks  
-BAD: calculate_avg_clicks
+BAD: clicks
 
 constants are named like functions but with an initial k.
+       
+```{r}
+kbins <- 20
+krun <- 1000
+```
           
-kConstantName 
-
 -  Spacing
 
 Place spaces around all binary operators (=, +, -, <-, etc.).

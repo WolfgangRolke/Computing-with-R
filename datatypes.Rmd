@@ -13,7 +13,7 @@ th, td {padding: 10px;}
 
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
 whichcomp <- strsplit(getwd(),"/")[[1]][3]
-load(paste0("c:/users/", whichcomp, "/Dropbox/Resma3/Resma3.RData"))
+load(paste0("c:/users/", whichcomp, "/Dropbox/teaching/Resma3/Resma3.RData"))
 library(knitr)
 opts_chunk$set(fig.width=6, fig.align = "center", 
       out.width = "70%", warning=FALSE, message=FALSE)
@@ -24,28 +24,29 @@ library(grid)
 
 #Basic Data Types
 
-All objects have two intrinsic attributes: mode and length. The mode is the basic type of the elements of the object; there are four main modes:
+Everything in R is an object. All objects have two intrinsic attributes: mode and length. The mode is the basic type of the elements of the object; there are four main modes:
 
 -  numeric  
 -  character  
 -  complex  
 -  logical (FALSE or TRUE)
 
-Other modes exist but they do not represent data, for instance function or expression. The length is the number of elements of the object. To display the mode and the length of an object, one can use the functions mode and length, respectively:
+Other modes exist but they do not represent data, for instance function or expression. The length is the number of elements of the object. To display the mode and the length of an object, one can use the functions *mode* and *length*, respectively:
 
 ```{r}
-x<-1; y<-"A"; z<-TRUE
-mode(x);  mode(y); mode(z)
+x <- 1; mode(x)
+y <- "A"; mode(y)
+z <- TRUE; mode(z)
 ```
 
-R can handle strange calculations:
+R is quite different from most computer languages in that it often tries to figure out what you might want to do, even if it is not obvious. For example R can handle some strange calculations:
 
 ```{r}
 1/0
 0/0
 ```
 
-Here Inf is of course infinite, and NaN standts for *not a number*. These can be used in calculations:
+Here *Inf* is of course infinite, and *NaN* standts for *not a number*. These can be used in calculations:
 
 ```{r}
 exp(-Inf)
@@ -58,7 +59,7 @@ n <- 2L
 is.integer(n)
 ```
 
-although there is usually no advantage to this.
+Years ago this was very useful because integers require much less storage space. These days with gigabyte sized memory it is rarely needed.
 
 R can also handle complex numbers:
 
@@ -126,7 +127,7 @@ x <- c(3, 5, NA, 3, 4, 5)
 x
 ```
 
-Sometimes you want to create and object without any value:
+Sometimes you want to create an object without any value:
 
 ```{r}
 x <- NULL
@@ -134,9 +135,9 @@ x
 c(x, 1)
 ```
 
- and note, the NULL is gone!
+and note, the NULL is gone! This is useful when we are building up a vector (maybe inside a function), but we don't know ahead of time how large it will be. 
  
- <hr>
+<hr>
 
 Finally, dates and times are always tricky:
 
@@ -179,11 +180,25 @@ x <- c("2", "1", "#", "2", "A")
 as.numeric(x)
 ```
 
+Consider this:
+
 ```{r}
-as.numeric(c("1", "2", "5", FALSE, 4, TRUE))
+x <- c(1, 2, 5, FALSE, 4, TRUE)
+x
+as.character(x)
 ```
 
-so FALSE gets turned into 0, TRUE into 1.
+so FALSE gets turned into 0, TRUE into 1. 
+
+But also
+
+```{r}
+x <- c("1", "2" ,"5", FALSE, "4", TRUE)
+x
+as.numeric(x)
+```
+
+Here FALSE gets first turned into a character, and then stays as such.
 
 R has almost 100 is. and as. functions built in!
 
@@ -203,7 +218,7 @@ mydates[2]-mydates[1]
 
 a very common data type in Statistics is a factor. These are vectors with a fixed number of different values (called  levels) and possibly an ordering.
 
-Here is an example of their usage. Say we a list of students, identified by their year:
+Here is an example of their usage. Say we have a list of students, identified by their year:
 
 ```{r echo=3}
 set.seed(1)
@@ -227,7 +242,7 @@ We can fix both of these by turning the vector into a factor:
 
 ```{r}
 students.fac <- factor(students, 
-  levels = c("Freshman", "Junior", "Sophomore", "Senior"),
+  levels=c("Freshman", "Junior", "Sophomore", "Senior"),
   ordered=TRUE)
 table(students.fac)
 ```
@@ -243,10 +258,15 @@ c(students.fac, "Graduate")
 
 so we can easily add an element to students, but if we do the same with student.fac it gets very confused! Strangely enough, it doesn't even work when the added item is in the list of levels!
 
+Notice also that with c(students, "Senior") we don't get the lsit of students but a list of numbers (as characters) plus "Senior". This is because internally R stores factors as integers, but when we add "Senior" these get converted to character. 
+
 Here is what you can do:
 
 ```{r}
 lvls <- levels(students.fac)
-factor(c(as.character(students.fac), "Senior", "Graduate"), levels = c(lvls, "Graduate"), ordered=TRUE)
+x <- factor(c(as.character(students.fac), "Senior", "Graduate"),
+     levels=c(lvls, "Graduate"), ordered=TRUE)
+x
+table(x)
 ```
 

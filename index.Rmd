@@ -31,14 +31,14 @@ library(stringr)
 
 1.1&nbsp;  [Installation and Updating](install.html)  
 1.2&nbsp;  [R Markdown, HTML and Latex](rmark.html)  
-1.2&nbsp;  [History, Basic Usage](general.stuff.Rmd)  
+1.2&nbsp;  [History, Basic Usage](general.stuff.html)  
 
 ##2  Base R
 
 2.1&nbsp; [Data types](datatypes.html)  
 2.2&nbsp; [Vectors, matrices, dataframes and lists](dataformats.html)  
 2.3&nbsp; [Generating objects](generate.vectors.html)  
-2.4&nbsp; [Subsetting](subset.html)
+2.4&nbsp; [Subsetting](subset.html)  
 2.5&nbsp; [Random Numbers](random.numbers.html)  
 2.6&nbsp; [Writing functions, Programming](write.functions.html)  
 2.7&nbsp; [Object-Oriented Programming](object.oriented.Rmd)  
@@ -71,5 +71,8 @@ library(stringr)
 4.1  [Estimation](estimation.html)  
 4.2  [The Bootstrap](bootstrap.html)  
 4.3  [Curve Fitting](curve.fitting.html)  
+4.4  [Bayesian Analysis](bayes.html)  
+4.5  [Classification](classification.html)  
+4.6  [Miscellaneous](misc.html)
 
 

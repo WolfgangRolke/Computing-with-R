@@ -13,7 +13,7 @@ th, td {padding: 10px;}
 
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
 whichcomp <- strsplit(getwd(),"/")[[1]][3]
-load(paste0("c:/users/", whichcomp, "/Dropbox/Resma3/Resma3.RData"))
+load(paste0("c:/users/", whichcomp, "/Dropbox/teaching/Resma3/Resma3.RData"))
 library(knitr)
 opts_chunk$set(fig.width=6, fig.align = "center", 
       out.width = "70%", warning=FALSE, message=FALSE)
@@ -22,7 +22,7 @@ library(grid)
 ```
 `r hl()$basefontsize()`
 
-#Generate Radnom Variates
+#Generate Random Variates
 
 ##Random Numbers
 
@@ -44,7 +44,7 @@ randomNumbers(20, 0, 100)
 
 These are numbers that look random, smell random ...
 
-Of course a computer can not do anything truly random, so all we can do is generate X~1~, X~2~, .. that **appear** to be iid U[0,1], so-called pseudo-random numbers. In R we have the function *runif*:
+Of course a computer can not do anything truly random, so all we can do is generate X~1~, X~2~, .. that **appear** to be iid U[0,1], so-called *pseudo-random numbers*. In R we have the function *runif*:
 
 ```{r}
 runif(5)
@@ -53,7 +53,7 @@ runif(5)
 or 
 
 ```{r}
-runif(5, 0, 100)
+round(runif(5, min=0, max=100), 1)
 ```
 
 If we want to choose from a finite set we have
@@ -71,8 +71,11 @@ sample(1:10)
 if we want to allow repetitions we can do this as well. Also, we can give the (relative) probabilities:
 
 ```{r}
-table(sample(1:5, size=1000, replace=TRUE, prob=5:1))
+table(sample(1:5, size=1000, replace=TRUE, 
+      prob=c(1, 2, 3, 2, 1)))
 ```
+
+Notice that the probabilities need not be normalized (aka add up to 1)
 
 ##Standard Probability Distributions
 
@@ -83,10 +86,10 @@ many standard distributions are part of base R. For each the format is
 -  rname = random generation  
 -  qname = quantile function  
 
-for example -  Poisson distribution:
+####Example:  Poisson distribution
 
 ```{r}
-dpois(c(0, 8, 12, 20), 10)
+dpois(c(0, 8, 12, 20), lambda=10)
 ppois(c(0, 8, 12, 20), 10)
 rpois(5, 10)
 qpois(1:4/5, 10)
@@ -141,8 +144,40 @@ $$
 Of course this is easy to fix. If you want to generate the "usual" geometric do
 
 ```{r}
-rgeom(10, 0.4)+1
+x <- rgeom(10, 0.4) + 1
+x
 ```
+
+if you want to find the probabilities or cdf:
+
+```{r}
+round(dgeom(x-1, 0.4), 4)
+round(0.4*(1-0.4)^(x-1), 4)
+```
+
+Another example is the Gamma random variable. Here most textbooks use the definition
+
+$$
+f(x; \alpha, \beta)= \frac1{\Gamma{(\alpha)}\beta^\alpha}x^{\alpha-1}e^{-x/\beta}
+$$
+but R uses
+
+
+$$
+f^*(x; \alpha, \beta)= \frac{\beta^\alpha}{\Gamma{(\alpha)}}x^{\alpha-1}e^{-\beta x}
+$$
+
+```{r}
+dgamma(1.2, 0.5, 2)
+2^0.5/gamma(0.5)*1.2^(0.5-1)*exp(-2*1.2)
+```
+
+Again, it is easy to *re-parametrize*:
+
+```{r}
+dgamma(1.2, 0.5, 1/(1/2))
+```
+
 
 ##Other Variates
 
@@ -159,7 +194,7 @@ plot(x)
 cor(x)[1, 2]
 ```
 
-If you can't find a package you have write your own! Here is a simple routine that will generate random variates from any function fun (given as a character vector) in one dimension on a finite interval:
+If you can't find a package you have to write your own! Here is a simple routine that will generate random variates from any function *fun* (given as a character vector) in one dimension on a finite interval [A, B]:
 
 ```{r}
 r.pit <- function (n, fun, A, B) 
@@ -194,5 +229,22 @@ or a bit more complicated:
 y <- r.pit(1000, "x*sin(2*pi*x)^2", 0, 1)
 hist(y, 50, freq=FALSE, main="")
 ```
+
+How about adding the density curve? For that we do need to normalize the function, that is we need to make sure that 
+
+$$
+\int_0^1 x \sin(2 \pi x)^2 dx = 1
+$$
+
+but this is not a trivial integral, so we need to use a numerical method:
+
+```{r}
+x <- seq(0, 1, length=250)
+f <- x*sin(2*pi*x)^2
+I <- sum( (f[-1]+f[-250])/2 *(x[-1]-x[-250])) #Riemann sum
+hist(y, 50, freq=FALSE, main="")
+curve(x*sin(2*pi*x)^2/I, 0, 1, add=TRUE)
+```
+
 
 Want to learn how to generate data from any random vector? Come to my course ESMA5015 Simulation!

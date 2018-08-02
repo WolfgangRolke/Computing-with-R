@@ -5,6 +5,7 @@ output:
   pdf_document:
     fig_caption: no
 ---
+
 <style>
 table, th, td { text-align:right; }
 th, td {padding: 10px;}
@@ -50,39 +51,37 @@ head(import("c:/tmpdata/mytestdata.csv"), 3)
 
 ###Minitab to R
 
-rio has the ability to read Minitab files. Unfortunately they have to be in the portable format, and Minitab stopped useing that some vversuins ago. So the easiest thing to do is save files a in Minitab as .csv.
+rio has the ability to read Minitab files. Unfortunately they have to be in the portable format, and Minitab stopped using that some versions ago. So the easiest thing to do is save files in Minitab as .csv.
  
  
 ##readr
 
-This package is specific to rectangular data, such as data from an Excel spreadsheet. It's advantage is it's speed:
+This package is specific to rectangular data, such as data from an Excel spreadsheet. It's main advantage is it's speed when compared to the corresponding base R routine read.csv:
 
 ```{r}
+tm <- proc.time()
+head(read.csv("c:/tmpdata/mytestdata.csv"), 2)
+(proc.time()-tm)[3]
 library(readr)
 tm <- proc.time()
 head(import("c:/tmpdata/mytestdata.csv"), 2)
-proc.time()-tm
-tm <- proc.time()
-head(read_csv("c:/tmpdata/mytestdata.csv"), 2)
-proc.time()-tm
+(proc.time()-tm)[3]
 ```
 
 **Note** that the data is in the form of a *tibble*. This is a  special kind of data frame which we will talk about later.
 
-**Note** the corresponding base R routine was called read.csv
-
 ##data.table
 
-Similar to read.table but faster and more convenient. the command is called *fread*:
+Similar to read.table but faster and more convenient. The command is called *fread*:
 
 ```{r}
 library(data.table)
 tm <- proc.time()
 head(fread("c:/tmpdata/mytestdata.csv"), 2)
-proc.time()-tm
+(proc.time()-tm)[3]
 ```
 
-This command is what I would recommend if you deal with a Big Data. These days we classify data as follows:
+This command is what I would recommend if you deal with Big Data. These days we classify data as follows:
 
 -  big data (a few hundred thousand rows, about 20 MB)  
 -  Big Data (5 million rows, about 1GB)  
@@ -113,7 +112,7 @@ nchar(txt)
 
 Notice that the document has 24 pages, and each is read in as one character string.
 
-The data table starts on page 10, which is txt[12], and ends on page 19, which is txt[20]. Let's begin by making a long character string with each peace of text/numbers separate. We want to split the string at white spaces, which we can do with the reg expression
+The data table starts on page 10, which is txt[12], and ends on page 19, which is txt[20]. Let's begin by making a long character string with each piece of text/numbers separate. We want to split the string at white spaces, which we can do with the reg expression
 
 ```{r eval=FALSE}
 strsplit(txt, "\\s+")[[1]]
@@ -126,7 +125,7 @@ txt <- paste(txt[12:20], collapse = " ")
 txt <- strsplit(txt, "\\s{2,}")[[1]]
 ```
 
-There is however a problem: some large numbers are written with a single space between (for example Africa 10 596), so now there is a character vector "10 596" which we want to turn into a number:
+There is a problem, though: some large numbers are written with a single space between (for example Africa 10 596), so now there is a character vector "10 596" which we want to turn into a number:
 
 ```{r}
 as.numeric("10 596")
@@ -134,12 +133,22 @@ as.numeric("10 596")
 
 so we need to remove those  white spaces. It would be easy to remove all of them, but then we would turn "Puerto Rico" into "PuertoRico", and we don't want that!
 
-```{r}
+While we are at it, let's also remove the superscripts on some of the country names.
+
+```{r warning=FALSE}
 for(i in seq_along(txt)) {
   tmp <- strsplit(txt[i], "\\s+")[[1]]
-  if(length(tmp)==1) next #single item
-  if(any(is.na(as.numeric(tmp)))) next #some parts are character
-  txt[i] <- paste(tmp, collapse = "")   
+  if(length(tmp)==1) next #single item, nothing to do
+  if(any(is.na(as.numeric(tmp)))) { #some parts are character
+     if(!all(is.na(as.numeric(tmp)))) #not all parts are character
+       tmp <- tmp[is.na(as.numeric(tmp))] 
+             #drop numbers (superscripts)
+      txt[i] <- paste(tmp, collapse = " ")   
+          #all text, leave space between
+  }  
+  else
+      txt[i] <- paste(tmp, collapse = "")   
+         #all numbers, no spaces
 }
 ```
 
@@ -192,7 +201,7 @@ k <- seq_along(txt)[txt=="Burundi"]
 txt <- txt[k:length(txt)]
 ```
 
-The last country is Tonga, so we remove everthing after it's row:
+The last country is Tonga, so we remove everything after it's row:
 
 ```{r}
 k <- seq_along(txt)[txt=="Tonga"]
@@ -200,24 +209,24 @@ txt <- txt[1:(k+13)]
 ```
 
 
-Unfortunately the table is not contigues, eventually there is a page break and then the title text repeats. However, this part always starts with the words "World Mortality 2017" and ends with "(13)", so it is easy to remove all of them:
+Unfortunately the table is not contigues, eventually there is a page break and then the title text repeats. However, this part always starts with the words "World Mortality" and ends with "(13)", so it is easy to remove all of them:
 
 ```{r}
-k <- seq_along(txt)[txt=="World Mortality 2017"]
+k <- seq_along(txt)[txt=="World Mortality"]
 j <- seq_along(txt)[txt=="(13)"]
 k
 j
 ```
 
-so we see that the first "World Mortality 2017" is at position `r k[1]`, and the first "(13)" is at `r j[1]`, so we can remove everything in between.
+so we see that the first "World Mortality" is at position `r k[1]`, and the first "(13)" is at `r j[1]`, so we can remove everything in between.
 
-But wait: the top of page 13 reads "World Mortality 2017" on the left and "13"" on the right, but on page 14 it is "14"" on the left and "World Mortality 2017" on the right! These alternate, so we need
+But wait: the top of page 13 reads "World Mortality" on the left and "13"" on the right, but on page 14 it is "14"" on the left and "World Mortality" on the right! These alternate, so we need
 
-```{r echo=FALSE}
+```{r }
 k[c(2, 4, 6, 8)] <- k[c(2, 4, 6, 8)]-1
 ```
 
-Let's get rid of oll of this:
+Let's get rid of all of this:
 
 ```{r}
 for(i in 1:8) txt[k[i]:j[i]] <- NA
@@ -247,7 +256,7 @@ k <- seq_along(txt)[txt=="Puerto Rico"]
 txt[k:(k+13)]
 ```
 
-One final problem: every now and then the table has the means for various regions (Middle Africa, etc). There is no other way but to ged rid of them one by one. Just going through the list I can find their row numbers:
+One final problem: every now and then the table has the means for various regions (Middle Africa, etc). There is no other way but to get rid of them one by one. Just going through the list I can find their row numbers:
 `
 ```{r}
 not.country <- c(21, 31, 39, 45, 62, 63, 72, 73, 79, 89,
@@ -256,10 +265,19 @@ not.country <- c(21, 31, 39, 45, 62, 63, 72, 73, 79, 89,
 data.tbl <- data.tbl[-not.country, ]
 ```
 
-Let's look at the life expectancy:
+```{r}
+dump("data.tbl", "world.mortality.2017.R")
+```
+
+
+Let's look at the life expectancy, sorted from highest to lowest:
 
 ```{r}
-kable(data.tbl[order(data.tbl[, "LifeExpectancy.Both"], decreasing = TRUE), c(1, 4)])
+dta <- data.tbl[order(data.tbl[, "LifeExpectancy.Both"], 
+          decreasing = TRUE), c(1, 4)]
+colnames(dta)[2] <- "Life Expectancy"
+row.names(dta) <- NULL
+kable(dta)
 ```
 
 

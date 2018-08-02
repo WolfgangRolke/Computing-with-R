@@ -12,7 +12,7 @@ th, td {padding: 10px;}
 
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
 whichcomp <- strsplit(getwd(),"/")[[1]][3]
-load(paste0("c:/users/", whichcomp, "/Dropbox/Resma3/Resma3.RData"))
+load(paste0("c:/users/", whichcomp, "/Dropbox/teaching/Resma3/Resma3.RData"))
 library(knitr)
 opts_chunk$set(fig.width=6, fig.align = "center", 
       out.width = "70%", warning=FALSE, message=FALSE)
@@ -28,7 +28,8 @@ The traditional workflow of R comes in large part from other computer languages.
 ```{r}
 df <- mtcars
 df1 <- subset(df, hp>70)
-ggplot(data=df1, aes(disp, mpg)) + geom_point()
+ggplot(data=df1, aes(disp, mpg)) + 
+  geom_point()
 ```
 
 This is not how we think, though. That would go somehing like this:
@@ -52,7 +53,8 @@ invented by Stefan Milton. The basic operator is %>%. The same as above can be d
 ```{r}
 mtcars %>%
   subset(x=., hp>70) %>%
-  ggplot(data=., aes(disp, mpg)) + geom_point()
+  ggplot(data=., aes(disp, mpg)) + 
+     geom_point()
 ```
 
 In principle the pipe can always be used in this way:
@@ -82,7 +84,8 @@ written by Hadley Wickham. In essence it is a replacement for the *apply* famili
 ```{r}
 mtcars %>%
   filter(hp>70) %>%
-  ggplot(data=., aes(disp, mpg)) + geom_point()
+  ggplot(aes(disp, mpg)) + 
+     geom_point()
 ```
 
 Notice how *filter* is aware of the pipe, it doesn't need to be told that it is supposed to work with mtcars. So far, *ggplot* is not fully pipe aware (otherwise we could have written %>% geom_point()), but this will change in the near future.
@@ -100,7 +103,7 @@ so we have all relevant information about the data set: its size (32x11), the va
 
 *tibbles* are also designed to work well with piping and with the package *dplyr*.
 
-If you create a tibble from scratch use:
+If you want to create a tibble from scratch use:
 
 ```{r}
 tibble(x=1:5, y=x^2)
@@ -112,12 +115,12 @@ Also, tibbles never use row.names, and it only recycles vectors of length 1. Thi
 
 We have already seen the filter command, the *dplyr* version of subset. Here are the most important *dplyr* commands: 
 
--  filter()  select part of a data set by conditions (base R command: subset)
--  select() 	select columns  (base R command: [ ])
--  arrange() 	re-order or arrange rows  (base R commands: sort, order)
--  mutate() 	create new columns  (base R commands: any math function)
--  summarise() 	summarise values  (base R commands: mean, median etc)
--  group_by() 	allows for group operations in the  “split-apply-combine” concept (base R command: none)
+-  filter  selects part of a data set by conditions (base R command: subset)
+-  select 	selects columns  (base R command: [ ])
+-  arrange 	re-orders or arranges rows  (base R commands: sort, order)
+-  mutate 	creates new columns  (base R commands: any math function)
+-  summarise 	summarises values  (base R commands: mean, median etc)
+-  group_by 	allows for group operations in the  “split-apply-combine” concept (base R command: none)
 
 
 ###Example: babynames
@@ -139,8 +142,9 @@ babynames %>%
     group_by(year, sex) %>%
     summarize(total = sum(n)) %>%
     ggplot(data = ., aes(year, total, color = sex)) +
-      geom_line() + labs(color="Gender") +
-      ggtitle('Names starting with "W"') 
+      geom_line() + 
+      labs(color="Gender") +
+      ggtitle('Names starting with W') 
 ```
 
 How often is my name used for a baby in the US?

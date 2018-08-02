@@ -33,7 +33,7 @@ Let's start with this:
 search()
 ```
 
-These are the environments currently loaded into R. In some ways you can think of this as a folder tree, like:
+These are the environments currently loaded into my R. In some ways you can think of this as a folder tree, like:
 
 ```{r}
 paste0(search(), "/", collapse="")
@@ -68,9 +68,16 @@ ls(17, pattern="mean")
 
 and there it is!
 
+If an object is not in any of these environments it will give an error:
+
+```{r error=TRUE}
+ddgdg
+```
+
+This makes it clear that a routine that is part of a library can only be found if that library is loaded.
+
 One difference between a folder tree and this is that R starts looking at the top (in .GobalEnv) and then works its way down.
 
-Also this makes it clear that a routine that is part of a library can only be found if that library is loaded.
 
 There is an easy way to find out in which environment an object is located, with the routine *where* in the library *pryr*:
 
@@ -108,7 +115,7 @@ detach(2)
 <hr>
 ###runtime environments
 
-How does this work when we run a function? To find out we write little function:
+How does this work when we run a function? To find out we can  write a little function:
 
 ```{r}
 show.env <- function(){
@@ -123,7 +130,7 @@ show.env()
 
 this tells us that R ran the function in an environment with a very strange name, which usually means it was created randomly. We can also see that its parent environment was .GlobalEnv and that x is an object in it.
 
-This means that any object created inside a function is only known there, it does not overwrite any objects outside the function.
+This means that any object created inside a function is only known there, it does not overwrite any objects outside the function. One consequence is that if we need to create some temporary objects we can use simple names like x or i, even if these already exist outside of the function.
 
 Now where does *show.env* live?
 
@@ -173,7 +180,7 @@ One place where this is useful is if you have a routine like a simulation that r
 
 <hr>
 
-As we just saw, environments can come about by loading libraries, by attaching data frames (also lists) and (at least for a short while) by running a function. In fact we can make our own:
+As we just saw, environments can come about by loading libraries, by attaching data frames (also lists) and (at least for a short while) by running a function. In fact we can also make our own:
 
 ```{r}
 test_env <- new.env()
@@ -212,11 +219,13 @@ Why would you want to make a new environment? I have one called .MyEnv that is c
 ls(".MyEnv")
 ```
 
-If an object is part of a package that is installed on your computer you can sometimes use it without loading the package. As an example consider the package *mailR*, which has the function *send.mail* to send emails from within R:
+If an object is part of a package that is installed on your computer you can also use it without loading the package with the :: operator. As an example consider the package *mailR*, which has the function *send.mail* to send emails from within R:
 
 ```{r}
 args(mailR::send.mail)
 ```
+
+Some R texts suggest to avoid using attach at all, and to always use ::. The reason is that what works on your computer with its specific setup may not work on someone elses. My preference is to use :: if I use a function in this package just once but to attach the package if I use the function several times.
 
 ##Packages
 
@@ -224,7 +233,7 @@ As we have already seen, packages/libraries are at the heart of R. Mostly it is 
 
 In fact, that is one problem: for any one task there are likely a dozen packages that would work. Finding the one that works for you is not easy!
 
-Once you have it you download it easily by clicking on the Packages tab, select Install and typing the name. Occasionally RStudio won't find it, then you can do it manually:
+Once you decide which one you want you can download it easily by clicking on the Packages tab in RStudio, select Install and typing the name. Occasionally RStudio won't find it, then you can do it manually:
 
 ```{r eval=FALSE}
 install.packages("pckname")
@@ -232,9 +241,9 @@ install.packages("pckname")
 
 Useful arguments are
 
--  lib: the folder on you hard drive where you want to store the package (usually c:/R/lib)  
--  repos: the place on the internet where the package is located (if not it pops up a list to choose from) 
--  dependencies=TRUE will also download any packages required
+-  lib: the folder on you hard drive where you want to store the package (usually c:/R/lib).     
+-  repos: the place on the internet where the package is located (if not it pops up a list to choose from).   
+-  dependencies=TRUE will also download any additional packages required.
 
 Notice that this only downloads the package, you still have to load it into R:
 
@@ -271,6 +280,8 @@ Open an explorer window and go to the folder testlib
 
 Open the file DESCRIPTION. It looks like this:
 
+`r hl()$hr()`
+
 Package: testlib  
 Title: What the Package Does (one line, title case)  
 Version: 0.0.0.9000  
@@ -281,7 +292,13 @@ License: What license is it under?
 Encoding: UTF-8  
 LazyData: true  
 
+
+`r hl()$hr()`
+
 and so we can change it to
+
+
+`r hl()$hr()`
 
 Package: testlib  
 Title: Test Library
@@ -294,6 +311,8 @@ Encoding: UTF-8
 LazyData: true  
 
 
+`r hl()$hr()`
+
 Next we have to put the functions we want to have in our library into the R folder:
 
 ```{r}
@@ -303,7 +322,7 @@ dump("f1", "../testlib/R/f1.R")
 dump("f2", "../testlib/R/f2.R")
 ```
 
-Let's change the working directory to test lib and check what we have in there:
+Let's change the working directory to testlib and check what we have in there:
 
 
 
@@ -399,7 +418,7 @@ make.library <- function (name, folder)
     if(name=="wolfr") 
       folder <- paste0("C:/users/", whichcomp, "/Dropbox/R/wolfr")
     if(folder=="Resma3") 
-      folder <- paste0("C:/users/", whichcomp, "/Dropbox/Resma3/Resma3")       
+      folder <- paste0("C:/users/", whichcomp, "/Dropbox/teaching/Resma3/Resma3")       
     library(devtools)  #make sure packages are loaded
     library(roxygen2)
     olddir <- getwd() #remember where you are

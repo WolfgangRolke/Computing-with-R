@@ -13,7 +13,7 @@ th, td {padding: 10px;}
 
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
 whichcomp <- strsplit(getwd(),"/")[[1]][3]
-load(paste0("c:/users/", whichcomp, "/Dropbox/Resma3/Resma3.RData"))
+load(paste0("c:/users/", whichcomp, "/Dropbox/teaching/Resma3/Resma3.RData"))
 library(knitr)
 opts_chunk$set(fig.width=6, fig.align = "center", 
       out.width = "70%", warning=FALSE, message=FALSE)
@@ -29,39 +29,50 @@ library(grid)
 
 The basic functions to display information on the screen are
 
-```{r echo=-1}
-x <- runif(10)
+```{r}
+x <- rnorm(5, 100, 30)
 print(x)
 cat(x)
 ```
 
 Both of these have certain advantages:
 
--  with print you can control the amount of rounding
+-  with print you can easily control the number of digits:
 
 ```{r}
-print(x, 2)
+print(x, digits=4)
 ```
 
 -  with cat you can easily mix text and numeric:
 
 ```{r}
-cat("The mean is :", round(mean(x), 2), "\n")
+cat("The mean is ", round(mean(x), 1), "\n")
 ```
 
-The "\\n" is needed so that the cursor moves to the next line.
+The "\\n" (**n**ewline) is needed so that the cursor moves to the next line. 
 
 Some times you need a high level of control over the output, for example when writing data to a file that then will be read by a computer program that wants things just so. For this you can use the *sprintf* command.
 
 ```{r}
 sprintf("%f", pi)
-sprintf("%.3f", pi)
-sprintf("%1.0f", pi)
-sprintf("%5.1f", pi)
-sprintf("%05.1f", pi)
-sprintf("%+f", pi)
-sprintf("% f", pi)
 ```
+
+Here the f stands for floating point, the most common type. Also note that the result if a call to sprintf is a character vector.
+
+Here are some variations:
+
+```{r}
+sprintf("%.3f", pi) #everything before the ., 3 digits after
+sprintf("%1.0f", pi) #1 space, 0 after
+sprintf("%5.1f", pi) #5 spaces total, 1 after
+sprintf("%05.1f", pi) #same but fill with 0
+sprintf("%+f", pi) #all with + in front
+sprintf("% f", pi) #space in front
+sprintf("%e", pi) #in scientific notation, small e
+sprintf("%E", pi) #or large E
+sprintf("%g", 1e6*pi)
+```
+`r hl()$vspace()`
 
 Here is another example. In Statistics we often find a p value. These should generally be quoted to three digits. But when the p value is less than $10^{-3}$ R uses scientific notation. If you want to avoid that do this
 
@@ -71,7 +82,7 @@ p
 sprintf("%.3f", p)
 ```
 
-##Vectors
+##Reading a Vector
 
 Often the easiest thing to do is to use copy-paste on a vector and then simply *scan* it into R:
 
@@ -79,7 +90,7 @@ Often the easiest thing to do is to use copy-paste on a vector and then simply *
 x <- scan("clipboard")
 ```
 
--  use the argument sep=";" to change the symbol that is being use as a separator. The default is empty space, common cases include  commas and newline (\\n)  
+-  use the argument sep=";" to change the symbol that is being use as a separator. The default is empty space, common cases include  comma, semi-colon, and newline (\\n)  
 
 -  scan assumes that the  data is numeric, if not use the argument what="char".
 
@@ -89,9 +100,10 @@ I need to do this so often I wrote a little routine for it:
 getx <- function(sep="") {
   options(warn=-1) #It might give a warning, I don't care
   x <- scan("clipboard", what="character", sep=sep)
+  #always read as character
   if(all(!is.na(as.numeric(x)))) #are all elements numeric?
     x <- as.numeric(x) #then make it numeric
-  options(warn=0)
+  options(warn=0) #reset warning
   x  
 }
 ```
@@ -102,7 +114,7 @@ Notice some features:
 
 -  it then tries to turn it into numeric. If that works, fine, otherwise it stays character. This is done with as.numeric(x), which returns NA if it can't turn an entry into numeric, so is.na(as.numeric(x)) returns TRUE if x can't be made numeric.
 
--  when trying to turn a character into a number R prints a warning. This is good in general to warn you that you are doing something strange. Here, so it is expected behaviour and we don't need the warning. The routine suppresses them by setting options(warn=-1), and setting it back to the default afterwards.
+-  when trying to turn a character into a number R prints a warning. This is good in general to warn you that you are doing something strange. Here, though, it is expected behaviour and we don't need the warning. The routine suppresses them by setting options(warn=-1), and setting it back to the default afterwards.
 
 If the data is in a stand-alone file saved on your hard drive you can also read it from there:
 
@@ -122,10 +134,10 @@ the most useful are
 
 -  what  
 -  sep  
--  nmax maximum number of lines to read, useful if you don't know just how large the file is and want to read just some of it to check it out  
--  skip  number of lines at beginning to skip, for example if there is some header.  
--  quiet=FALSE  by default R will say how many lines have been read, this can be a nuisance if you have a routine that reads in many files.  
--  blank.lines.skip=TRUE  does not read in empty lines. This is a problem if you want to write the file out again later and want it to look as much as possible like the original. 
+-  nmax: maximum number of lines to read, useful if you don't know just how large the file is and want to read just some of it to check it out.    
+-  skip:  number of lines at beginning to skip, for example if there is some header.  
+-  quiet=FALSE:  by default R will say how many lines have been read, this can be a nuisance if you have a routine that reads in many files.  
+-  blank.lines.skip=TRUE:  does not read in empty lines. This is a problem if you want to write the file out again later and want it to look as much as possible like the original. 
 
 
 ##Data Frames
@@ -173,7 +185,7 @@ Now to read in the stuff simply use
 source("c:/folder/mystuff.R")
 ```
 
-I do this a lot, so I wrote myself these two routines:
+I often have to transfer stuff from one R project to another, so I wrote myself these two routines:
 
 ```{r}
 dp <- function (x) dump(x, "clipboard")

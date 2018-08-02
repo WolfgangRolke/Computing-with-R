@@ -12,7 +12,7 @@ th, td {padding: 10px;}
 
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
 whichcomp <- strsplit(getwd(),"/")[[1]][3]
-load(paste0("c:/users/", whichcomp, "/Dropbox/Resma3/Resma3.RData"))
+load(paste0("c:/users/", whichcomp, "/Dropbox/teaching/Resma3/Resma3.RData"))
 library(knitr)
 opts_chunk$set(fig.width=6, fig.align = "center", 
       out.width = "70%", warning=FALSE, message=FALSE)
@@ -24,11 +24,13 @@ library(grid)
 
 #R Markdown
 
-R Markdown is a program for making dynamic documents with R. An R Markdown document is written in markdown (an easy-to-write plain text format) ith hefiles extension .Rmd and contains chunks of embedded R code. It has a number of great features:
+R Markdown is a program for making dynamic documents with R. An R Markdown document is written in *markdown*, an easy-to-write plain text format with the file extension .Rmd. It can contain chunks of embedded R code. It has a number of great features:
 
 -  easy syntax for a number of basic objects  
 -  code and output are in the same place and so are always synced  
 -  several output formats (html, latex, word)
+
+In recent years I (along with many others) who work a lot with R have made Rmarkdown the basic way to work with R. So when I work on a new project I immediately start a corresponding R markdown document. 
 
 ###Get Started
 
@@ -45,9 +47,11 @@ output: html_document
 
 This follows a syntax called YAML (also used by other programs). There are other things that can be put here as well, or you can erase all of it.
 
+YAML stands for Yet Another Markup Language. It has become a standard for many computer languages to describe different configurations. For details go to [yaml.org](yaml.org)
+
 Then there is other stuff you should erase. Next File > Save. Give the document a name with the extension .Rmd
 
-I have a number of things that I need in (almost) all of my Rmd files, and I am to lazy to erase the stuff that the default starting document comes with. So I found the file that RStudio uses at this point, it is called r_markdown_v2.Rmd and sits in the folder ../RStudio/resources/templates (on my Win 10 machine, anyway). I renamed it  r_markdown_v2OLD.Rmd (just so I can get it back if somethi goes wrong) and put what I want in it. Now when I click on  File > New File > R Markdown, I get a file that s ready to go!
+I have a number of things that I need in (almost) all of my Rmd files, and I am to lazy to erase the stuff that the default starting document comes with. So I found the file that RStudio uses at this point, it is called r_markdown_v2.Rmd and sits in the folder ../RStudio/resources/templates (on my Win 10 machine, anyway). I renamed it  r_markdown_v2OLD.Rmd (just so I can get it back if something goes wrong) and put what I want in it. Now when I click on  File > New File > R Markdown, I get a file that is ready to go!
 
 ###Basic R Markdown Syntax
 
@@ -91,7 +95,7 @@ so we can see the result of the R calculation as well. The reason it didn't appe
 
 \`\`\`\{r eval=FALSE\}
 
-which keeps the code chunk from actually executing. This is useful if the code takes along time to run, or if you want to show code that is actually faulty, or ...
+which keeps the code chunk from actually executing (aka *eval*uating). This is useful if the code takes along time to run, or if you want to show code that is actually faulty, or ...
 
 there are several useful arguments:
 
@@ -100,9 +104,9 @@ there are several useful arguments:
 -  echo=FALSE  (the code chunk is run but does not appear in the document)  
 -  echo=2:5 (shows only code on lines 2 to 5)  
 -  warning=FALSE  (warnings are not shown)  
--  message=FALSE (messages) are not shown)  
+-  message=FALSE (messages are not shown)  
 -  cache=TRUE  (code is run only if there has been a change, useful for lengthy calculations)  
--  error=TRUE  (if there errors in the code R normaly terminates the parsing. with this argument it will ignore the erro, which hepls with debugging)  
+-  error=TRUE  (if there are errors in the code R normaly terminates the parsing (executing) of the markdown document. With this argument it will ignore the error, which helps with debugging)  
 -  engine='Rcpp' (to include C++ code)
 
 b.  inline code. 
@@ -117,7 +121,7 @@ txt <-"\`r mean(x)\`"
 cat(txt)
 ```
 
-Many of these options can be set globally, so they are activefor the whole document. This is useful so you don't have to type them in every time. I have the following code chunk at the beginning of all my Rmd:
+Many of these options can be set globally, so they are active for the whole document. This is useful so you don't have to type them in every time. I have the following code chunk at the beginning of all my Rmd:
 
 ```{r eval=FALSE}
 library(knitr)
@@ -127,7 +131,7 @@ opts_chunk$set(fig.width=6, fig.align = "center",
 
 We have already seen the message and warning options. The other one puts any figure in the middle of the page and sizes it nicely.
 
-If you have to overide these defaults just include that in the specific chunk.
+If you have to override these defaults just include that in the specific chunk.
 
 ###Creating Output
 
@@ -135,9 +139,7 @@ To create the output you have to "knit" the document. This is done by clicking o
 
 ####HTML vs Latex(Pdf)
 
-In order to knit to pdf you have to install a latex interpreter. My suggestion is to use 
-
-[Miktex](https://miktex.org/)
+In order to knit to pdf you have to install a latex interpreter. My suggestion is to use [Miktex](https://miktex.org/), but if you already have one installed it might work as well.
 
 There are several advantages / disadvantages to each output format:
 
@@ -215,6 +217,8 @@ it will appear as `r fontcolor("this is in red")` in either html or latex.
 
 ###LATEX
 
+You have not worked with latex (read: latek) before? Here is your chance to learn. It is well worthwhile, latex is the standard document wordprocessor for science. And once you get used to it is WAY better and easier than (say) Word. 
+
 Because latex code will generally display correctly in an html document but html will not in a latex document I suggest to stick as much as possible with latex.
 
 A nice list of common symbols is found on [https://artofproblemsolving.com/wiki/index.php/LaTeX:Symbols](https://artofproblemsolving.com/wiki/index.php/LaTeX:Symbols).
@@ -244,12 +248,20 @@ txt <- c(" $$\n",
 cat(txt)
 ```
 
+By default when you knit to pdf the intermediate latex file is deleted. If you want to keep it, maybe so you can change it in a latex editor, use the following in the YAML header:
+
+output:  
+&nbsp;&nbsp;pdf_document:  
+&nbsp;&nbsp;&nbsp;&nbsp;keep_tex: true
+
+notice the spaces before the text, they are needed!
+
 ##snippets
 
 A *snippet* is a short piece of code that one uses quite often, and so it would be nice not to have to type it in every time. RStudio has a number of them pre-defined. Go to Tools > Global Options > Code > Edit Snippets.
 
-There are snippets for various languags, incuding R Markdown. To use a snippet, simply type the code and the Shift+Tab.
+There are snippets for various languags, incuding R Markdown. To use a snippet, simply type the code and then Shift+Tab.
 
-You can even wright your own! For example, I have one called mta that has all the basics to start a multi-line latex math expression.
+You can even wright your own! For example, I have one called *mta* that has all the basics to start a multi-line latex math expression.
 
 

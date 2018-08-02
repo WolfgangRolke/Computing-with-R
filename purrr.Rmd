@@ -1,0 +1,231 @@
+---
+header-includes: \usepackage{color}
+output:
+  html_document: default
+  pdf_document:
+    fig_caption: no
+---
+
+<style>
+table, th, td { text-align:right; }
+th, td {padding: 10px;}
+</style>
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+whichcomp <- strsplit(getwd(),"/")[[1]][3]
+load(paste0("c:/users/", whichcomp, "/Dropbox/teaching/Resma3/Resma3.RData"))
+library(knitr)
+opts_chunk$set(fig.width=6, fig.align = "center", 
+      out.width = "70%", warning=FALSE, message=FALSE)
+library(ggplot2)
+library(grid)
+```
+`r hl()$basefontsize()`
+
+#Iteration with purrr
+
+We have previously learned how to write loops and how to use apply. In this section we will learn about another variation on that theme.
+
+We will need
+
+```{r}
+library(tidyverse)
+```
+
+Say we have the following problem. We have a dataframe
+
+```{r}
+df <- tibble(
+  a1 = round(rnorm(100), 1)
+)
+for(i in 2:50) {
+  df[[i]] <- round(rnorm(100, i), 1)
+  colnames(df)[i] <- paste0("a", i)
+}
+head(df, 2)
+```
+
+and we want to find the mean of the 50 columns.
+
+We can of course use a loop:
+
+```{r}
+df.mean <- rep(50, 0)
+for(i in seq_along(df))
+  df.mean[i] <- mean(df[[i]])
+df.mean[1:5]
+```
+
+or we can use apply:
+
+```{r}
+apply(df, 2, mean)[1:5]
+```
+
+and then there is the *purrr* routine
+
+```{r}
+map_dbl(df, mean)[1:5]
+```
+
+What is the advantage of map over apply or even just the loop? One is that map is designed to work with the pipe:
+
+```{r}
+df %>% 
+  map_dbl(mean) ->
+  out
+out[1:5]
+```
+
+Another is that *map* has a number of nice shortcuts. Say we want to fit a linear model to the mtcars data set but a different model for each cylinder:
+
+```{r}
+mtcars %>% 
+  split(.$cyl) %>% 
+  map(~lm(mpg~wt, data=.)) ->
+  mtcars.models
+summary(mtcars.models[[1]])
+```
+
+Notice the shorthand *\~lm(mpg\~wt)* instead of the long form *function(df) lm(mpg\~wt, data=df)*
+
+Now say we want to see the R^2's:
+
+```{r}
+mtcars.models %>% 
+  map(summary) %>% 
+  map_dbl("r.squared") 
+```
+
+Example: The data in the *gapminder* package has information on most of the countries in the world, including Puerto Rico. For a detailed explanation see its homepage at [https://www.gapminder.org/](https://www.gapminder.org/).
+
+```{r}
+library(gapminder)
+```
+
+Let's consider for a moment the life expectancy per country over time:
+
+```{r}
+gapminder %>% 
+  ggplot(aes(year, lifeExp)) +
+    geom_point() +
+    geom_smooth(se=FALSE)
+```
+
+Not surprisingly, the life expectancy has increase over the last 70 years or so. Overall we have
+
+```{r}
+fit <- lm(gapminder$lifeExp ~ gapminder$year)
+summary(fit)
+```
+
+It does seem that the linear model is not quite right, and in fact
+
+```{r}
+ggplot(data.frame(x=fitted.values(fit), y=residuals(fit)), aes(x,y)) +
+  geom_point() +
+  labs(x="Fitted Values", y="Residuals")
+```
+
+but instead of pursuing this issue let's find a linear model for each country:
+
+```{r}
+gapminder %>% 
+  group_by(country) %>% 
+  nest() ->
+  gap.country
+gap.country
+```
+
+What is this column "data"? As it says, it is a tibble again. So we have a tibble with a colunm, each entry if which is again a tibble!
+
+Now
+
+```{r}
+I.PR <- c(1:dim(gap.country)[1])[gap.country$country=="Puerto Rico"]
+gap.country$data[[I.PR]]
+```
+
+```{r}
+gap.country %>% 
+  mutate(model = map(data, function(df) lm(lifeExp ~ year, data=df))) ->
+  gap.country
+gap.country
+summary(gap.country$model[[I.PR]])
+```
+
+Now that we have the linear models we can use them to do the graph. The best way to do this is to undo the nest() command and get back to a standard dataframe:
+
+First we add the fitted values and the residuals to the tibble. For this we need a new package called *modelr*
+
+```{r}
+library(modelr)
+gap.country %>% 
+  mutate(fits = map2(data, model, add_predictions)) %>% 
+  mutate(resids = map2(data, model, add_residuals)) ->
+  gap.country
+gap.country
+```
+
+```{r}
+fits <- unnest(gap.country, fits)
+fits
+resids <- unnest(gap.country, resids)
+```
+
+```{r}
+fits %>% 
+  ggplot(aes(year, pred)) +
+    geom_line(aes(group=country), alpha=1/3) +
+    geom_smooth(se=FALSE)
+```
+
+and we see that while the general trend is up there are actually exceptions!
+
+Here are the residuals:
+
+```{r}
+resids %>% 
+  ggplot(aes(year, resid)) +
+    geom_line(aes(group=country), alpha=1/3) +
+    geom_smooth(se=FALSE)
+```
+
+and again we see that for some country the linear model fails badly.
+
+(Notice the use of group instead of color. Any idea why?)
+
+Here is an interesting view:
+
+```{r}
+resids %>% 
+  ggplot(aes(year, resid)) +
+    geom_line(aes(group=country), alpha=1/3) +
+    geom_smooth(se=FALSE) +
+    facet_wrap(~continent)
+```
+
+For comparison let's redo this analysis, this time using base R only.
+
+```{r}
+df <- gapminder
+n.countries <- dim(df)[1]
+df$fitted <- rep(0, n.countries)
+df$residuals <- rep(0, n.countries)
+for(i in 1:n.countries) {
+  z <- df[df$country==df$country[i], ]
+  fit <- lm(z$lifeExp~z$year)
+  df[df$country==df$country[i], "fitted"] <- fitted.values(fit)
+  df[df$country==df$country[i], "residuals"] <- residuals(fit)
+}
+plot(df$year, df$lifeExp, type="n", xlab="Year", ylab="Fits")
+for(i in 1:n.countries) {
+  z <- df[df$country==df$country[i], ]
+  lines(z$year, z$fitted)
+}
+loess.fit <- loess(df$lifeExp ~ df$year)
+new.x <- seq(1953, 2006, length=100)
+new.y <- predict(loess.fit, newdata=new.x)
+lines(new.x, new.y, col="blue", size=5)
+```
+

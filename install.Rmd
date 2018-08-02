@@ -4,7 +4,6 @@ output:
   html_document: default
   pdf_document:
     fig_caption: no
-runtime: shiny
 ---
 <style>
 table, th, td { text-align:right; }
@@ -21,7 +20,7 @@ library(ggplot2)
 library(grid)
 ```
 `r hl()$basefontsize()`
-
+ 
 #Installation and Updating
 
 You can get a free version of R for your computer from a number of sources. The download is about 70MB and setup is fully automatic. Versions for several operating systems can be found on the R web site

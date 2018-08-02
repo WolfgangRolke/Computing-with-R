@@ -43,28 +43,30 @@ Let's start with a simple. Rprofile. This is a stand-alone file usually loacted 
 dir("~")
 ```
 
-So here is what it (part of mine) looks like:
+So here is what (part of) mine looks like:
 
 
-options(help_type="html")  
-options(show.signif.stars=FALSE)  
-options(stringsAsFactors=FALSE)  
+options(help_type="html")  #ignored in RStudio
+options(show.signif.stars=FALSE)  #for p-values
+options(stringsAsFactors=FALSE)  #a classic source of errors
 library(ggplot2)  
 library(wolfr)
-library(moodler)
+library(moodler)  
 .MyEnv <- new.env()   
-.MyEnv$sc <- function() source("clipboard")  
-.MyEnv$dp <- function(x) { dump(x,"clipboard") }  
-.MyEnv$ip <- function(x) {      
-    install.packages(x,lib="C:\\R\\library")  
-    library(x,character.only =T)   
-} 
+.MyEnv\$sc <- function() source("clipboard")  
+.MyEnv\$dp <- function(x) { dump(x,"clipboard") }  
+.MyEnv\$ip <- function(x) { #Install and immediately load a package
+    install.packages(x, lib = "C:/R/library")  
+    library(x, character.only = TRUE)   
+}  
 attach(.MyEnv)  
-if("First.R" %in% dir()) {  
+if("First.R" %in% dir()) {#check whether there is a .First  
   source("First.R")  
   .First()  
 }  
 cat("\nSuccessfully loaded .Rprofile at", date(), "\n")  
+
+`r hl()$hr()`
 
 So it changes a few options, loads some libraries, makes a new environment and defines a few functions. Finally it checks the directory from where the Rproject was started to see whether it contains a file First.R. If so it loads and executes it as well. 
 
@@ -82,7 +84,7 @@ Dropbox is a cloud based storage site. For me it helps to solve a number of issu
 
 -  backup: done automatically  
 -  version control: Dropbox keeps all old versions, so if (when!!!) you save a file and then see that this was a mistake you can always go back and find a previous (good) version.  
--  keep things consistent: I have a number of computers, I don't want to have to work on keeping them synchronized.  
+-  keep things consistent: I have a number of computers, I don't want to have to work on keeping them synchronized. When I change a file in a Drpbox folder on one computer and then go to another, as soon as the new file is downleaded I got it there as well.   
 - availability: I can get to my files anyplace, anytime.
 
 so I have a folder named R in the Dropbox folder. Inside that I have many folders, one for each project. 

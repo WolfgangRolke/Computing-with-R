@@ -5,6 +5,7 @@ output:
   pdf_document:
     fig_caption: no
 ---
+
 <style>
 table, th, td { text-align:right; }
 th, td {padding: 10px;}
@@ -19,13 +20,11 @@ require(grid)
 ```
 `r hl()$basefontsize()`
 
-#Writing functions
-
-##How?
+#Writing your own functions
 
 R has several ways to write your own function:
 
--  RStudio: click on File > New File > R Scipt. A new empty window pops up. Type fun, hit enter, and  the following text appears:
+-  RStudio: click on File > New File > R Script. A new empty window pops up. Type fun, hit enter, and  the following text appears:
 
 name <- function(variables) {
 
@@ -53,7 +52,7 @@ source('R/myfun.R')
 
 Which of these is best? In large part that depends on your preferences. In my case, if I expect to need that function just for a bit I use the fix option. If I expect to need that function again later I start with the first method, but likely soon open the .R file outside RStudio because I can move that window around onto a second monitor.
 
-There are some useful keyboard shortcuts here. If the curser is on some lie in the editor you can hit
+There are some useful keyboard shortcuts here. If the curser is on some line in the RStudio editor you can hit
 
 -  CTRL-Enter run current line or section  
 -  CTRL-ALT-B run from beginning to line  
@@ -130,11 +129,14 @@ y
 
 ####while loop
 
-this is useful if we don't know how often the loop needs to run. Let's say we want to do a simulation of rolling three dice and we want to find the probability of a "triple" (all three dice equal)
+this is useful if we don't know how often the loop needs to run.
+
+Let's say we want to do a simulation of rolling three dice and we want to generate the event "number of repetitions needed until a triple" (triple = all three dice equal). If so x has the equal entries, so table(x) has just one:
 
 ```{r}
-k <- 0
-while (length(table(x))>1) {
+k <- 1
+x <- sample(1:6, size=3, replace=TRUE)
+while (length(table(x))!=1) {
   k <- k+1
   x <- sample(1:6, size=3, replace=TRUE)
 }
@@ -188,7 +190,7 @@ If your program gets too big, break it up into several smaller self-contained pr
 
 -  Comment, Comment, Comment
 
-write lots of comments. This is not only so that someone else can understand you program, but so that your future-self can as well!
+write lots of comments. This is not only so that someone else can understand your program, but so that your future-self can as well!
 
 ##Finding Errors, Debugging
 
@@ -350,7 +352,7 @@ f("z")
 
 so either way now we have a character string.
 
-There is a nice function in R to draw graphs of functions called *curve*:
+We have previously used a nice function in R to draw graphs of functions called *curve*:
 
 ```{r}
 curve(x^2*sin(2*pi*x), 0, 1)
@@ -362,17 +364,18 @@ Let's write our own curve routine. In addition we are going to show the function
 
 ```{r}
 mycurve <- function(fn, A=0, B=1, np=250, par1=0, par2=0) {
-  sexpr <- deparse(substitute(fn))
-  x <- seq(A, B, length=np)
+  sexpr <- deparse(substitute(fn)) #get function as character string
+  x <- seq(A, B, length=np) #equal-spaced grid
   f <- function(x) eval(parse(text=sexpr), 
             list(x=x, par1=par1, par2=par2))
+# now as function, with x and parameters passed to it  
   y <- f(x)
-  sexpr <- gsub("par1", par1, sexpr)
-  sexpr <- gsub("par2", par2, sexpr)
+  sexpr <- gsub("par1", par1, sexpr) #replace text with value
+  sexpr <- gsub("par2", par2, sexpr) #but as text! 
   plot(x, y, type="l", main=parse(text=sexpr))
 }
 mycurve(x^par1*sin(par2*pi*x), par1=2, par2=4)
-mycurve(dnorm(x, par1, par2), A=0, B=20, par=10, par2=3)
+mycurve(dnorm(x, par1, par2), A=0, B=20, par1=10, par2=3)
 ```
 
 ##Infix functions
@@ -396,9 +399,9 @@ Because they are functions we can write our own. User-written prefix functions a
 
 ###Case Study: Binary Arithmetic
 
-In our everyday world we use 10 digits to express numbers, a system called decimal. There is however nothing special about 10 (except that we have 10 fingers and toes!) In fact, computer only use 2 digits, 0 and 1 (or on and off) a system called binary. Every decimal number has an equivalent binary, and one can do arithmetic in either system. 
+In our everyday world we use 10 digits to express numbers, a system called decimal. There is however nothing special about 10 (except that we have 10 fingers and toes!) In fact, computers only use 2 digits, 0 and 1 (or electricity is on and off), a system called binary. Every decimal number has an equivalent binary number, and one can do arithmetic in either system. 
 
-Note that we will restrict ourselves to integers only.
+Note that we will restrict ourselves to integers only, but in general this works for any real or even complex number.
 
 Here are the first numbers:
 $$
@@ -418,7 +421,7 @@ We want to implement a system that allows us to work with binary numbers in R.
 
 First we need to figure out how to represent these numbers in R. The easiest way is as a sequence of 0's and 1's, like (1, 0, 1) (equivalent to 5).
 
-We begin by writing some routines that convert a number in the decimal system to a binary and vice versa:
+We begin by writing some routines that convert a number in the decimal system to  binary and vice versa:
 
 How can we turn a decimal into a binary? Notice the following
 
@@ -435,7 +438,7 @@ $$
 &8=1000=1\times2^3+0\times2^2+0\times2^1+0\times2^0   \\
 \end{aligned}
 $$
-so the idea is to write x in the form $\sum i_k 2^k$
+so the idea is to write x in the form $\sum i_k 2^k$ where $i_k \in \left\{0, 1 \right\}$
 
 Let's try an example:
 
@@ -444,7 +447,7 @@ $$
 2^4+2^3+2^1 = \\
 (1, 1, 0, 1, 0)
 $$
-why $2^4$? because it is $\max\left\{i \in N: 2^i<26\right\}$.
+why does this start with $2^4$? Because $2^4$ is the largest power of 2 still less or equal to 26, or $4 =\max\left\{i \in N: 2^i<26\right\}$.
 
 For a general number m, how can we find out what this largest i is? We have
 
@@ -455,15 +458,21 @@ $$
 &i \le \log(m)/\log(2)  \\
 \end{aligned}
 $$
-and in fact if we use log base 2 we have $i=\text{floor}(\log(m, base=2))$!
+and in fact if we use log base 2 we have 
+
+$$
+i=\text{floor}(\log(m, base=2))
+$$
+Once we have the first such i, we can simply substract $2^i$ from m and start all over again, until there is nothing left:
 
 ```{r}
 decimal.2.binary <- function(x) {
     if(x==0) return(0)  #simple cases 
     if(x==1) return(1)  
     i <- floor(log(x, base=2)) #largest power of 2 less than x
-    bin.x <- rep(1, i+1) #we will need i+1 0'1 and 1's, first is 1
-    x <- x-2^i 
+    bin.x <- rep(1, i+1) #we will need i+1 0'1 and 1's, 
+                         #first is always a 1
+    x <- x-2^i #done with largest 2^i
     for(j in (i-1):0) {
        if(2^j>x) 
          bin.x[j+1] <- 0

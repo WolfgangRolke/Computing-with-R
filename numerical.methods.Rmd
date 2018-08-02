@@ -1,0 +1,323 @@
+---
+header-includes: \usepackage{color}
+output:
+  html_document: default
+  pdf_document:
+    fig_caption: no
+---
+
+<style>
+table, th, td { text-align:right; }
+th, td {padding: 10px;}
+</style>
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+whichcomp <- strsplit(getwd(),"/")[[1]][3]
+load(paste0("c:/users/", whichcomp, "/Dropbox/teaching/Resma3/Resma3.RData"))
+library(knitr)
+opts_chunk$set(fig.width=6, fig.align = "center", 
+      out.width = "70%", warning=FALSE, message=FALSE)
+library(ggplot2)
+library(grid)
+```
+`r hl()$basefontsize()`
+
+#Numerical Methods
+
+R has a number of routines useful for numerical analysis
+
+##Integration
+
+the basic function for numerical integration is *integrate*
+
+```{r}
+f <- function(x, a=2) abs(sin(a*pi*x))
+curve(f, 0, 1)
+```
+
+
+```{r}
+integrate(f, 0, 1) 
+```
+
+the routine returns a list, usually we only want the value of the integral, so run
+
+```{r}
+integrate(f, 0, 1)$value 
+```
+
+integrate allows us to pass additional arguments to f with the ... convention:
+
+```{r}
+integrate(f, 0, 1, a=1.4)$value 
+```
+
+Internally integrate subdivides the interval into 100 sub-intervals of equal length. Usually this is enough, but if the function has some sharp peaks this does not work very well. One solution is to increase the number of intervals:
+
+```{r}
+integrate(f, 0, 1, subdivisions=1e4, a=1.4)$value 
+```
+
+This again can be trouble if the evaluation of the function takes time. In that case you might want to write your own numerical integration function:
+
+-  simple Riemann sum
+
+$$
+\int_a^b f(x) dx \approx \sum_{i=1}^n f(x_i^*)(x_i-x_{i-1})
+$$
+where $x_{i-1} \le x_i^* \le x_i$.
+
+
+```{r}
+x <- seq(0, 1, length=500)
+y <- f(x)
+mid <- (y[-1]+y[-500])/2
+sum(mid)*(x[2]-x[1])
+```
+
+- Simpson's Rule
+
+$$
+\int_a^b f(x) dx \approx \frac{x_2-x_1}6 \sum_{i=1}^{n-1} f(x_{i-1}+4f(x_i)+f(x_{i+1}))
+$$
+
+```{r}
+sum(y[-1]+4*y[-2]+y[-3])*(x[2]-x[1])/6
+```
+
+or any other standard numerical integration formula, see for example [Numerical Integration Formulas](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.714.5588&rep=rep1&type=pdf)
+
+
+###Double Integrals
+
+R doesn't have a dedicated routine for double integrals but it is easy to use the integrate function for this as well using the fact that
+
+$$
+\int \int f(x, y)d(x,y) = \int \left\{ \int f(x, y)dx \right\} dy
+$$
+
+```{r}
+double.integral <-
+function (f, low = c(0, 0), high = c(Inf, Inf)) 
+{
+    integrate(function(y) {
+        sapply(y, function(y) {
+            integrate(function(x) f(x, y), low[1], high[1])$value
+        })
+    }, low[2], high[2])$value
+}
+
+```
+
+```{r}
+f <-  function(x, y) exp(2*(-x^2+x*y-y^2)/3)
+double.integral(f, low=c(-Inf, -Inf))
+```
+
+Is this right? Let's check:
+
+
+$$
+\exp(2(-x^2+xy-y^2)/3) =   \\
+2\pi\sqrt{1-(1/2)^2} \left[ \frac1{2\pi\sqrt{1-(1/2)^2}} \\
+\exp\left\{ -\frac1{2(1-(1/2)^2}\left(x^2-2xy(1/2) +y^2 \right) \right\} \right]
+$$
+but the function inside the brackets is the density of a bivariate normal random variable with means (0, 0), standard deviations (1, 1) and correlation coefficient 1/2, so this integrates out to 1. Therefore the integral is
+
+```{r}
+2*pi*sqrt(1-(1/2)^2)
+```
+
+##Differentiation
+
+We saw before the D function for finding derivatives:
+
+```{r}
+f.prime <- D(expression(x^3), "x")
+f.prime
+x <- 3.4; eval(f.prime)
+f.prime <- D(expression(x^2*sin(2*pi*x)), "x")
+f.prime
+x <- 0.4; eval(f.prime)
+```
+
+This of course works for higher order derivatives as well:
+
+```{r}
+f.double.prime <- D(D(expression(x^3), "x"), "x")
+f.double.prime
+x <- 3.4; eval(f.double.prime)
+f.double.prime <- D(D(expression(x^2*sin(2*pi*x)), "x"), "x")
+f.double.prime
+x <- 0.4; eval(f.double.prime)
+```
+
+
+*Example* The Taylor polynomial of order k of a function f at a point x=a is defined by
+
+$$
+T(x;a,k)=\sum_{i=0}^k \frac{d^i f}{dx^i}(a)(x-a)^i
+$$
+
+Let's write a function that draws the function and it's Taylor polynomial of order k:
+
+```{r}
+taylor <- function(f, a, k=1, from, to) {
+  expr <- parse(text=f)
+  x <- seq(from, to, length=250)
+  y <- eval(expr)
+  t <- x
+  x <- a
+  z <- eval(expr)
+  taylor.coefficients <- rep(z, k+1)
+  x.text <- ifelse(a==0, "x", paste0("(x-", a,")"))
+  ttl <- paste0(f, " ~ ")
+  if(z==0) nosgn <- TRUE
+  else {
+    nosgn <- FALSE
+    ttl <- paste0(ttl, round(z, 2))
+  }
+  for(i in 1:k) {
+     expr <- D(expr, "x")
+     tmp <- eval(expr)
+     z <- z + eval(expr)*(t-a)^i   
+     tmp <- round(tmp, 2)
+     if(tmp!=0) {
+        ttl <- paste0(ttl, " ", 
+          ifelse(nosgn, "", ifelse(tmp>0, "+", "-")), 
+          " ", ifelse(abs(tmp)==1, "", abs(tmp)),
+          x.text, 
+          ifelse(i==1, "", paste0("^", i)))
+     }
+     nosgn <- FALSE
+  }
+  plot(t, y, type="l", lwd=2, main=ttl)
+  lines(t, z, col="blue")
+  
+}
+taylor("log(x+1)", a=0, k=1, -0.5, 0.5)
+taylor("log(x+1)", a=0, k=3, -0.5, 0.5)
+```
+
+Here is another example
+
+```{r}
+taylor("x*sin(x^2)", a=0.86, k=2, from=0, to=2)
+taylor("x*sin(x^2)", a=1.4, k=2, from=0, to=2)
+```
+
+The D function only works on functions that R recognizes. For other cases you might have to write your own:
+
+```{r}
+f <- function(x) log(gamma(x))
+x <- seq(0.1, 2, length=250)
+h <- (x[2]-x[1])
+y <- f(x)
+y.prime <- (y[-1]-y[-250])/h
+mid <- (x[-1]+x[-250])/2
+plot(mid, y.prime, type="l",
+     xlab="x", ylab="")
+#Second derivative
+y.2.prime <- rep(0, 248)
+for(i in 2:249) 
+  y.2.prime[i-1] <- (y[i-1]-2*y[i]+y[i+1])/h^2
+plot(x[-c(1, 250)], y.2.prime, type="l",
+     xlab="x", ylab="")
+```
+
+
+##Root Finding
+
+A very common problem is to have to solve an equation of the form $f(x)=a$. As a specific example we will consider $x\sin(x^2)=1$. Here are some ideas:
+
+###Direct Method (Grid Search)
+
+```{r}
+f <- function(x) x*sin(x^2)
+x <- seq(0, 1.2, length=500)
+y <- f(x)
+curve(f, 0, 1.2, lwd=2)
+abline(h=1)
+y0 <- x[abs(y-1)==min(abs(y-1))]
+abline(v=y0)
+y0
+```
+
+Of course we can combine that with D to find extrema of a function:
+
+```{r}
+f <- function(x) x*sin(x^2)
+x <- seq(0.5, 2, length=500)
+y <- f(x)
+curve(f, 0.5, 2, lwd=2)
+y.prime <- eval(D(expression(x*sin(x^2)), "x"))
+x0 <- x[abs(y.prime)==min(abs(y.prime))]
+abline(v=x0)
+c(x0, f(x0))
+```
+
+An alternative is to use *optimize*. By default it finds minima, so
+
+```{r}
+optimize(f, c(0.5, 2), maximum = TRUE)
+```
+
+
+###uniroot
+
+R has the function *uniroot* to find the roots of a univariate function:
+
+```{r}
+f <- function(x) x*sin(x^2)-1
+uniroot(f, c(0, 1.2))$root
+```
+
+###polyroot
+
+In the case of a polynomial one can also use *polyroot*. Say we want to find the roots of
+
+$$
+p(x)=1+x-x^2+x^4
+$$
+
+```{r}
+polyroot(c(1, 1, -1, 0, 1))
+```
+
+as we can see that gieves also the complex solutions. Often we only want the real ones:
+
+```{r}
+z <- polyroot(c(1, 1, -1, 0, 1))
+z <- Re(z[round(Im(z), 10)==0])
+z
+```
+
+###Higher Dimensional Optimization
+
+If we have a function of more than one variable we can use *nlm*. Again it finds minima, but there is no argument maximum=TRUE, so if we want a maximum we have to use -f.
+
+Say we want to maximize
+
+$$
+f(x,y)= e^{-(x-1)^2-(y-2)^2}
+$$
+(of course it is obvious the answer is 1, 2). Now
+```{r}
+f <- function(x) -exp(-(x[1]-1)^2-(x[2]-2)^2)
+nlm(f, c(0, 0))
+```
+
+Quite useful is the ability to calculate the Hessian matrix, that is $H = (h_{ij})$ and
+
+$$
+h_{ij}= \frac{\partial^2 f}{\partial  x_i \partial x_j}
+$$
+
+```{r}
+nlm(f, c(0, 0), hessian = TRUE)
+```
+
+This works well as long as we can play a bit with the starting point but can be quite hard to do in a simulation.
+
+An alternative is *optim*, which let's us define boundaries within which the optimum is to be found. It also has a choice of methods, and sometimes one will work where the others do not.
+

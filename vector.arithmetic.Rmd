@@ -5,6 +5,7 @@ output:
   pdf_document:
     fig_caption: no
 ---
+
 <style>
 table, th, td { text-align:right; }
 th, td {padding: 10px;}
@@ -12,7 +13,7 @@ th, td {padding: 10px;}
 
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
 whichcomp <- strsplit(getwd(),"/")[[1]][3]
-load(paste0("c:/users/", whichcomp, "/Dropbox/Resma3/Resma3.RData"))
+load(paste0("c:/users/", whichcomp, "/Dropbox/teaching/Resma3/Resma3.RData"))
 library(knitr)
 opts_chunk$set(fig.width=6, fig.align = "center", 
       out.width = "70%", warning=FALSE, message=FALSE)
@@ -23,7 +24,7 @@ library(grid)
 
 #Vector Arithmetic
 
-One of the most useful features of R is it's ability to do math on vectors:
+One of the most useful features of R is it's ability to do math on vectors. In fact we have already used this feature many times, but now we will study it explicitely. 
 
 ```{r}
 x <- 1:10
@@ -58,29 +59,45 @@ y <- matrix(2, 2, 2)
 x
 y
 x*y
+```
+
+so this does elementwise multiplication. If we want to do actual matrix multiplication we have
+
+```{r}
 x %*% y
 ```
+
 
 ```{r}
 rbind(1:3) %*% cbind(1:3)
 ```
 
-we can use the *solve* command to solve a system of linear equations:
+we can use the *solve* command to solve a system of linear equations. Say we have the system
+
+$$
+\begin{aligned}
+&2x+3y-z    = 1\\
+&x-y    = 0\\
+&y+3z    = 2\\
+\end{aligned}
+$$
+
 ```{r}
-solve(x)
+A <- rbind(c(2, 3, -1), c(1, -1, 0), c(0, 1, 3))
+A
+solve(A, c(1, 0, 2))
 ```
 
 or to find the inverse matrix:
 
 ```{r}
-solve(x)
+solve(A)
 ```
 
 transposition is done with
 
 ```{r}
-x
-t(x)
+t(A)
 ```
 
 Other functions for matrices are *qr* for decomposition, *eigen* for computing eigenvalues and eigenvectors, and *svd* for singular value decomposition. There are also packages for dealing with things like sparse matrices etc.
@@ -89,13 +106,13 @@ Other functions for matrices are *qr* for decomposition, *eigen* for computing e
 
 consider the following:
 
-```{r}
+```{r warning=TRUE}
 x <- 1:3
 y <- 1:4
 x+y
 ```
 
-so although we are adding a vector of length 3 to a vector of length 4 R stil does it. it simply takes the shorter vector and starts it from the first element. It does however give a warning.
+so although we are adding a vector of length 3 to a vector of length 4 R still does it. It simply takes the shorter vector and starts it from the first element. It does however give a warning.
 
 
 ```{r}
@@ -147,7 +164,7 @@ fA(2)
 
 but not
 
-```{r eval=FALSE}
+```{r error=TRUE}
 fA(1:2)
 ```
 
@@ -173,7 +190,7 @@ fA.vec(c(1, 2))
 
 ##apply family of functions
 
-There is a set of routines that can be used to vectorize. Say we want to do a simulation to study the variance of the mean and the median.
+There is a set of routines that can be used to vectorize. Say we want to do a simulation to study the variance of the mean and the median in a sample from the normal distribution.
 
 ```{r cache=TRUE}
 sim1 <- function(n, B=1e4) {
@@ -198,7 +215,7 @@ sim2 <- function(n, B=1e4) {
 sim2(50)
 ```
 
-Now this obviously has the advantage of being much shorter. 
+Now this obviously has the advantage of being shorter. 
 
 If you read books on R written more than a few year ago you find many comments warning against the use of loops. They used to be very slow, much slower than using apply. Let's check the speed of the calculation with the *microbenchmark* package:
 

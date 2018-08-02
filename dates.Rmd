@@ -5,6 +5,7 @@ output:
   pdf_document:
     fig_caption: no
 ---
+
 <style>
 table, th, td { text-align:right; }
 th, td {padding: 10px;}
@@ -12,7 +13,7 @@ th, td {padding: 10px;}
 
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
 whichcomp <- strsplit(getwd(),"/")[[1]][3]
-load(paste0("c:/users/", whichcomp, "/Dropbox/Resma3/Resma3.RData"))
+load(paste0("c:/users/", whichcomp, "/Dropbox/teaching/Resma3/Resma3.RData"))
 library(knitr)
 opts_chunk$set(fig.width=6, fig.align = "center", 
       out.width = "70%", warning=FALSE, message=FALSE)
@@ -84,7 +85,8 @@ As an example we will use the data set *flights* in the package *nycflights13*. 
 
 ```{r}
 library(nycflights13)
-flights %>% print(n=4)
+flights %>% 
+  print(n=4)
 ```
 
 Let's start by calculating the hour and minutes of the departure from the dep-time. For this we can use %/% for integer devision and %% for modulo:
@@ -109,18 +111,21 @@ To combine the different columns into one date/time object we can use the comman
 ```{r}
 flights %>% 
   select(year, month, day, hour, minute) %>% 
-  mutate(departure = make_datetime(year, month, day, hour, minute)) ->
+  mutate(departure = 
+      make_datetime(year, month, day, hour, minute)) ->
   flights
-flights %>% select(departure) %>% print(n=4)
+flights %>% 
+  select(departure) %>% 
+  print(n=4)
 ```
 
 ##Time Spans
 
-lubridate has a numbe of dunctions to do arthmetic with dates. For example, my age is
+lubridate has a number of functions to do arithmetic with dates. For example, my age is
 
 ```{r}
 today()
-my.age <- today()-ymd(19610602)
+my.age <- today() - ymd(19610602)
 as.duration(my.age)
 ```
 
