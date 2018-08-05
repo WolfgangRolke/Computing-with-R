@@ -72,7 +72,6 @@ library(stringr)
 4.2  [The Bootstrap](bootstrap.html)  
 4.3  [Curve Fitting](curve.fitting.html)  
 4.4  [Bayesian Analysis](bayes.html)  
-4.5  [Classification](classification.html)  
-4.6  [Miscellaneous](misc.html)
+4.5  ??
 
 

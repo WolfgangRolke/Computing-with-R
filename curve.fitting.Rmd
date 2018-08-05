@@ -26,19 +26,24 @@ library(grid)
 
 ##Parametric Models
 
-Let's reconsider the Old Faithful data:
+Let's have another look at the Old Faithful data. Now we will consider both variables, the length of the eruptions and the waiting time until the next one. 
 
 ```{r}
 head(faithful)
+```
+
+Both variables are continuous and we are interested in their relationship, so we start with the scatterplot:
+
+```{r}
 ggplot(data=faithful, aes(x=Eruptions, y=Waiting.Time)) +
   geom_point() +
   geom_smooth(method="lm", se=FALSE)
 ```
 
-Here we have added the *least squares regression line*, which if found by minimizing
+Here we have added the *least squares regression line*, which is found by minimizing the least squares criterion
 
 $$
-\sum_{i=1}^n \left(y_i- \beta_0 - \beta_1 x_i \right)^2
+LS(\beta_0, \beta_1) = \sum_{i=1}^n \left(y_i- \beta_0 - \beta_1 x_i \right)^2
 $$
 
 using R we find
@@ -48,10 +53,18 @@ fit.lm <- lm(Waiting.Time ~ Eruptions, data=faithful)
 summary(fit.lm)
 ```
 
-Let's say we want to estimate the waiting time until the next eruption if the last lasted 2.5 minutes. Actually we want to find a 95% confidence interval:
+and so the best fit line is given by
+
+$$
+\text{Waiting Time} = 33.5+10.7 \text{ Eruption}
+$$
+
+Let's say we want to estimate the waiting time until the next eruption if the last one lasted 2.5 minutes. Actually we want to find a 95% confidence interval:
 
 ```{r}
-predict(fit.lm, newdata=list(Eruptions=2.5), interval = "prediction")
+predict(fit.lm, 
+        newdata = list(Eruptions=2.5), 
+        interval = "prediction")
 ```
 
 the argument interval = "prediction" indicates that we want to predict an individual response, as opposed to the mean response, which would be with interval = "confidence".
@@ -64,32 +77,44 @@ fun <- function(x) {
   fit <- lm(Waiting.Time ~ Eruptions, data=faithful[x, ])
   predict(fit, newdata=list(Eruptions=2.5))
 }
-int <- bcanon(1:dim(faithful)[1], 2000, fun, alpha=c(0.025, 0.975))$conf
+int <- bcanon(x = 1:dim(faithful)[1], 
+              n = 2000, 
+              theta = fun, 
+              alpha = c(0.025, 0.975))$conf
 int
 ```
 
 but this is quite different from the interval above!
 
-May these are the *confidence* intervals (aka for the mean response)? Let's see:
+Notice that this interval is much shorter (61.2-59.4=1.8 vs 72.0-48.6=13.4), so maybe these are the *confidence* intervals (aka for the mean response)? Let's see:
 
 ```{r}
-predict(fit.lm, newdata=list(Eruptions=2.5), interval = "confidence")
+predict(fit.lm, 
+        newdata = list(Eruptions=2.5), 
+        interval = "confidence")
 ```
 
 that seems to be the case!
 
-How can we get the predicition interval using the bootstrap? First here are the formulas for the standard errors:
+How can we get the prediction interval using the bootstrap? We will need to do a bit of math. First here are the formulas for the standard errors:
 
 $$
 \begin{aligned}
 &se_{c}    = \hat\sigma \sqrt{\frac1n+\frac{(x- \bar x)^2}{S_{xx}}}  \\
-&se_{p}    = \hat\sigma \sqrt{1+\frac1n+\frac{(x- \bar x)^2}{S_{xx}}}   \\
+&se_{p}    = \hat\sigma \sqrt{1+\frac1n+\frac{(x- \bar x)^2}{S_{xx}}}   
+\end{aligned}
+$$
+so we see they look quite similar, except for the 1+ term in $se_p$. So let's try to use one to solve for the other:
+
+$$
+\begin{aligned}
 &\frac{se_c^2}{\hat {\sigma^2}}   = \frac1n+\frac{(x- \bar x)^2}{S_{xx}}\\
 &1+\frac{se_c^2}{\hat {\sigma^2}}   = 1+\frac1n+\frac{(x- \bar x)^2}{S_{xx}}\\
 &se_c^2 + \hat \sigma^2   = \hat \sigma^2 \left( 1+\frac1n+\frac{(x- \bar x)^2}{S_{xx}} \right)\\
 & se_p =     \hat \sigma \sqrt{ 1+\frac1n+\frac{(x- \bar x)^2}{S_{xx}} } = \sqrt{ se_c^2 + \hat \sigma^2 }\\
 \end{aligned}
 $$
+
 but what is $\hat \sigma$? It is the standard deviation of the residuals, so
 
 ```{r}
@@ -107,27 +132,35 @@ So far we have fit a linear model. Is there something to be gained by fitting a 
 Doing so is easy, for the quadratic model we can just run 
 
 ```{r}
-fit.quad <- lm(Waiting.Time ~ Eruptions + I(Eruptions^2), data=faithful)
+fit.quad <- lm(Waiting.Time ~ Eruptions + I(Eruptions^2),
+               data = faithful)
 summary(fit.quad)
 ```
 
 which looks like this:
 
 ```{r}
-x <- seq(min(faithful$Eruptions), max(faithful$Eruptions), length=100)
-y <- coef(fit.quad)[1] + coef(fit.quad)[2]*x + coef(fit.quad)[3]*x^2
-ggplot(data=faithful, aes(x=Eruptions, y=Waiting.Time)) +
+x <- seq(from = min(faithful$Eruptions), 
+         to = max(faithful$Eruptions), 
+         length = 100)
+y <- coef(fit.quad)[1] + 
+     coef(fit.quad)[2]*x + 
+     coef(fit.quad)[3]*x^2
+ggplot(data = faithful, 
+       aes(x=Eruptions, y=Waiting.Time)) +
   geom_point() +
-  geom_line(aes(x,y), data=data.frame(x=x, y=y), color="blue")
+  geom_line(aes(x,y), 
+            data = data.frame(x=x, y=y), 
+            color = "blue")
 ```
 
-Is this a better model that the linear one? We can actually test for this:
+Is this a better model than the linear one? We can actually test for this:
 
 ```{r}
 anova(fit.quad, fit.lm)
 ```
 
-test the null hypothesis of no difference between the models. The p value is 0.00022, so we would reject the null.
+This does the so called F test. It  tests the null hypothesis of no difference between the models. The p value is 0.00022, so we would reject the null and conclude that the quadratic model is better.
 
 But why stop there? But before we go on we should make one change: our largest x value is about 5, $x^2=25$, $x^3=125$ etc. These numbers keep groing quite rapitedly. Standardizing them should help. In fact, R has a nice routine for us
 
@@ -186,7 +219,7 @@ z$Cp[I]
 c(1:6)[z$which[I, ]]
 ```
 
-so this chooses a model with highest degree 4. 
+so this chooses a model with highest degree 4. This is the same as before, which is nice. This does not however have to happen, the two solutions can sometimes yield different models. 
 
 ##Nonparametric Regression
 
@@ -198,7 +231,7 @@ ggplot(data=faithful, aes(x=Eruptions, y=Waiting.Time)) +
   geom_smooth(se=FALSE)
 ```
 
-what is this curve? It is nonparametric regression fit, that is there is no functional form specified. There are a number of ways to fit such a curve, the one used here is called *loess*. we can do the fit ourselves:
+what is this curve? It is nonparametric regression fit, that is there is no functional form specified. There are a number of ways to fit such a curve, the one used here is called *loess*. We can do the fit ourselves:
 
 ```{r}
 fit.loess <- loess(Waiting.Time ~ Eruptions, data=faithful)
@@ -237,15 +270,16 @@ Is there a way to find an *optimal* span? One common idea is called *cross-valid
 -  set aside some part of the data (called the *evaluation* data)  
 -  do the fit with the rest (called the *training* data)  
 -  use the model to predict for the evaluation data  
--  compare the true responses fit the fitted one  
+-  compare the true responses with the predicted ones  
 -  repeat many times  
--  find the average deviation
+-  find the average deviation  
+-  repeat until you have the span that yields the smallest such deviation
 
 How much of the data should be used for training and for evaluation? There are a number of common answers:
 
 -  leave-one-out cross-validation: just one observation for evaluation  
--  k-fold cross-validation: k observations in evaluations set (often k=10)
--  bootstrap cross-validation: choose a bootstrap sample, use it for traing evaluate on observations not is bootstrap sample. (this is often called the 0.632 rule because the probability for any one observation to be in the bootstrap sample is asymptotically $1-e^{-1} = 0.623$)
+-  k-fold cross-validation: k observations in evaluation set (often k=10)
+-  bootstrap cross-validation: choose a bootstrap sample, use it for training, evaluate on observations not is bootstrap sample. (this is often called the 0.632 rule because the probability for any one observation to be in the bootstrap sample is asymptotically $1-e^{-1} = 0.623$)
 
 Let's write a routine that finds the best span using 10-fold cross validation:
 
@@ -292,56 +326,6 @@ ggplot(data=faithful, aes(x=Eruptions, y=Waiting.Time)) +
   geom_line(data=data.frame(x=x, y=y), aes(x,y))
 ```
 
+Finally, is the parametric power 4 model from above better or worse than this non-parametric one? We can no longer use the F test or Mallow's Cp because those work on *nested* models (one is a special case of the other). Also notice that the summary of the loess fit does not give an $R^2$, and in fact there is none. 
 
-###Hurricane Maria Deaths
-
-Let's have another look at the number of feaths in Puerto Rico:
-
-![](graphs/deaths.maria.png)
-
-```{r}
-Deaths <- c(2744, 2403, 2427, 2259, 2340, 2145, 
-            2382, 2272, 2258, 2393, 2268, 2516,
-            2742, 2592, 2458, 2241, 2312, 2355,
-            2456, 2427, 2367, 2357, 2484, 2854,
-            2894, 2315, 2494, 2392, 2390, 2369, 
-            2367, 2321, 2928, 3040, 2671, 2820,
-            2821, 2448, 2643, 2218)
-Month <- 1:length(Deaths)
-ggplot(data=data.frame(x=Month, y=Deaths), aes(x, y)) +
-  geom_point()
-```
-
-Clearly antyhing after August 2017 is going to be effected by the hurricane, so let's concentrate for the moment on the time before:
-
-```{r}
-ggplot(data=data.frame(x=Month[1:27], y=Deaths[1:27]), aes(x, y)) +
-  geom_point() +
-  geom_smooth(method="lm", se=FALSE)
-```
-
-there seems to be a slight upward trend. Let's remove it from the data:
-
-```{r}
-fit.1 <- lm(Deaths[1:27] ~ Month[1:27])
-res.1 <-  resid(fit.1)
-ggplot(data=data.frame(x=Month[1:27], y=res.1[1:27]), aes(x, y)) +
-  geom_point() +
-  geom_smooth(method="lm", se=FALSE) +
-  geom_smooth(se=FALSE, span=.4)
-```
-
-In what is left we seem to have a kind of a sin wave. Let's fit that as well:
-
-```{r}
-f <- function(a) sum( (res.1[1:27] - a[1]*100*sin(a[2] +
-            2*pi*a[3]*Deaths[1:27]))^2 )
-optim(c(2, 2, 3/25), f)
-```
-
-
-```{r}
-plot(Month[1:27], res.1[1:27])
-curve(1.7*100*sin(2+2*pi*(0.5)*x), 0, 25, add=T)
-```
-
+Actually, there is no generally agreed apon way to decide this question! In some way, the two approaches are not comparable.

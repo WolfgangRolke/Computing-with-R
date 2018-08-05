@@ -48,8 +48,8 @@ Now
 $$
 \begin{aligned}
 &m(x)  = \int_{-\infty}^\infty f(x|\mu)\pi(\mu) d\mu = \\
-&\int_{-\infty}^\infty \frac{1}{\sqrt{2\pi \sigma^2}} \exp \left\{ 
--\frac1{2\sigma^2} (x-\mu)^2\right\} \frac{1}{\sqrt{2\pi b^2}} \exp \left\{ -\frac1{2 b^2} (\mu-a)^2\right\}  d\mu \\
+&\int_{-\infty}^\infty \frac{1}{\sqrt{2\pi \sigma^2}} e^{ 
+-\frac1{2\sigma^2} (x-\mu)^2 } \frac{1}{\sqrt{2\pi b^2}} e^{ -\frac1{2 b^2} (\mu-a)^2 }  d\mu \\
 \end{aligned}
 $$
 
@@ -71,9 +71,8 @@ therefore
 
 $$
 \begin{aligned}
-&m(x)  = K_4 \int_{-\infty}^\infty \exp \left\{ 
--\frac12 \frac{(\mu-d)^2}{c^2}  \right\} d \mu= K_5 \\
-
+&m(x)  = K_4 \int_{-\infty}^\infty e^{ 
+-\frac1{2c^2} (\mu-d)^2 } d \mu= K_5\\
 \end{aligned}
 $$
 
@@ -83,11 +82,12 @@ because the integrand is a normal density with mean d and standard deviation c, 
 $$
 \begin{aligned}
 &f(\theta| \textbf{x}) = f(\textbf{x}|\theta)\pi(\theta)/m(\textbf{x})    = \\
-& K_6 \exp \left\{ 
--\frac12 \frac{(\mu-d)^2}{c^2}  \right\}  \\
+& K_6 e^{ -\frac1{2c^2} (\mu-d)^2 }   \\
 \end{aligned}
 $$
-Notice that we don't need to worry about what exactly $K_6$ is, because the posterior will be a proper probabilityt density, so $K_6$ will be what it has to be!So we found
+Notice that we don't need to worry about what exactly $K_6$ is, because the posterior will be a proper probability density, so $K_6$ will be what it has to be!
+
+So we found
 
 $$
 \mu|X=x \sim N\left(\frac{x/\sigma^2+a/b^2}{1/\sigma^2+1/b^2}, 1/\sqrt{1/\sigma^2+1/b^2}\right)
@@ -95,7 +95,7 @@ $$
 Let's so a little simulation to see whether we got this right:
 
 ```{r}
-a <- 0.2
+a <- 0.2 #just as an example
 b <- 2.3
 sigma <- 0.5
 mu <- rnorm(1e5, a, b)
@@ -105,19 +105,17 @@ cc <- 1/sqrt(1/sigma^2 + 1/b^2)
 d <- (x0/sigma^2+a/b^2)/(1/sigma^2 + 1/b^2)
 z <- mu[x>x0-0.05 & x<x0+0.05]
 hist(z, 50, freq=FALSE)
-curve(dnorm(x, d, cc), -2, 2,add=TRUE)
+curve(dnorm(x, d, cc), -2, 2, add=TRUE)
 x0 <- (-1.1)
 d <- (x0/sigma^2+a/b^2)/(1/sigma^2 + 1/b^2)
 z <- mu[x>x0-0.05 & x<x0+0.05]
 hist(z, 50, freq=FALSE)
-curve(dnorm(x,d, cc), -3, 2,add=TRUE)
+curve(dnorm(x,d, cc), -3, 2, add=TRUE)
 ```
 
-###Example: Binomial proportion, uniform prior
+###Example: Binomial proportion, Uniform prior
 
-$X \sim Bin(n, p)$ $p \sim U[0,1]$
-
-we find
+$X \sim Bin(n, p)$, $p \sim U[0,1]$
 
 
 $$
@@ -139,7 +137,9 @@ $$
 $$
 and we find
 
-$p|X=x \sim \text{Beta}(x+1, n-x+1)$
+$$
+p|X=x \sim \text{Beta}(x+1, n-x+1)
+$$
 
 
 ```{r}
@@ -149,7 +149,7 @@ x <-  rbinom(1e5, n, p)
 x0 <- 3
 z <- p[x==x0]
 hist(z, 50, freq=FALSE)
-curve(dbeta(x, x0+1, n-x0+1), -2, 2,add=T)
+curve(dbeta(x, x0+1, n-x0+1), -2, 2, add=T)
 ```
 
 ##Inference
@@ -170,7 +170,9 @@ dta.norm
 
 if we decide to base our analysis on the sample mean we have $\bar X \sim N(\mu, \sigma/\sqrt{n})$. Now if we use the posterior mean we find
 
-$E[\mu|X=x] = \frac{x/\sigma^2+a/b^2}{1/\sigma^2+1/b^2}$
+$$
+E[\mu|X=x] = \frac{x/\sigma^2+a/b^2}{1/\sigma^2+1/b^2}
+$$
 
 now we need to decide what a and b to use. If we have some prior information we can use that. Say we expect a priori that $\mu=5$, and of course we know $\sigma=2.3$, then  we could use $a=5$ and $b=3$:
 
@@ -210,9 +212,9 @@ let's say that $\mu$ is a physical quantity, like the mean amount of money paid 
 
 $$
 \begin{aligned}
-&m(x)  = \int_{-\infty}^\infty \frac{1}{\sqrt{2\pi \sigma^2}} \exp \left\{ 
--\frac1{2\sigma^2} (x-\mu)^2\right\} 
-\frac1{\Gamma(\alpha)\beta^\alpha}\mu^{\alpha-1}\exp{(-\mu/\beta)}
+&m(x)  = \int_{-\infty}^\infty \frac{1}{\sqrt{2\pi \sigma^2}} e^{ 
+-\frac1{2\sigma^2} (x-\mu)^2 } 
+\frac1{\Gamma(\alpha)\beta^\alpha}\mu^{\alpha-1} e^{-\mu/\beta}
 d\mu 
 \end{aligned}
 $$
@@ -221,11 +223,15 @@ and this integral does not exist. We will have to use numerical methods instead.
 
 ```{r}
 fmu <- function(mu) 
-  dnorm(mean(dta.norm), mu, 2.3/sqrt(20))*dgamma(mu, 5, 1)
+  dnorm(mean(dta.norm), mu, 2.3/sqrt(20))*
+  dgamma(mu, 5, 1)
 mx <- integrate(fmu, lower=0, upper=Inf)$value
 posterior.density <- function(mu) fmu(mu)/mx
-posterior.mean <- integrate(function(mu) {mu*posterior.density(mu)}, 
-        lower=0, upper=Inf)$value
+posterior.mean <- 
+  integrate(
+    function(mu) {mu*posterior.density(mu)}, 
+    lower = 0, 
+    upper = Inf)$value
 round(posterior.mean, 2)
 ```
 
@@ -337,6 +343,7 @@ which is the same before:
 round(qbeta(c(0.05, 0.95), 31 + 1, 134 - 31 + 1)*100, 1)
 ```
 
+
 ###Example: Normal mean, Gamma prior 
 
 ```{r}
@@ -395,5 +402,17 @@ bayes.credint(dta.beta2, df=df, prior=prior,
 ```
 
 Why does this not work? The problem is that the values is $\prod_{i=1}^n \text{dbeta}(x_i, a, a)$ get so small that R can't handle them anymore!
+
+Occasionally one can avoid this problem by immediately choosing a *statistic* T(x), aka a function of the data, so that T(X) has a distribution that avoids the product. That of course is just what we did above by going to $\bar X$ in the case of the normal! In fact, it is also what we did in the case of the Binomial, because we replace the actual data (a sequence of Bernoulli trials) with their sum. 
+
+
 <hr>
 Can we generalize this to more than one parameter? In principle yes, but in practise no, at least not if the number of parameters is much more than 3 or 4. The main problem is the calculation of the marginal $m(x)$, because numerical integration in higher-dimensional spaces is very difficult. In that case a completley different approach is used, namely sampling from the posterior distribution using so called MCMC (Markov Chain Monte Carlo) algorithms.
+
+```{r}
+df <- function(x, par) dpois(sum(x), 10*par)
+prior <- function(par) 1/sqrt(par)
+x <- rpois(10, 5)
+bayes.credint(x=37, df=df, prior=prior, lower=0, upper=10, Show=T)
+```
+

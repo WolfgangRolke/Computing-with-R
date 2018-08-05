@@ -25,7 +25,7 @@ library(grid)
 
 In this chapter we will study the problem of parameter estimation. In its most general form this is as follows: we have a sample $X_1,..,X_n$ from some probability density $f(x;\theta)$. Here both x and $\theta$ might be vectors. Also we will use the term density for both the discrete and the continuous case. 
 
-The problem is to find an estimate of $\theta$ based on the data $X_1,..,X_n$, that is a function (called a *statistc*) $T(X_1,..,X_n)$ such that in some sense $T(X_1,..,X_n) \approx \theta$.
+The problem is to find an estimate of $\theta$ based on the data $X_1,..,X_n$, that is a function (called a *statistic*) $T(X_1,..,X_n)$ such that in some sense $T(X_1,..,X_n) \approx \theta$.
 
 Generally one also wants to have some idea of the accuracy of this estimate, that is one wants to calculate the standard error. Most commonly this is done by finding a *confidence interval*. 
 
@@ -41,12 +41,12 @@ l(\theta) = \sum_{i=1}^n \log f(x_i, \theta)
 $$
 the estimate of $\theta$ is then found by maximizing the function $l$. Let's call this $\hat \theta$.
 
-One major reason for the popularity of this method is the following celebrated theorem, due to Fisher: under some regularity conditions 
+One major reason for the popularity of this method is the following celebrated theorem, due to Sir R.A. Fisher: under some regularity conditions 
 
 $$
 \sqrt{n} (\hat \theta -\theta) \sim N(0, \sqrt{I^{-1}})
 $$
-where $I$ is the Fisher Information given by
+where $N(\mu, \sigma)$ is the normal distribution and  $I$ is the *Fisher Information*, given by
 
 $$
 I(\theta)_{ij} = -E \left[ \frac{\partial^i\partial^j}{\partial \theta^i\partial \theta^j} \log f(x;\theta) \right]
@@ -57,20 +57,19 @@ and so it is very easy to find a $(1-\alpha)100\%$ confidence interval for (say)
 $$
 \hat \theta \pm z_{\alpha/2} \sqrt{I^{-1}_{ii}}
 $$
-where $z_{\alpha/2}$ is a quantile from the normal distribution found with
+where $z_{\alpha}$ is the $(1-\alpha)100\%$ quantile of the standard normal distribution. In R this is found with
 
 ```{r}
 qnorm(1-0.05/2)
 ```
 
+if $\alpha=0.05$.
 
-###Example: 
+###Example: Inference for mean of normal distribution
 
 $X_1,..,X_n \sim N(\mu, \sigma)$, $\sigma$ known. 
 
-$$
-l(\mu) = \sum \log f(x_i, \mu)
-$$
+
 $$
 \begin{aligned}
 &f(x; \mu)    = \frac1{\sqrt{2 \pi \sigma^2}} \exp \left\{-\frac1{2\sigma^2} (x-\mu)^2 \right\}\\
@@ -81,13 +80,20 @@ $$
 \end{aligned}
 $$
 
-Also
+Here we have only one parameter ($\mu$), so the Fisher Information is given by
+
+$$
+I(\mu) = -E\left[ \frac{d^2 f(x;\mu)}{d \mu^2} \right]
+$$
+
+and so we find 
 
 $$
 \begin{aligned}
-& \frac{d}{d \mu} \log f(x; \mu)   = \frac1{\sigma^2}(x-\mu)\\
-& \frac{d^2}{d \mu^2} \log f(x; \mu)   = -\frac1{\sigma^2}   \\
-
+& \frac{d}{d \mu} \log f(x; \mu)= \frac1{\sigma^2}(x-\mu)\\
+& \frac{d^2}{d \mu^2}\log f(x;\mu)=-\frac1{\sigma^2}\\
+&-E\left[ \frac{d^2 f(x;\mu)}{d \mu^2} \right] = -E\left[-\frac1{\sigma^2} \right] =\frac1{\sigma^2}\\
+&\sqrt{I(\mu)^{-1}} = \sqrt{\frac1{1/\sigma^2} } = \sigma\\
 & \sqrt{n}(\hat \mu -\mu) \sim   N(0, \sigma) \\
 &\hat \mu \sim N(\mu, \sigma/\sqrt{n})
 \end{aligned}
@@ -98,11 +104,11 @@ and we find the $(1-\alpha)100\%$ confidence interval to be
 $$
 \hat \mu \pm z_{\alpha/2}\sigma/\sqrt{n}
 $$
-this is of course the standard answer (for known $\sigma=1$).
+this is of course the standard answer (for known $\sigma$).
 
-###Example
+###Example: Beta distribution
 
-$X_1,..,X_n \sim B (\alpha, \alpha)$. 
+Say we have $X_1,..,X_n \sim B (\alpha, \alpha)$. 
 
 Now 
 
@@ -110,7 +116,13 @@ $$
 f(x; \alpha) = \frac{\Gamma(2\alpha)}{\Gamma(\alpha)^2}[x(1-x)]^{\alpha-1}
 $$
 
-so finding the mle analytically would require us to find the derivative of $\log \Gamma (\alpha)$, which is impossible. We will have to do this numerically.
+where $\Gamma(x)$ is the gamma function, defined by
+
+$$
+\Gamma(x)=\int_0^\infty t^{x-1}e^{-t}dt
+$$
+
+now finding the mle analytically would require us to find the derivative of $\log \Gamma (\alpha)$, which is impossible. We will have to do this numerically.
 
 Let's start by creating an example data set:
 
@@ -140,7 +152,7 @@ mle
 
 How about the Fisher information? Now, we can't even find the first derivative, let alone the second one. We can however estimate it! In fact, we already have all we need.
 
-Notice that the Fisher Information is the expected value of the Hessian matrix, and by the theorem of large numbers $\frac1{n} \sum H \rightarrow I$. Now if we just replace $I$ with observed information we get:
+Notice that the Fisher Information is the (negative of the) expected value of the Hessian matrix, and by the theorem of large numbers $\frac1{n} \sum H \rightarrow I$. Now if we just replace $I$ with the *observed* information we get:
 
 a $95\%$ confidence interval is given by
 
@@ -152,8 +164,16 @@ mle + c(-1, 1)*qnorm(1-0.05/2)/sqrt(hessian)
 Let's put all of this together and write a "find a confidence interval" routine:
 
 ```{r}
-mle.est <- function(f, param, alpha=0.05, rg, do.graph=FALSE) {
-  ll <- function(a) {
+mle.est <- 
+  function(f, #density
+           param, #starting value for nlm
+           alpha=0.05, #desired confidence level
+           rg, #range for plotting log-likelihood function
+           do.graph=FALSE #TRUE if we want to look at the
+                          #log-likelihood function
+           ) 
+{
+  ll <- function(a) { #log-likelihood function
      -sum(log(f(a)))
   } 
   tmp <- nlm(ll, param, hessian = TRUE)
@@ -187,8 +207,10 @@ mle.est <- function(f, param, alpha=0.05, rg, do.graph=FALSE) {
 
 
 ```{r}
-mle.est(function(a) {dbeta(x, a, a)}, param=2.5, 
-        rg=c(1, 5), do.graph = TRUE)
+mle.est(f = function(a) {dbeta(x, a, a)}, 
+        param = 2.5, 
+        rg = c(1, 5), 
+        do.graph = TRUE)
 ```
 
 How about the normal case, where we know the correct answer? Let's compare them:
@@ -196,8 +218,10 @@ How about the normal case, where we know the correct answer? Let's compare them:
 ```{r}
 x <- rnorm(25, 10, 1)
 c(mean(x), mean(x) + c(-1, 1)*qnorm(1-0.05/2)/sqrt(25))
-mle.est(function(a) {dnorm(x, a)},  param=10,
-        rg=c(5, 15), do.graph = TRUE)
+mle.est(f = function(a) {dnorm(x, a)},  
+        param = 10,
+        rg = c(5, 15), 
+        do.graph = TRUE)
 ```
 
 And how about the multi dimensional parameter case? First again the normal check:
@@ -218,7 +242,7 @@ names(param) <- c("alpha", "beta")
 mle.est(function(a) {dbeta(x, a[1], a[2])}, param=param)
 ```
 
-###Example 
+###Example: Old Faithful guyser 
 
 The lengths of an eruption and the waiting time until the next eruption of the Old Faithful guyser in Yellowstone National Park have been studied many times. Lets's focus on the waiting times:
 
