@@ -1,0 +1,454 @@
+---
+header-includes: \usepackage{color}
+output:
+  html_document: default
+  pdf_document:
+    fig_caption: no
+---
+<style>
+table, th, td { text-align:right; }
+th, td {padding: 10px;}
+</style>
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+whichcomp <- strsplit(getwd(),"/")[[1]][3]
+load(paste0("c:/users/", whichcomp, "/Dropbox/teaching/Resma3/Resma3.RData"))
+library(knitr)
+opts_chunk$set(fig.width=6, fig.align = "center", 
+      out.width = "70%", warning=FALSE, message=FALSE)
+library(ggplot2)
+library(grid)
+```
+`r hl()$basefontsize()`
+
+#Classification
+
+##Example: Fisher's Iris data set
+
+One of the most famous data sets in all of statistics is Fisher's iris data. This is data on four types of iris flowers together with information on the length and width of their sepals and petals. The problem is to use this information to predict the type of iris.
+
+For pictures of the flowers and more info go to [https://en.wikipedia.org/wiki/Iris_flower_data_set](https://en.wikipedia.org/wiki/Iris_flower_data_set).
+
+In essence what we have here is a regression problem where the response variable is categorical. This type of problem is called "classification".
+
+The data is part of base R:
+
+```{r}
+head(iris)
+```
+
+Before we consider the iris data, let's look at a couple of artificial examples:
+
+1.  Two groups, simple separation:
+
+```{r}
+example.data.1 <- function(mu=2, n=100) {
+  x <- rnorm(2*n) 
+  y <- rnorm(2*n)
+  x[1:n] <- x[1:n] + mu
+  y[1:n] <- y[1:n] + mu
+  data.frame(x = x,  
+             y = y, 
+             z1 = rep(c("Blue", "Red"), each=n),
+             z2 = rep(0:1, each=n))
+}
+do.graph1 <- function(dta) {
+  ggplot() +
+    geom_point(data = dta, 
+      aes(x, y, color=z1))  +
+      theme(legend.position="none")  
+}
+do.graph1(example.data.1())
+```
+
+
+2. two groups, complicated separation:
+
+```{r}
+example.data.2 <- function(n=100) {
+  x <- cbind(runif(1000), runif(1000, -1, 1))
+  x <- x[x[, 1]^2 + x[, 2]^2<1, ]
+  x <- x[1:n, ]
+  y <- cbind(runif(1000, 0, 2),
+             runif(1000, -2, 2))
+  y <- y[y[, 1]^2 + y[, 2]^2>0.9, ]
+  y <- y[1:n , ]
+  data.frame(x = c(x[, 1],  y = y[, 1]), 
+             y = c(x[, 2],  y = y[, 2]),
+             z1 = rep(c("Blue", "Red"), each=n),
+             z2 = rep(0:1, each=n))
+}
+do.graph1(example.data.2())
+```
+
+1.  Three groups:
+
+```{r}
+example.data.3 <- function(mu=2, n=50) {
+  x <- rnorm(3*n) 
+  y <- rnorm(3*n)
+  x[1:n] <- x[1:n] + mu
+  y[1:n] <- y[1:n] + mu
+  x[1:n+n] <- x[1:n+n] + 2*mu
+  y[1:n+n] <- y[1:n+n] + 2*mu  
+  data.frame(x = x,  
+             y = y, 
+             z1 = rep(c("Blue", "Red",  "Green"),
+                      each=n),
+             z2 = rep(0:2, each=n))
+}
+do.graph1(example.data.3())
+```
+
+Let's start with the first example. If we redraw it with a larger mu
+
+```{r}
+set.seed(111)
+dta <- example.data.1(mu=6)
+do.graph1(dta)
+```
+
+it is clear that in this case there should exist a line that completely separates the two groups. 
+
+How can we find that line? Actually, we can use linear regression:
+
+```{r}
+fit <- lm(z2 ~ x+y, data=dta)
+cf <- round(coef(fit), 3)
+cf
+```
+
+Now for each point $(x, y)$ in the grid this predicts $\hat{z}$. Of course this is regular regression, so $\hat{z}$ will be a continuous variable. We coded the data using 0 and 1, so logically a value of $\hat{z}$ close to 0 should be marked as blue and a value close to 1 as red. We can therefore predict Blue if 
+
+
+$$
+0.978 -0.070 x - 0.087 y < 0.5
+$$
+and as Red otherwise.
+
+Let's see what that looks like. To do so we create a fine grid of points and predict the color for each:
+
+```{r}
+do.predict <- function(dta, fit) {
+  x.grid <- seq(min(dta$x), max(dta$x), length=100)
+  y.grid <- seq(min(dta$y), max(dta$y), length=100)
+  xy.grid <- expand.grid(x.grid, y.grid)
+  dta.predict <- data.frame(x = xy.grid[, 1],
+                          y = xy.grid[, 2])
+  zhat <- predict(fit, newdata = dta.predict)
+  if(length(table(dta$z1))==2)
+     zhat <- ifelse(zhat<0.5, "Blue", "Red")
+  else {
+     tmp <- ifelse(zhat<2/3, "Red", "Blue")
+     tmp[zhat>4/3]<- "Green"
+     zhat <- tmp
+  }
+  dta.predict$zhat <- zhat
+  dta.predict
+}    
+do.graph2 <- function(dta, fit) {
+  dta.predict <- do.predict(dta, fit)
+  ggplot() +
+    geom_point(data = dta, 
+      aes(x, y, color=z1))  +
+      theme(legend.position="none")  +
+    geom_point(data = dta.predict, 
+      aes(x, y, color=zhat),
+      alpha=0.25)  +
+      theme(legend.position="none")
+}
+do.graph2(dta, fit)
+```
+
+Of course we can calculate the *decision boundary* explicitely:
+
+$$
+\begin{aligned}
+&0.978 -0.070 x - 0.087 y = 0.5\\
+&y    = -0.805 x + 5.494\\
+\end{aligned}
+$$
+
+
+```{r}
+do.graph2(dta, fit) + 
+  geom_abline(intercept = 5.494,
+                slope = -0.805)
+```
+
+Of course if the points overlap this won't work quite so well:
+
+```{r}
+dta <- example.data.1()
+fit <- lm(z2 ~ x+y, data=dta)
+do.graph2(dta, fit) +  
+  geom_abline(
+    intercept = (0.5-coef(fit)[1])/coef(fit)[3],
+    slope = -coef(fit)[2]/coef(fit)[3])
+```
+
+In the case of three groups we need two decision boundaries:
+
+```{r}
+dta <- example.data.3()
+fit <- lm(z2 ~ x+y, data=dta)
+do.graph2(dta, fit) + 
+  geom_abline(
+    intercept = (2/3-coef(fit)[1])/coef(fit)[3],
+    slope = -coef(fit)[2]/coef(fit)[3]) +
+  geom_abline(
+    intercept = (4/3-coef(fit)[1])/coef(fit)[3],
+    slope = -coef(fit)[2]/coef(fit)[3])  
+```
+
+How about the second case? 
+
+```{r}
+set.seed(111)
+dta <- example.data.2()
+fit <- lm(z2~x+y, data=dta)
+do.graph2(dta, fit)
+```
+
+That does not work, which is obvious because we don't have a linear decision boundary. But how about a quadratic one? Let's see
+
+```{r}
+dta$x2 <- dta$x^2
+dta$y2 <- dta$y^2
+dta$xy <- dta$x*dta$y
+dta <- dta[, c(3, 4, 1, 5, 2, 6, 7)]
+fit <- lm(z2 ~ .-z1, data=dta)
+a <- round(coef(fit), 4)
+a
+```
+
+and now
+
+$$
+\begin{aligned}
+&0.5    =  a_1+a_2x+a_3x^2+a_4y+a_5y^2+a_6xy\\
+&(a_1-0.5+a_2x+a_3x^2)+(a_4+a_6x)y+a_5y^2  =0  \\
+&y = \frac{-(a_4+a_6x) \pm\sqrt{(a_4+a_6x)^2-4a_5(a_1-0.5+a_2x+a_3x^2)}}{2a_5}\\
+\end{aligned}
+$$
+
+```{r}
+x.grid <- seq(min(dta$x), max(dta$x), length=100)
+  y.grid <- seq(min(dta$y), max(dta$y), length=100)
+  xy.grid <- expand.grid(x.grid, y.grid)
+  dta.predict <- data.frame(x = xy.grid[, 1],
+                            y = xy.grid[, 2])
+dta.predict$x2 <- dta.predict$x^2
+dta.predict$y2 <- dta.predict$y^2
+dta.predict$xy <- dta.predict$x*dta.predict$y
+dta.predict$z1 <- rep("Blue", 
+                      length(dta.predict$x))
+zhat1 <- predict(fit, newdata = dta.predict)
+zhat <- ifelse(zhat1<0.5, "Blue", "Red")
+dta.predict$zhat <- zhat
+x <- seq(min(dta$x), max(dta$x), length=100)
+y1 <- (-(a[4]+a[6]*x) - 
+         sqrt((a[4]+a[6]*x)^2 - 
+                4*a[5]*(a[1]-0.5+a[2]*x+a[3]*x^2))
+       )/2/a[5]
+y2 <- (-(a[4]+a[6]*x) +
+         sqrt((a[4]+a[6]*x)^2 - 
+                4*a[5]*(a[1]-0.5+a[2]*x+a[3]*x^2))
+       )/2/a[5]
+dta.line.1 <- data.frame(x = x,  y = y1)
+dta.line.2 <- data.frame(x = x,  y = y2)
+do.graph1(dta) +
+  geom_point(data = dta.predict, 
+      aes(x, y, color=zhat),
+      alpha=0.25) +
+  geom_line(aes(x, y), data=dta.line.1)  +
+  geom_line(aes(x, y), data=dta.line.2)
+```
+
+The two solutions described above are usually called Fisher's linear (LDA) and quadratic (QDA) discriminants. They can be fitted directly with the *lda* function in the *MASS* package:
+
+```{r}
+library(MASS)
+dta <- example.data.1()
+fit <- lda(z1~x+y, data=dta)
+plot(fit)
+```
+
+###Non-parametric Method
+
+As before we can replace the least squares solution with a non-parametric one, say loess:
+
+
+```{r}
+dta <- example.data.1()
+fit <- loess(z2 ~ x+y, data=dta)
+do.graph2(dta, fit)
+```
+
+
+```{r}
+dta <- example.data.2()
+fit <- loess(z2 ~ x+y, data=dta)
+do.graph2(dta, fit)
+```
+
+
+```{r}
+dta <- example.data.3()
+fit <- loess(z2 ~ x+y, data=dta)
+do.graph2(dta, fit)
+```
+
+###k-nearest neighbor
+
+Here is another, completely different way: for a new point (x1,x2) find the point in the dataset that is closest, and classify (x1,x2) the same! This is called the 1-nearest neighbor classifier. It is implemented by the function *knn*, part of the *class* library:
+
+```{r}
+library(class)
+dta <- example.data.1()
+x.grid <- seq(min(dta$x), max(dta$x), length=100)
+y.grid <- seq(min(dta$y), max(dta$y), length=100)
+xy.grid <- expand.grid(x.grid, y.grid)
+dta.predict <- data.frame(x = xy.grid[, 1],
+                          y = xy.grid[, 2])
+zhat <- knn(dta[, 1:2], xy.grid, cl=dta$z1, k=1)
+dta.predict$zhat <- zhat
+do.graph1(dta) +
+  geom_point(data = dta.predict, 
+     aes(x, y, color=zhat),
+     alpha=0.25)  
+```
+
+
+```{r}
+dta <- example.data.2()
+x.grid <- seq(min(dta$x), max(dta$x), length=100)
+y.grid <- seq(min(dta$y), max(dta$y), length=100)
+xy.grid <- expand.grid(x.grid, y.grid)
+dta.predict <- data.frame(x = xy.grid[, 1],
+                          y = xy.grid[, 2])
+zhat <- knn(dta[, 1:2], xy.grid, cl=dta$z1, k=1)
+dta.predict$zhat <- zhat
+do.graph1(dta) +
+  geom_point(data = dta.predict, 
+     aes(x, y, color=zhat),
+     alpha=0.25)  
+```
+
+
+```{r}
+dta <- example.data.3()
+x.grid <- seq(min(dta$x), max(dta$x), length=100)
+y.grid <- seq(min(dta$y), max(dta$y), length=100)
+xy.grid <- expand.grid(x.grid, y.grid)
+dta.predict <- data.frame(x = xy.grid[, 1],
+                          y = xy.grid[, 2])
+zhat <- knn(dta[, 1:2], xy.grid, cl=dta$z1, k=1)
+dta.predict$zhat <- zhat
+do.graph1(dta) + 
+  geom_point(data = dta.predict, 
+     aes(x, y, color=zhat),
+     alpha=0.25)  
+```
+
+We can "smooth" the result by considering mor than one neighbor. In that case the prediction is done by majority vote: if two out of three are red, prediction is red:
+
+```{r}
+zhat <- knn(dta[, 1:2], xy.grid, cl=dta$z1, k=3)
+dta.predict$zhat <- zhat
+do.graph1(dta) + 
+  geom_point(data = dta.predict, 
+     aes(x, y, color=zhat),
+     alpha=0.25)  
+```
+
+```{r}
+zhat <- knn(dta[, 1:2], xy.grid, cl=dta$z1, k=5)
+dta.predict$zhat <- zhat
+do.graph1(dta) + 
+  geom_point(data = dta.predict, 
+     aes(x, y, color=zhat),
+     alpha=0.25)  
+```
+
+Clearly, we should use an odd k.
+
+###Neural Networks
+
+Another popular approach is to fit a *neural network*. This is large topic, and we won't have time for any detailed discussion. Here is just one example:
+
+```{r}
+library(nnet)
+dta <- example.data.2()
+fit <- nnet(x = cbind(dta$x, dta$y), 
+            y = dta$z2, 
+            size = 2)
+do.graph2(dta, fit)
+```
+
+##Misclassification Rate
+
+How can we choose among all of those methods? The most common measure of how good a classifier is is the *misclassification rate*, that is how many observations would have been classified wrong. Let's find this rate for the various methods:
+
+```{r}
+dta <- example.data.1(n=1000)
+```
+
+-  LDA
+
+```{r}
+fit <- lm(z2~x+y, data=dta)
+zhat <- predict(fit)
+zhat <- ifelse(zhat<0.5, "Blue", "Red")
+tbl <- table(dta$z1, zhat)
+tbl
+msc <- (tbl[1, 2]+tbl[2, 1])/sum(tbl)
+msc
+```
+
+-  Loess
+
+
+```{r}
+fit <- loess(z2~x+y, data=dta)
+zhat <- predict(fit)
+zhat <- ifelse(zhat<0.5, "Blue", "Red")
+tbl <- table(dta$z1, zhat)
+msc <- (tbl[1, 2]+tbl[2, 1])/sum(tbl)
+msc
+```
+
+-  1-nearest neighbor
+
+```{r}
+zhat <- knn(dta[, 1:2], dta[, 1:2], cl=dta$z1, k=1)
+tbl <- table(dta$z1, zhat)
+msc <- (tbl[1, 2]+tbl[2, 1])/sum(tbl)
+msc
+```
+
+-  3-nearest neighbor
+
+```{r}
+zhat <- knn(dta[, 1:2], dta[, 1:2], cl=dta$z1, k=3)
+tbl <- table(dta$z1, zhat)
+msc <- (tbl[1, 2]+tbl[2, 1])/sum(tbl)
+msc
+```
+
+-  neural network
+
+```{r}
+fit <- nnet(x = cbind(dta$x, dta$y), 
+            y = dta$z2, 
+            size = 2)
+zhat <- predict(fit)
+zhat <- ifelse(zhat<0.5, "Blue", "Red")
+tbl <- table(dta$z1, zhat)
+msc <- (tbl[1, 2]+tbl[2, 1])/sum(tbl)
+msc
+```
+
+So 1-nearest neighbor wins, with misc=0!
+
+Or does it? The problem is that we evaluated the methods on the same data set that we used for fitting (or "training"). In the case of 1-nearest neighbor that means we never get this wrong. But if we then applied the fit to a new data set we likely would do much worse. This is true to a lesser extent for all the methods, and in real life we should always use different data sets for training and for evaluation. If only one data set is available we can again use the idea of cross-validation.
