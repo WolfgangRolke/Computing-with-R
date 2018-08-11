@@ -1,9 +1,9 @@
 ---
 header-includes: \usepackage{color}
 output:
-  html_document: default
   pdf_document:
     fig_caption: no
+  html_document: default
 ---
 
 <style>
@@ -64,7 +64,7 @@ if("First.R" %in% dir()) {#check whether there is a .First
   source("First.R")  
   .First()  
 }  
-cat("\nSuccessfully loaded .Rprofile at", date(), "\n")  
+cat("\\nSuccessfully loaded .Rprofile at", date(), "\\n")  
 
 `r hl()$hr()`
 

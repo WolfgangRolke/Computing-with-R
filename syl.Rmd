@@ -51,4 +51,4 @@ when you send me an email `r hl()$fontcolor("ALWAYS")` start the subject line wi
 
 all homeworks and exams have to be done using RMarkdown and have to be submitted via Dropbox. You will be sent an invitation to join Dropbox soon (if you are not already a user). A little while later you will receive an email with an invitation to share a Dropbox folder with me. 
 
-From then on anytime you put something in this folder I will immediately have it in mine as well. So when you are ready to submit your homework simply drop the file into the folder.
+From then on anytime you put something in this folder I will immediately have it in mine as well. So when you are ready to submit your homework simply drop the file into the folder. 

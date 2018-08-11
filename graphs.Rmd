@@ -119,6 +119,12 @@ qqline(x)
 
 ##Scatterplot
 
+
+```{r echo=FALSE}
+rm(plot)
+```
+
+
 ```{r}
 attach(faithful)
 plot(Eruptions, Waiting.Time, 

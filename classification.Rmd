@@ -1,9 +1,9 @@
 ---
 header-includes: \usepackage{color}
 output:
-  html_document: default
   pdf_document:
     fig_caption: no
+  html_document: default
 ---
 <style>
 table, th, td { text-align:right; }
@@ -388,7 +388,7 @@ do.graph2(dta, fit)
 
 ###Tree based methods
 
-Yet another idea is as follows. Let's define a "distance" between the groups. Now let's take one variable (say x) and for some number a split the data set into two parts $x\lt a$ and $x\gt a$. For each a we get a distance in the two splits. Find a such that this distance is maximized. Do the same for all the variables. Use the best overall split. 
+Yet another idea is as follows. Let's define a "distance" between the groups. Now let's take one variable (say x) and for some number a split the data set into two parts $x< a$ and $x> a$. For each a we get a distance in the two splits. Find a such that this distance is maximized. Do the same for all the variables. Use the best overall split. 
 
 Next we repeat the same procedure within ich of the splits defined before. In this way we get smaller and smaller data sets which are more and more homogeneous (aka have the same group).
 
@@ -408,7 +408,7 @@ plot(fit)
 text(fit)
 ```
 
-so the first split is for $x\lt 0.3$. For those observations with $x\lt 0.3$ the next split is for $y\lt 0.5$ etc.
+so the first split is for $x<0.3$. For those observations with $x<0.3$ the next split is for $y< 0.5$ etc.
 
 Here is what this looks like for our examples:
 

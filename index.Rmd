@@ -25,7 +25,8 @@ library(stringr)
 
 #ESMA 6835 Computing with R
 
-[Syllabus](syl.html)
+[Syllabus](syl.html)  
+[Assignments](assign.html)
 
 ##1  Getting Started
 

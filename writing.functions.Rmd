@@ -1,9 +1,9 @@
 ---
 header-includes: \usepackage{color}
 output:
-  html_document: default
   pdf_document:
     fig_caption: no
+  html_document: default
 ---
 
 <style>
@@ -300,6 +300,11 @@ c(exp(-x^2), fun(x))
 
 Consider this example:
 
+```{r echo=FALSE}
+rm(plot)
+```
+
+
 ```{r}
 x <- seq(-1, 1, length=250)
 square <- x^2
@@ -573,8 +578,8 @@ is.binary(c(1, 2, 1, 1))
 
 2)  *as.binary* should turn vectors into a binary number. For this we will use the following rules:
 
-   -  0 &rarr; 0, x &ne;0 &rarr; 1
-   -  FALSE &rarr; 0, TRUE &rarr; 1 
+   -   $0 \rightarrow 0$, $x \ne 0 \rightarrow 1$
+   -  FALSE $\rightarrow 0$, TRUE $\rightarrow 1$ 
    -  Anything else NA
    
 

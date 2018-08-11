@@ -29,6 +29,12 @@ library(grid)
 
 The basic functions to display information on the screen are
 
+
+```{r echo=FALSE}
+rm(print)
+```
+
+
 ```{r}
 x <- rnorm(5, 100, 30)
 print(x)

@@ -1,9 +1,9 @@
 ---
 header-includes: \usepackage{color}
 output:
-  html_document: default
   pdf_document:
     fig_caption: no
+  html_document: default
 ---
 
 <style>

@@ -1,9 +1,9 @@
 ---
 header-includes: \usepackage{color}
 output:
-  html_document: default
   pdf_document:
     fig_caption: no
+  html_document: default
 ---
 
 <style>
@@ -123,7 +123,7 @@ It is possible to tell R not to do this type conversion in the first case
 students[, 1, drop=FALSE]
 ```
 
-but this does not work for the [[1]] or $Age versions.
+but this does not work for the [[1]] or \\$Age versions.
 
 ```{r}
 students[1:3, 1]
@@ -185,7 +185,7 @@ all.equal(x, y)
 
 *identical* compares the internal representation of the data and returns TRUE if the objects are strictly identical, and FALSE otherwise.
 
-*all.equal* compares the “near equality” of two objects, and returns TRUE or displays a summary of the diﬀerences. The latter function takes the approximation of the computing process into account when comparing numeric values. The comparison of numeric values on a computer is sometimes surprising!
+*all.equal* compares the “near equality” of two objects, and returns TRUE or displays a summary of the differences. The latter function takes the approximation of the computing process into account when comparing numeric values. The comparison of numeric values on a computer is sometimes surprising!
 
 ```{r}
 0.9 == (1 - 0.1)
