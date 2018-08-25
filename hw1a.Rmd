@@ -1,0 +1,53 @@
+---
+title: Central Limit Theorem
+output:
+  html_document: default
+---
+
+###Definition 
+
+The random variable $X$ is said to have a standard normal distribution iff it has density
+
+$$
+\phi(x) = \frac{1}{\sqrt{2 \pi}}e^{-\frac12 x^2}
+$$
+
+###Theorem 
+
+Let $X_1,..,X_n$ be a sequence of independent and identically distributied random variables with mean $\mu$ and variance $\sigma^2$. Let $\bar{X}=\frac1{n}\sum_{i=1}^n X_i$. Then 
+
+$$
+P(\sqrt{n}\frac{\bar{X}-\mu}{\sigma} \le x) \rightarrow \Phi(x)
+$$
+
+where $\Phi(x) = \int_{-\infty}^{x} \phi(t) dt$.
+
+As an illustration we do the following: we generate 100 observations from a uniform distribution on [0, 1] and find it's sample mean. We know that if $U\sim U[0, 1]$ we have $\mu=\frac12$ and $\sigma^2=\frac1{12}$. So 
+
+$$
+\begin{aligned}
+&Z_1 = \sqrt{n}\frac{\bar{X}-\mu}{\sigma}    = \\
+&\sqrt{100}\frac{\bar{X}-1/2}{\sqrt{1/12}}   = \\
+&\sqrt{300}\left(2\bar{X}-1\right) \\
+\end{aligned}
+$$
+
+now we repeat this 10000 times:
+
+```{r}
+z <- rep(0, 10000)
+for(i in 1:10000) {
+  x <- runif(100)
+  z[i] <- sqrt(300)*(2*mean(x)-1)
+}
+
+```
+
+Finally we can compare the relative frequencies with the theoretical probabilities for diffeent values of $x$. For example if $x=1.5$ we find
+
+
+```{r}
+round(c(length(z[z<1.5])/10000, pnorm(1.5)), 4)
+```
+
+and so the difference is `r round(length(z[z<1.5])/10000, 4)` - `r round(pnorm(1.5), 4)` = `r round(length(z[z<1.5])/10000, 4) -  round(pnorm(1.5), 4)`.

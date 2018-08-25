@@ -1,10 +1,12 @@
 ---
+title: History, Basic Usage
 header-includes: \usepackage{color}
 output:
   html_document: default
   pdf_document:
     fig_caption: no
 ---
+
 <style>
 table, th, td { text-align:right; }
 th, td {padding: 10px;}
@@ -21,9 +23,7 @@ library(grid)
 ```
 `r hl()$basefontsize()`
 
-#History
-
-##S
+#S
 
 S is a statistical programming language developed primarily by John Chambers and (in earlier versions) Rick Becker and Allan Wilks of Bell Laboratories. The aim of the language, as expressed by John Chambers, is "to turn ideas into software, quickly and faithfully".
 
@@ -33,13 +33,13 @@ By 1988, many changes were made to S and the syntax of the language. The New S L
 
 In the late 1990s AT&T sold the S license to a private company that started to charge a lot of money for it. This lead to
 
-##R
+#R
 
 R is an implementation of the S programming language combined with lexical scoping semantics inspired by Scheme. There are some important differences between S and R, but much of the code written for S runs unaltered.
 
 R was created by Ross Ihaka and Robert Gentleman at the University of Auckland, New Zealand, and is currently developed by the R Development Core Team, of which Chambers is a member. R is named partly after the first names of the first two R authors and partly as a play on the name of S. The project was conceived in 1992, with an initial version released in 1995 and a stable beta version in 2000.
 
-##RStudio
+#RStudio
 
 RStudio is a free and open-source integrated development environment (IDE) for R, a programming language for statistical computing and graphics. RStudio was founded by JJ Allaire, creator of the programming language ColdFusion. Hadley Wickham is the Chief Scientist at RStudio.
 
@@ -47,7 +47,7 @@ Work on RStudio started at around December 2010, and the first public beta versi
 
 R can be run by itself using the command line interface, but it is usually much nicer to use RStudio as a front end.
 
-##Getting Started
+#Getting Started
 
 Once R (or Rstudio) is opened you will see the >. This is the *command prompt*. It means R is waiting for you to do something!
 
@@ -75,6 +75,7 @@ pi
 options(digits=5)
 pi
 options(digits=15) 
+pi
 ```
 
 and
@@ -89,7 +90,17 @@ this tells R to warn about certain things. Those are not errors, just warnings, 
 options(warn=-1)
 ```
 
-##Saving your Stuff
+Changing one or more of these options is something one needs to do on occasion inside a function. If so you likely want to reset them to the defaults before leaving the function:
+
+```{r eval=FALSE}
+#At start of function:
+default.options <- options()
+#now do stuff
+#then at the end
+options(default.options)
+```
+
+#Saving your Stuff
 
 The standard setup is to have separate folders for each project. When starting a new one RStudio creates the folder and within the files
 
@@ -102,6 +113,14 @@ In the past the .RData file was the "heart" of R, and typically there was one fo
 save.image("c:/folder/filename.RData")
 ```
 
+*Notice* the use of the backslash as a separator for folders. On Windows systems one usually uses forward slashes ("\\") but these have a special use in R as the "escape character". One alternative is to use
+
+```{r eval=FALSE}
+save.image("c:\\folder\\filename.RData")
+```
+
+but / is generally preferred.
+
 ##Assignments
 
 The basic assignment character in R is <-
@@ -110,6 +129,8 @@ The basic assignment character in R is <-
 x <- 1
 x
 ```
+
+*Note* think of an arrow pointing left
 
 *Note* = also works:
 
@@ -122,9 +143,11 @@ but for some good reasons is not the best way to go.
 
 RStudio has a lot of useful shortcuts, one of them is ALT - , which enters <- and even the spaces around it!
 
-Check out the list of keyboard shortcuts at Tools > Keyboards shortcuts
+Check out the list of keyboard shortcuts at Tools > Keyboards shortcuts.
 
-##Help!
+#Help!
+
+##Help inside of R
 
 R has a help command. Let's say we want to find out about the *mean* command:
 
@@ -144,7 +167,29 @@ args(splot)
 args(mean)
 ```
 
-##ls, rm
+##Help from Outside of R
+
+R has one of the most active and friendly user communities anywhere. So if you run into a problem do this:
+
+###Google!
+
+Most of the problems you have, someone else already had. They ended up asking for help on the internet, and someone replied. So all you need to do is find that reply. Start with a google search. Typically you want to include R in your search terms. If at first you don't succeed, try, try again!
+
+###Stackoverflow
+
+Many times your google search will lead you to [stackoverflow](https://stackoverflow.com). This is a website for people working on computer coding problems to help each other. It is not specific to R but the R community is using to discuss and solve R questions. 
+
+If you can not find a solution to your problem, eventually you might want to post a question on stackoverflow. To do so you have to become a member, which is free. 
+
+Here are some guidelines for posting questions:
+
+-  did you really try hard enough to find an answer on your own? It is very embarrasing when you post a question and the reply is a link to a simple google search that has the answer already. 
+
+-  try and eliminate anything that does not have to do with your problem.
+
+-  produce a simple and short example of your problem. Anything over 5 or 10 lines of code is almost certainly to long.
+
+#ls, rm
 
 use the *ls* command to get a listing of the current objects in the worksheet:
 
@@ -158,7 +203,7 @@ If there are many objects (the worksheet I have open right now has over 250!) yo
 ls(pattern = "^sa")
 ```
 
-the ^ in front means that *ls* will list all object whose name starts with sa. This is what is called a *regular expression*. These are general (non R) rules for specifying patters. They are a science all their own, and we will need to have a look at them at some point.
+the ^ (called "caret") in front of sa means that *ls* will list all objects whose name starts with sa. This is what is called a *regular expression*. These are general (non R) rules for specifying patters. They are a science all their own, and we will need to have a look at them at some point.
 
 If you need some more details on the objects you can use
 
@@ -196,13 +241,15 @@ cleanup <- function ()
 }
 ```
 
-- it has the options(warn=-1) command because many of these names will not be present when I run the cleanup command, and each of those would result in a warning. I already know this, so I don't need the warning. At the end I reset to the default with options(warn = 0)
+- the things in oldstuff (like f and x) are the names I generally use for stuff that I expect to need only for a short time.
+
+- it has the options(warn=-1) command because many of these names will not be present when I run the cleanup command, and each of those would result in a warning. I already know this, so I don't need the warning. At the end I reset to the default with options(warn = 0).
 
 - notice the empty line before the end of the function. This means there will be no return result. Without it the routine would return NULL.
 
 -  notice the argument envir. We will talk about what that means soon.
 
-##Naming Conventions
+#Naming Conventions
 
 It is good practice to have a consistent style when choosing names for objects, functions etc. There is a detailed description at [https://google.github.io/styleguide/Rguide.xml](https://google.github.io/styleguide/Rguide.xml). Here are the most important ones:
 

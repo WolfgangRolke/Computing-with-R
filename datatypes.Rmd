@@ -1,4 +1,5 @@
 ---
+title: Data Types
 header-includes: \usepackage{color}
 output:
   html_document: default
@@ -22,16 +23,15 @@ library(grid)
 ```
 `r hl()$basefontsize()`
 
-#Basic Data Types
 
-Everything in R is an object. All objects have two intrinsic attributes: mode and length. The mode is the basic type of the elements of the object; there are four main modes:
+Everything in R is an object. All objects have two intrinsic attributes: mode and length. The mode is the basic type of the elements of the object. There are four main modes:
 
 -  numeric  
 -  character  
 -  complex  
 -  logical (FALSE or TRUE)
 
-Other modes exist but they do not represent data, for instance function or expression. The length is the number of elements of the object. To display the mode and the length of an object, one can use the functions *mode* and *length*, respectively:
+Other modes exist but they do not represent data, for instance function or expression. The length is the number of elements of the object. To display the mode and the length of an object use the functions *mode* and *length*, respectively:
 
 ```{r}
 x <- 1; mode(x)
@@ -46,7 +46,7 @@ R is quite different from most computer languages in that it often tries to figu
 0/0
 ```
 
-Here *Inf* is of course infinite, and *NaN* standts for *not a number*. These can be used in calculations:
+Here *Inf* is of course infinite, and *NaN* stands for *not a number*. These can be used in calculations:
 
 ```{r}
 exp(-Inf)
@@ -72,6 +72,42 @@ u+v
 u*v
 ```
 
+The real and the imaginary parts are chosen with
+
+```{r}
+Re(v)
+Im(v)
+```
+
+Two other standard functions for complex numbers are
+
+-  complex conjugate 
+
+$$
+\begin{aligned}
+&z    = x+iy\\
+&\bar{z}    = x-iy\\
+\end{aligned}
+$$
+```{r}
+v
+Conj(v)
+```
+
+-  Modulus:
+
+
+$$
+\begin{aligned}
+&z    = x+iy\\
+&\text{Modulus}    = \sqrt{x^2+y^2}\\
+\end{aligned}
+$$
+```{r}
+Mod(1+1i)
+```
+
+`r hl()$hr()`
 
 Objects of type character are identified with quotes:
 
@@ -84,7 +120,6 @@ sometimes you want the " to be treated as a character. This can be done with the
 ```{r}
 "color=\"red\""
 ```
-
 
 ###Vectors
 
@@ -202,6 +237,20 @@ Here FALSE gets first turned into a character, and then stays as such.
 
 R has almost 100 is. and as. functions built in!
 
+**Exercise**
+
+Before running these in R, try and think about the answer:
+
+What is the result of 
+
+```{r eval=FALSE}
+c(1, FALSE)
+c("A", FALSE)
+c(1L, FALSE)
+-1 < FALSE
+1 == "1"
+```
+
 
 ##Dates:
 
@@ -258,7 +307,7 @@ c(students.fac, "Graduate")
 
 so we can easily add an element to students, but if we do the same with student.fac it gets very confused! Strangely enough, it doesn't even work when the added item is in the list of levels!
 
-Notice also that with c(students, "Senior") we don't get the lsit of students but a list of numbers (as characters) plus "Senior". This is because internally R stores factors as integers, but when we add "Senior" these get converted to character. 
+Notice also that with c(students, "Senior") we don't get the list of students but a list of numbers (as characters) plus "Senior". This is because internally R stores factors as integers, but when we add "Senior" these get converted to character. 
 
 Here is what you can do:
 
@@ -269,4 +318,15 @@ x <- factor(c(as.character(students.fac), "Senior", "Graduate"),
 x
 table(x)
 ```
+
+**Exercise**
+
+```{r}
+ltrs <-  c("a", "b", "b", "c", "c", "c")
+f1 <- factor(ltrs)
+f1
+levels(f1) <- c("c", "b", "a")
+```
+
+What does f1 now look like?
 

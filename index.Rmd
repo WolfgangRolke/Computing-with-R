@@ -1,4 +1,5 @@
 ---
+title: ESMA 6835 Computing with R
 header-includes: \usepackage{color}
 output:
   html_document: default
@@ -23,18 +24,18 @@ library(stringr)
 ```
 `r hl()$basefontsize()`
 
-#ESMA 6835 Computing with R
-
+[Entire class as pdf (10MB)](Computing-with-R.pdf)  
 [Syllabus](syl.html)  
-[Assignments](assign.html)
+[Assignments](assign.html)  
+[Resma3.RData](http://academic.uprm.edu/wrolke/Resma3/Resma3.RData?Ver 3.0) (Ver 3.0)
 
-##1  Getting Started
+#1  Getting Started
 
 1.1&nbsp;  [Installation and Updating](install.html)  
 1.2&nbsp;  [R Markdown, HTML and Latex](rmark.html)  
 1.2&nbsp;  [History, Basic Usage](general.stuff.html)  
 
-##2  Base R
+#2  Base R
 
 2.1&nbsp; [Data types](datatypes.html)  
 2.2&nbsp; [Vectors, matrices, dataframes and lists](dataformats.html)  
@@ -52,7 +53,7 @@ library(stringr)
 2.14 [Environments, libraries](environments.html)    
 2.15 [Costumizing R: .First, .Rprofile, Dropbox](customization.html)  
 
-##3  Extending R, Packages
+#3  Extending R, Packages
 
 3.1&nbsp; [Graphics with ggplot2](ggplot2.html)  
 3.2&nbsp; [C++ with Rcpp](rcpp.html)  
@@ -67,7 +68,7 @@ library(stringr)
 3.11  [Version Control and Collaboration with github](github.html)  
 
 
-##4  Statistics with R
+#4  Statistics with R
 
 4.1  [Estimation](estimation.html)  
 4.2  [The Bootstrap](bootstrap.html)  

@@ -1,4 +1,5 @@
 ---
+title: Generating Vectors
 header-includes: \usepackage{color}
 output:
   html_document: default
@@ -22,8 +23,6 @@ library(grid)
 ```
 `r hl()$basefontsize()`
 
-#Generating Vectors
-
 There are numerous ways to generate vectors which have some structure. Here are some useful commands:
 
 The easiest way to do this is to use the *c* (concatenate) command:
@@ -33,7 +32,7 @@ x <- c(0, 2, 3, 1, 5)
 x
 ```
 
-to make sequences use *:*
+to make regular sequences use ":" (read "to")
 
 ```{r}
 1:5
@@ -74,12 +73,15 @@ rep(1, 10)
 rep(1:3, 10)
 rep(1:3, each=3)
 rep(c("A", "B", "C"), c(4, 7, 3))
+rep(1:3, rep(5, 3))
 ```
 
-what does this do?
+**Exercise**
 
-```{r, eval=FALSE}
-rep(1:10, 1:10)
+What does this do?
+
+```{r eval=FALSE}
+rep(1:10, 10:1)
 ```
 
 -  gl
@@ -92,11 +94,8 @@ Two options may be used: length to specify the number of data produced, and labe
 gl(3, 5)
 gl(3, 5, length=30)
 gl(2, 6, label=c("Male", "Female"))
-gl(2, 10)
-gl(2, 1, length=20)
 ```
 
-as we saw earlier, factors are represented by integers.
 
 -  expand.grid
 
@@ -109,7 +108,46 @@ expand.grid(First=1:2, Second=1:3, Third=c("A", "B"))
 
 there are a number of R routines who need the data in this format as arguments, so this is an easy way to convert them.
 
-##Expressions
+-  outer
+
+This calculates the outer product of two vectors. It creates a matrix of length(x) x length(y) where $z_{ij} = f(x_i, y_j)$ for some fnction $f$
+
+```{r}
+x <- 1:3
+y <- 1:5
+outer(x, y, "*")
+```
+
+You can use any function you like:
+
+```{r}
+outer(x, y, function(x,y) {x^2/y})
+```
+
+If it is actual multiplication you want there is also a short hand:
+
+```{r}
+x %o% y
+```
+
+Want to practise you multiplication?
+
+```{r}
+x <- 1:10
+names(x) <- x
+x %o% x
+```
+
+**Exercise**
+
+What (if anything) does this do?
+
+```{r eval=FALSE}
+(1:3 %o% 1:3) %o% 1:2
+```
+
+
+#Expressions
 
 up to now we discussed how to generate data objects. Soon we will be talking about how to write your own functions. There is however also a type of object somewhat in between, so called expressions.
 
@@ -127,7 +165,9 @@ Expressions can be used for many things. Here are two examples:
 1.  I want to draw the graph of a function, including the equation:
 
 ```{r}
-curve(x^2*exp(-x^2), -2, 2, main=expression(x^2*exp(-x^2)), ylab="")
+curve(x^2*exp(-x^2), -2, 2,
+      main = expression(x^2*exp(-x^2)), 
+      ylab = "")
 ```
 
 2.  Do symbolic math. For derivatives we have the function *D*, which returns partial derivatives:
@@ -142,3 +182,5 @@ eval(D(exp1, "z"))
 ```
 
 In general R's use as a symbolic language is very limited. There are of course many purpose built languages for this, such as Maple or Mathematica.
+
+

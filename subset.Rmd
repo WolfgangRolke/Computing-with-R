@@ -1,9 +1,10 @@
 ---
+title: Subsetting / Data Wrangling
 header-includes: \usepackage{color}
 output:
+  html_document: default
   pdf_document:
     fig_caption: no
-  html_document: default
 ---
 
 <style>
@@ -22,9 +23,7 @@ library(grid)
 ```
 `r hl()$basefontsize()`
 
-#Subsetting / Data Wrangling
-
-##Vectors
+#Vectors
 
 Consider the following vector:
 
@@ -42,9 +41,15 @@ x[1:3]
 x[c(1, 3, 8)]
 x[-3]
 x[-c(1, 2, 5)]
+```
+
+if a vector has names they can be used as well:
+
+```{r}
 x["C"]
 x[c("A","D")]
 ```
+
 
 Another way to subset a vector is with logical conditions:
 
@@ -62,15 +67,17 @@ x
 
 This can be useful, for example to code a variable:
 
-```{r, echo=2:5}
-Gender <- sample(c("Male", "Female"), size=10, replace = T)
+```{r}
+Gender <- sample(c("Male", "Female"), 
+                 size = 10, 
+                 replace = TRUE)
 Gender
 GenderCode <- rep(0, length(Gender))
 GenderCode[Gender=="Male"] <- 1
 GenderCode
 ```
 
-###Matrices and Data Frames
+#Matrices and Data Frames
 
 Consider the following data frame:
 
@@ -89,7 +96,6 @@ Because a vector has rows and columns we now need to specify both:
 students[2, 3]
 ```
 
-
 There are a variety of ways to do subsetting:
 
 ```{r}
@@ -106,6 +112,17 @@ attach(students)
 ```{r}
 Age
 ```
+
+**Exercise**
+
+What does this do?
+
+```{r eval=FALSE}
+x <- 1:10
+x[]
+```
+
+`r hl()$hr()`
 
 Although these seem to do the same there actually subtle differences. Consider this:
 
@@ -146,9 +163,9 @@ students[20 <= Age <= 22, 1]
 
 does not work. 
 
-###Lists
+#Lists
 
-Subsetting of lists is very similar to dataframes:
+Subsetting of lists is very similar to data frames:
 
 ```{r}
 mylist <- list(First=1:5, Second=LETTERS[1:8], Third=20:22)
@@ -167,11 +184,27 @@ The last one is strange, why is the result 2? Actually, it does this:
 mylist[[1]][2]
 ```
 
+This can be quite confusing. Here is useful memory device 
 
-##Useful logic commands:
+*If list x is a train, x[[5]] is the content of car 5, whereas x[4:5] is the train consisting of cars 4 and 5*
+
+#Partial Matching
+
+There is one important difference between \$ and [[]], the first one does partial matching:
+
+```{r error=TRUE}
+x <- list(inside=1:3, outside=5:10)
+x$o
+x[[o]]
+```
+
+I don't however recommend to make use of this feature unless necessary. 
+
+#Useful logic commands
 
 ```{r}
 x<-1; y<-2; z<-3
+c(x, y, z)>2.5
 any(c(x, y, z)>2.5)
 all(c(x, y, z)>2.5)
 ```
@@ -207,8 +240,7 @@ How come $1.1-0.2 \ne 0.9$? This is because of machine precision issues:
 all.equal(0.9, 1.1 - 0.2, tolerance = 1e-16) 
 ```
 
-
-##*subset*
+#*subset*
 
 Finally there is a command that was written for subsetting:
 
@@ -220,3 +252,92 @@ subset(students, Age>20, select = Gender, drop=TRUE)
 ```
 
 Notice that this last one results in a vector.
+
+**Exercise**
+
+The data set *upr* (part of *Resma3.RData*) has the application information provided to the University of all students that were eventually accepted between 2003 and 2013. Here are the first three students:
+
+```{r}
+head(upr, 3)
+```
+
+How many female students applied in either 2010 or 2011, had a highschool GPA of at least 3.0 and a freshman GPA between 3.0 and 3.5?
+
+```{r, eval=FALSE, echo=FALSE}
+df <- upr[upr$Gender=="F", ]
+df <- df[df$Year>=2010 & df$Year<=2011, ]
+df <- df[df$Highschool.GPA>=3.0, ]
+df <- df[df$Freshmen.GPA>=3.0 & df$Freshmen.GPA<=3.5, ]
+df <- df[df$Class.Facultad!="INGE", ]
+df[sample(1:nrow(df), size=10), 
+   c("Gender", "Year", "Highschool.GPA",
+     "Freshmen.GPA", "Class.Facultad")]
+nrow(df)
+```
+
+
+
+#*order*
+
+if we need to sort a vector we have the sort command:
+
+```{r}
+sort(Age)
+```
+
+but sometime we want to sort one vector by the order of another:
+
+```{r}
+students[order(Age), ]
+```
+
+**Example** Lookup Tables
+
+Say we want to write a function which many times need to calculate $\log(n!)$. We soon run into the following problem:
+
+```{r error=TRUE}
+log(factorial(175))
+```
+
+despite the fact that this is not a really big number (it is 732.3394). The problem is that internally R uses the gamma function to calculate factorials, and $\Gamma(175)$ is larger than what R can handle.
+
+There is of course a simple solution:
+
+$$
+\log(n!) = \log(\prod_{i=1}^n i) = \sum_{i=1}^n \log i 
+$$
+but this turns out to be quite slow. Here is a better solution: we will make use of **Sterling's formal**:
+
+$$
+\begin{aligned}
+&n! \sim n^ne^{-n}\sqrt{2\pi n} \\
+&\log(n!) \sim n\log(n) - n+\frac12\log(2 \pi n) \\
+\end{aligned}
+$$
+
+say we will need to find $\log(n!)$ for n ranging from 0 to 500, then we can create a lookup table. For small values of $n$ we use the exact formula, then the approximation:
+
+```{r}
+logfac <- 0:500
+names(logfac) <- logfac
+for(n in 0:50) 
+  logfac[n+1] <- log(factorial(n))
+for(n in 51:500) 
+  logfac[n+1] <- n*log(n)-n+0.5*log(2*pi*n) 
+```
+
+and now we can find various values very easy:
+
+```{r}
+logfac[c("2", 5, 30, 301, 30)]
+```
+
+**Exercise**
+
+why did I use 
+
+logfac[c("2", 5, 30, 301, 30)]
+
+and not
+
+logfac[c(2, 5, 30, 301, 30)]

@@ -1,4 +1,5 @@
 ---
+title: R Markdown
 header-includes: \usepackage{color}
 output:
   html_document: default
@@ -21,8 +22,6 @@ library(grid)
 ```
 `r hl()$basefontsize()`
 
-
-#R Markdown
 
 R Markdown is a program for making dynamic documents with R. An R Markdown document is written in *markdown*, an easy-to-write plain text format with the file extension .Rmd. It can contain chunks of embedded R code. It has a number of great features:
 
@@ -47,7 +46,7 @@ output: html_document
 
 This follows a syntax called YAML (also used by other programs). There are other things that can be put here as well, or you can erase all of it.
 
-YAML stands for Yet Another Markup Language. It has become a standard for many computer languages to describe different configurations. For details go to [yaml.org](yaml.org)
+YAML stands for Yet Another Markup Language. It has become a standard for many computer languages to describe different configurations. For details go to [yaml.org](http://yaml.org)
 
 Then there is other stuff you should erase. Next File > Save. Give the document a name with the extension .Rmd
 
@@ -55,7 +54,11 @@ I have a number of things that I need in (almost) all of my Rmd files, and I am 
 
 ###Basic R Markdown Syntax
 
-for a list of the basic syntax go to [https://rmarkdown.rstudio.com/articles_intro.html](https://rmarkdown.rstudio.com/articles_intro.html)
+for a list of the basic syntax go to [https://rmarkdown.rstudio.com/articles_intro.html](https://rmarkdown.rstudio.com/articles_intro.html) or to 
+[https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet)
+
+
+- 
 
 ###Embedded Code
 

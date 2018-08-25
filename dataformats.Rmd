@@ -1,4 +1,5 @@
 ---
+title: Data Formats - Vectors, Matrices, Arrays, Data frames and Lists
 header-includes: \usepackage{color}
 output:
   html_document: default
@@ -22,9 +23,7 @@ library(grid)
 ```
 `r hl()$basefontsize()`
 
-#Data Formats: Vectors, Matrices, Arrays, Dataframes and Lists
-
-##Vectors
+#Vectors
 
 here are some useful commands for vectors:
 
@@ -38,7 +37,7 @@ x
 
 If we have several vectors of the same type and length which belong together we can put them in a 
 
-##Matrix
+#Matrix
 
 ```{r}
 x <- c(1, 2, 3, 4, 5, 6)
@@ -104,6 +103,9 @@ dim(x) <- c(2, 3)
 x
 ```
 
+Why does this work? dim is an attribute of an object, by changing this attribute we are changing the object.
+
+`r hl()$vspace()`
 
 What happens if we try to make a matrix out of a vector that doesn't have the right number of entries?
 
@@ -117,11 +119,11 @@ not surprisingly it just uses the elements needed.
 matrix(1:3, 2, 2)
 ```
 
-In this case R just starts all over again. This is called *recycling*.
+In this case R just starts all over again. This behaviour is called *recycling* (in computer sciecne, not just R)
 
-In either case R gives a warning.
+In either case R gives a warning. Except in rare cases you should try to avoid these things, they are usually the consequence of bad programming.
 
-##Arrays
+#Arrays
 
 an array is a k-dimensional matrix. For example
 
@@ -139,7 +141,7 @@ table(x,y,z)
 ```
 
 
-##Dataframe
+#Data Frames
 
 sometimes we have several vectors of the same length but of different types, then we can put them together as a data frame:
 
@@ -151,7 +153,11 @@ xyz <- data.frame(x, y, z)
 xyz
 ```
 
-the same commands as for matrices work for data frames as well:
+This type of data is very common in Statistics, and data frames have been the standard data type from its beginning. In general when you get data from a source like the internet it will be as a data frame.
+
+`r hl()$vspace()`
+
+The same commands as for matrices work for data frames as well:
 
 ```{r}
 dim(xyz)
@@ -163,9 +169,54 @@ colnames(xyz)
 rownames(xyz)
 ```
 
+Say we want to add another column (variable) to the data frame:
+
+```{r}
+xyz[[4]] <- (1:6)^2
+colnames(xyz)[4] <- "squares"
+xyz
+```
+
+If we want to get rid of a column:
+
+```{r}
+xyz[[4]] <- NULL
+```
+
+
+There is a strange default behaviour of data frames: they turn strings into factors:
+
+```{r echo=FALSE}
+options(stringsAsFactors = TRUE)
+```
+
+```{r}
+df <- data.frame(x=1:5, y=letters[1:5])
+str(df)
+```
+
+You can prevent this from happening, though:
+
+```{r}
+df <- data.frame(x = 1:5, 
+                 y = letters[1:5],
+                 stringsAsFactors = FALSE)
+str(df)
+```
+
+In fact, this is what I want to happen almost all the time. So I change that option globally whenever I run R or RStudio. I will show you how to do that at some point.
+
+If a data frame is all of the same type we can use *as.matrix* to turn it into a matrix.
+
+**Exercise**
+
+what does as.matrix() do when it is applied to a data frame with columns of different types?
+
+`r hl()$hr()`
+
 Finally, if the vectors aren't even of the same lengths we have
 
-##Lists
+#Lists
 
 ```{r}
 x <- c(1, 2, 3, 4, 5, 6)
@@ -183,4 +234,61 @@ names(xyz) <- c("Count", "Letter", "Married?")
 xyz
 ```
 
+Often we want to use a list inside a function to record various values. So we need to create an "empty" list of a certain length:
 
+```{r}
+x <- as.list(1:3)
+x
+```
+
+and if we run out of space:
+
+```{r}
+x[[4]] <- "a"
+x
+```
+
+Anything can be an element of a list:
+
+**Example**
+
+In Statistics we often have data of the form $(x, y)$ and we want to find a *linear model*. For example consider the data on *wine consumption and life expectancy*:
+
+```{r}
+kable(wine)
+attach(wine)
+plot(Wine.Consumption, Heart.Disease.Deaths,
+      xlab = "Wine Consumption",
+      ylab = "Heart Disease per 100000")
+```
+
+**Note** The data set wine and the routine splot are part of a large collection of data sets and routines that I use in many of my courses. You can download the file at [http://academic.uprm.edu/wrolke/Resma3/Resma3.RData](http://academic.uprm.edu/wrolke/Resma3/Resma3.RData). 
+
+Let's say we want to fit a linear model:
+
+```{r}
+fit <- lm(Heart.Disease.Deaths~Wine.Consumption)
+plot(Wine.Consumption, Heart.Disease.Deaths,
+      xlab = "Wine Consumption",
+      ylab = "Heart Disease per 100000")
+abline(fit)
+```
+
+Let's say we want to save the data and the fit for future use:
+
+```{r}
+wine.all <- list(data=wine, fit=fit)
+length(wine.all)
+```
+
+data frames are lists, with the additional requirement that each column has the same length. But a "column" need not be what you think:
+
+```{r}
+z <- list(fit, fit, fit)
+length(z)
+df <- data.frame(x=1:3, y=letters[1:3])
+df$z <- z
+dim(df)
+```
+
+This works, but I don't recommend it. A list is likely a better option here.
