@@ -1,9 +1,10 @@
 ---
+title: Character Manipulation
 header-includes: \usepackage{color}
 output:
+  html_document: default
   pdf_document:
     fig_caption: no
-  html_document: default
 ---
 
 <style>
@@ -23,13 +24,11 @@ library(grid)
 `r hl()$basefontsize()`
 
 
-#Character Manipulation
-
 ```{r echo=FALSE}
 library(stringr)
 ```
 
-working with character strings is one of the most common tasks in R. In this section we discuss some of the routines we have for that.
+Working with character strings is one of the most common tasks in R. In this section we discuss some of the routines we have for that.
 
 Character strings can use single or double quotes:
 
@@ -45,10 +44,11 @@ library(Hmisc)
 Cs(Joe, Jack, Ann, Laura)
 ```
 
+`r hl()$hr()`
 
-Let's say we have a vector with the names of the states in the USA (plus DC and PR)
+*Resma3* has the data set *agesexUS*, which has the breakdown of the US population by gender and age according to the 2000 US Census. We are going to work with the names of the states (plus DC and PR) for a bit:
 
-```{r, echo=2}
+```{r}
 states <- agesexUS$State
 head(states)
 ```
@@ -56,7 +56,7 @@ head(states)
 to find out how long a string is use
 
 ```{r}
-nchar(states)[1:4]
+nchar(states)[1:6]
 ```
 
 What state has the longest name?
@@ -68,26 +68,28 @@ states[which(nchar(states) == max(nchar(states)))]
 Say we want to shorten the strings to just the first three letters:
 
 ```{r}
-substring(states, first=1, last=3)[1:4]
+substring(states, first=1, last=3)[1:6]
 ```
 
 Now, though, several of the strings are the same ("Ala"). If that is a problem use
 
 ```{r}
-abbreviate(states)[1:4]
+abbreviate(states)[1:6]
 ```
 
 this routine figures out what the length of the shortest string is that makes all of them unique (here 4). We can make it a little longer if we want:
 
 
 ```{r}
-abbreviate(states, minlength = 6)[1:4]
+abbreviate(states, minlength = 6)[1:6]
 ```
 
 Say we want the last 3 letters of the states names:
 
 ```{r}
-substring(states, first=nchar(states)-2, last=nchar(states))[1:4]
+substring(states, 
+          first = nchar(states)-2,
+          last = nchar(states))[1:6]
 ```
 
 Let's say we want all the states whose name starts with P:
@@ -102,7 +104,7 @@ tells us those are the states at position 39 and 52, so now
 states[grep("P", states)]
 ```
 
-or
+or directly:
 
 ```{r}
 grep("P", states, value = TRUE)
@@ -161,15 +163,27 @@ sub("a", "A", c("abba"))
 gsub("a", "A", c("abba"))
 ```
 
-`r hl()$vspace()`
+**Exercise**
+
+The *Resma3* data set *worldpopulation* has some info on the population sizes of 227 countries. 
+
+How many names of countries end with "o"? 
+
+```{r, eval=FALSE, echo=FALSE}
+co <- worldpopulation$Country
+co[endsWith(co, "o")]
+```
+
+`r hl()$hr()`
 
 Let’s ask the following question: what is the distribution of the vowels in the names of the states?  For instance, let’s start with the number of a’s in each name.  There’s a very useful function for this purpose: *gregexpr*.  
 
 We can use it to get the number of times that a searched pattern is found in a character vector.  When there is no match, we get a value -1.
 
 ```{r}
-positions_a <- gregexpr(pattern = "a", text = states, 
-                      ignore.case = TRUE)
+positions_a <- gregexpr(pattern = "a", 
+                        text = states, 
+                        ignore.case = TRUE)
 positions_a[[1]]
 ```
 
@@ -177,8 +191,13 @@ tells us that in "Alabama" there are a's in positions 1, 3, 5 and 7.
 
 Now we need to go through all the states names and find out how many a's there are in each. Here is a fast way to do this, using one of the *apply* functions:
 
+
 ```{r}
-num_a <- sapply(positions_a, function(x) ifelse(x[1] > 0, length(x), 0))
+f <- function(x) {
+  ifelse(x[1] > 0, length(x), 0)
+#if there is no a, x is -1, so we get 0  
+}
+num_a <- sapply(positions_a, f)
 num_a
 ```
 
@@ -191,15 +210,14 @@ names(num_vowels) <- vowels
 for(i in seq_along(vowels)) {
   positions <- gregexpr(pattern = vowels[i], 
           text = states, ignore.case = TRUE)
-  num_vowels[i] <- sum(sapply(positions, 
-     function(x) ifelse(x[1] > 0, length(x), 0)))
+  num_vowels[i] <- sum(sapply(positions, f))
 }
 num_vowels
 ```
 
 `r hl()$hr()`
 
-###paste
+#paste
 
 One of the most useful commands in R is *paste*. It let's us put together various parts as a string:
 
@@ -220,6 +238,19 @@ paste0("a", 1:3, collapse="")
 paste0("a", 1:3, collapse="-")
 ```
 
+**Exercise**
+
+Let's say we have a vector x of numbers and we want to display them as a row in an html table. Write a single command that creates the needed html code
+
+```{r, eval=FALSE, echo=FALSE}
+x <- 1:5
+paste0("<tr>", 
+       paste0("<td>", x, "</td>", collapse = ""),
+       "<tr>")
+```
+
+`r hl()$hr()`
+
 paste "combines" stuff into a string. Sometimes we want to do the opposite:
 
 ```{r}
@@ -233,7 +264,7 @@ notice that the result is a list, so often we use
 unlist(strsplit(txt, " "))
 ```
  
-##Regular Expressions
+#Regular Expressions
 
 A *regular expression* (a.k.a. regex) is a special text string for describing a certain amount of text.  This “certain amount of text” receives the formal name of pattern.  Hence we say that a regular expression is a pattern that describes a set of strings. 
 
@@ -306,7 +337,7 @@ POSIX  character classes. In R, POSIX character classes are represented with exp
 [[:punct:]] Punctuation characters:  !  ” # % & ’ ( ) * + , - .  / :  ;  
 [[:space:]] Space characters:  tab, newline, vertical tab, form feed,
 carriage return, and space  
-[[:xdigit:]] Hexadecimal digits:  0-9 A B C D E F a b c d e f  
+[[:digit:]] Hexadecimal digits:  0-9 A B C D E F a b c d e f  
 [[:print:]] Printable characters ([[:alpha:]], [[:punct:]] and space)
 [[:graph:]] Graphical characters ([[:alpha:]] and [[:punct:]])
 
@@ -317,9 +348,9 @@ as.numeric(txt[grepl("[[:digit:]]", txt)])
 ```
 
 
-##Some Examples
+#Some Examples
 
-###Palindrome
+##Palindrome
 
 a *palindrome* is a word that is the same when read forwards or backwards. Some examples are noon, civic, radar, level, rotor, kayak, reviver, racecar, redder, madam, and refer. Let's write a sequence of commands that take a sentence and return any palindromes. As an example, consider
 

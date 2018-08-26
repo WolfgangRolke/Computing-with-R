@@ -1,4 +1,5 @@
 ---
+title: Object-Oriented Programming
 header-includes: \usepackage{color}
 output:
   html_document: default
@@ -20,7 +21,7 @@ require(grid)
 ```
 `r hl()$basefontsize()`
 
-#Object-Oriented Programming
+
 
 Like C++ and just about every other modern programming language R is *object oriented*. This is huge topic and we will only discuss the basic ideas. It is also only worth while (and in fact absolutely necessary) when writing large programs, at least several 100 lines.
 
@@ -34,7 +35,7 @@ a <- density(x)
 plot(a)
 ```
 
-so also we call the same command (plot) we get different graphs, one of the empirical distribution function and the other a non-parametric density estimate.
+so although we call the same command (plot) we get different graphs, one of the empirical distribution function and the other a non-parametric density estimate.
 
 But how does R know what to do in either case? The reason is that each object has a class property:
 
@@ -45,13 +46,14 @@ a <- density(x)
 class(a)
 ```
 
-There are also many different plot functions (or methods)
+so when *plot* starts to run it examines the class property of the argument and does the corresponding graph.
+
+There are many different plot functions (or *methods*)
 
 ```{r}
 methods(plot)
 ```
 
-so what happens is that when we call plot with some object R examines its class property, and the picks the specific plot method that corresponds to it. 
 
 R actually has three different ways to use object-oriented programming, called S3, S4 and RC. We won't go into the details and which of them is more useful under what circumstances. In the following examples we use S3, which is the easiest to use but also usually sufficient.
 
@@ -60,7 +62,7 @@ Say we work for a store. At the end of each day we want to create a short report
 -  gives the number of sales, their mean and standard deviation for each salesperson.  
 -  does a boxplot of the sales, grouped by salesperson
 
-Say the data is in a dataframe where the first column is the amount of a sale and the second column identifies the salesperson. So it might look like this:
+Say the data is in a data frame where the first column is the amount of a sale and the second column identifies the salesperson. So it might look like this:
 
 ```{r echo=FALSE}
 x <- round(rchisq(40, 4)*10, 2)
@@ -123,6 +125,7 @@ and now we can run
 
 ```{r}
 sales.data <- as.sales(sales.data)
+#assign class sales to data frame
 stats(sales.data)
 plot(sales.data)
 ```
@@ -166,5 +169,4 @@ generally every class has at least three methods:
 -  print  
 -  summary (stats)  
 -  plot
-
 

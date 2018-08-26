@@ -1,9 +1,10 @@
 ---
+title: Writing Functions
 header-includes: \usepackage{color}
 output:
+  html_document: default
   pdf_document:
     fig_caption: no
-  html_document: default
 ---
 
 <style>
@@ -20,7 +21,6 @@ require(grid)
 ```
 `r hl()$basefontsize()`
 
-#Writing your own functions
 
 R has several ways to write your own function:
 
@@ -30,7 +30,7 @@ name <- function(variables) {
 
 }
 
-change the name, save the file as myfun.R with File > Save. Now type in the code. When done click the Source button. 
+change the name to (just as an example) myfun, save the file as myfun.R with File > Save. Now type in the code. When done click the Source button. 
 
 -  fix: In the R console run 
 
@@ -47,7 +47,7 @@ myfun <- edit()
 -  Open any code editor outside of RStudio, type in the code, save it as myfun.R, go to the console and run 
 
 ```{r eval=FALSE}
-source('R/myfun.R')
+source('../some.folder/myfun.R')
 ```
 
 Which of these is best? In large part that depends on your preferences. In my case, if I expect to need that function just for a bit I use the fix option. If I expect to need that function again later I start with the first method, but likely soon open the .R file outside RStudio because I can move that window around onto a second monitor.
@@ -59,11 +59,174 @@ There are some useful keyboard shortcuts here. If the curser is on some line in 
 -  CTRL-Shift-Enter run complete chunk 
 -  CTRL-Shift-P rerun previous
 
-##Basic programmming structures in R
+#Functions in R
+
+##Arguments
+
+There are several ways to specify arguments in a function:
+
+```{r}
+calc.power <- function(x, y, n=2)
+  x * y^n
+calc.power(2, 3)
+calc.power(2, 3, n=3)
+calc.power(y=2, x=3)
+calc.power(n=3, 2, 3)
+```
+
+if the arguments are not named they are matched in order.
+
+R does partial matching of arguments:
+
+```{r}
+f <- function(first, second) {
+  first + second
+}
+f(fi=1, s=3)
+```
+
+but this is not a good programming style.
+
+Default arguments can be defined in terms of others:
+
+```{r}
+f <- function(first, second=2*first) {
+  first + second
+}
+f(1)
+```
+
+If an argument does not have a default it can be tested for 
+
+```{r}
+f <- function(first, second) {
+  if(!missing(second))
+      out <- first + second
+  else out <- first
+  out
+}
+f(1)
+f(1, s=3)
+```
+
+
+##Lazy Evaluation
+
+R uses a concept called *lazy evaluation*. This means that an argument is not evaluated until it is used:
+
+```{r error=TRUE}
+f <- function(first, second) {
+  if(first<10)
+    out <- first
+  else
+    out <- first + second
+  out
+}
+f(5, "A")
+f(11, "A")
+```
+
+This can be a source of a computer bug. One can over ride this behaviour with the *force* command:
+
+```{r error=TRUE}
+f <- function(first, second) {
+  force(first+second)
+  if(first<10)
+    out <- first
+  else
+    out <- first + second
+  out
+}
+f(5, "A")
+```
+
+There is a special argument ..., used to pass arguments on to other functions:
+
+```{r}
+f <- function(x, which, ...) {
+  f1 <- function(x, mult) mult*x 
+  f2 <- function(x, pow) x^pow
+  if(which==1)
+    out <- f1(x, ...)
+  else
+    out <- f2(x, ...)
+  out
+}
+f(1:3, 1, mult=2)
+f(1:3, 2, pow=3)
+```
+
+This is one of the most useful programming structures in R!
+
+##Return Values
+
+A function can either return nothing or exactly one thing. It will automatically return the last object evaluated:
+
+```{r}
+f <- function(x) {
+  x^2
+}
+f(1:3)
+```
+
+There is an explicit way to specify what is returned:
+
+```{r}
+f <- function(x) {
+  return(x^2)
+}
+f(1:3)
+```
+
+but this is usually used to return something early:
+
+```{r}
+f <- function(x) {
+  if(!any(is.numeric(x)))
+    return("Works only for numeric!")
+  sum(x^2)
+}
+f(1:3)
+f(letters[1:3])
+```
+
+If you want to return more than one item use a list:
+
+```{r}
+f <- function(x) {
+  sq <- x^2
+  sm <- sum(x)
+  list(sq=sq, sum=sm)
+}
+f(1:3)
+```
+
+##*on.exit*
+
+*on.exit* is a function that you use inside a function and that gets called and executed whenever the function terminates.
+
+The advantage of on.exit is that is gets called when the function exits, regardless of whether an error was thrown. This means that its main use is for cleaning up after risky behaviour. Risky, in this context, usually means accessing resources outside of R (that consequently cannot be guaranteed to work). 
+
+Common examples include connecting to databases or file (where the connection must be closed when you are finished, even if there was an error), or saving a plot to a file (where the graphics device must be closed afterwards)
+
+**Exercise**
+
+What does this function return?
+
+```{r eval=FALSE}
+f <- function(x=y) {
+  y <- 10
+  x
+}
+f()
+```
+
+
+#Basic Programmming Structures in R
 
 R has all the standard programming features:
 
-###Conditionals if-else
+##Conditionals if-else
 
 ```{r}
 f <- function(x) {
@@ -98,11 +261,28 @@ x
 ifelse(x<5, "Yes", "No")
 ```
 
-###Loops
+**Exercise** 
+
+What is the difference between these two functions:
+
+```{r eval=FALSE}
+f1 <- function(x) {
+  if(x<10) return(0)
+  x
+}
+f2 <- function(x) {
+  ifelse(x<10, 0, x)
+}
+f1(1:20)
+f2(1:20)
+```
+
+
+##Loops
 
 there are three standard loops in R:
 
-####for loop
+###for loop
 
 ```{r}
 y <- vector("integer", 10)
@@ -127,7 +307,7 @@ for(i in seq_along(y)) {
 y
 ```
 
-####while loop
+###while loop
 
 this is useful if we don't know how often the loop needs to run.
 
@@ -143,7 +323,7 @@ while (length(table(x))!=1) {
 k
 ```
 
-####repeat loop
+###repeat loop
 
 similar to while loop, except that check is done at the end
 
@@ -172,7 +352,7 @@ k
 ```
 
 
-##Some general advice on computer programming
+#Some General Advice on Computer Programming
 
 -  Start small
 
@@ -192,7 +372,7 @@ If your program gets too big, break it up into several smaller self-contained pr
 
 write lots of comments. This is not only so that someone else can understand your program, but so that your future-self can as well!
 
-##Finding Errors, Debugging
+#Finding Errors, Debugging
 
 There are essentially two type of errors:
 
@@ -207,7 +387,7 @@ Finding a run-time error can be very time consuming. Here are some simple things
 
 -  add print statements 
 
-In order to find out where in the execution a problem occurs you might add a print statement in a few places. Sometime that should print out some values of interest, some times it might just be  print("A")  print("B") etc.
+In order to find out where in the execution a problem occurs you might add a print statement in a few places. Sometime that should print out some values of interest, sometimes it might just be  print("A")  print("B") etc. so you can pi-point where the program crashes.
 
 -  when an error occurs depending on a random number, use set.seed so it will always occur at the same spot:
 
@@ -217,7 +397,7 @@ set.seed(1111)
 
 -  R has some routines to help with debugging, such traceback, debug and browser. For some explanations of these read [https://support.rstudio.com/hc/en-us/articles/205612627-Debugging-with-RStudio](https://support.rstudio.com/hc/en-us/articles/205612627-Debugging-with-RStudio)
 
-##Functional Programming
+#Functional Programming
 
 In R everything is an object, and objects can be passed to and returned from functions. This includes functions!
 
@@ -251,7 +431,7 @@ centre.alt1(x, function(x) {mean(x, trim = 0.1)})
 
 Notice that here the function we created doesn't have a name. It is called an *anonymous* function.
 
-There is another way to pass an argument on to a function, the ... syntax:
+Or we can use the ... syntax:
 
 ```{r}
 centre.alt2 <- function(x, fun, ...) {
@@ -285,7 +465,7 @@ c(centre.alt4()$Mean(x), centre.alt4()$Median(x),
   centre.alt4()$Trimmed(x))
 ```
 
-###Turning a string into a function.
+#Turning a String into a Function.
 
 Let's say we want to write a function that reads some text from a file. The text is actually the name of an R function, and we want to execute that function. We can use the following (very famous or infamous!) construct:
 
@@ -296,7 +476,7 @@ x <- 0.5
 c(exp(-x^2), fun(x))
 ```
 
-###Computing on the Language
+#Computing on the Language
 
 Consider this example:
 
@@ -383,6 +563,34 @@ mycurve(x^par1*sin(par2*pi*x), par1=2, par2=4)
 mycurve(dnorm(x, par1, par2), A=0, B=20, par1=10, par2=3)
 ```
 
+Consider this:
+
+```{r}
+predictor <- 1:10
+response <- 20 + predictor + rnorm(10, 0, 1)
+plot(predictor, response)
+fit <- lm(response~predictor)
+abline(fit)
+summary(fit)
+```
+
+Notice the first part of the printout, Call. This is what we typed into R, but how does R know that? It uses the function *match.call*:
+
+```{r}
+f <- function(x, y, z) {
+  cl <- match.call()
+  print(cl)
+  x+y+z
+}
+f(1, 2, 3)
+```
+
+and it even adds names of the arguments!
+
+This can be used in a number of ways, for example again as text in graphs, to show how something was done. Another common usage is in *update* functions, which can take then build on the already run function.
+
+#Unusual Functions
+
 ##Infix functions
 
 In R every object is either a data set or a function. As a general principle, if it does something it is a function. This is true even for  things that don't look that way, for example the addition operation *+*:
@@ -402,7 +610,126 @@ Because these types of functions are sitting between their arguments they are ca
 
 Because they are functions we can write our own. User-written prefix functions always have to start and end with %. 
 
-###Case Study: Binary Arithmetic
+**Exercise** 
+
+We already encountered one such infix function. What was it?
+
+**Example**
+
+```{r}
+`%pow%` <- function(x, y) x^y
+c(2, 2, 3, 3) %pow% c(2, 3, 2, 3)
+```
+
+Writing an infix function makes the most sense if it some basic arithmatic operation, where the format 
+
+x operator y
+
+is sensible.
+
+**Exercise**
+
+Write a "is much greater than" infix function, where much greater is defined as at least twice as large.
+
+```{r echo=FALSE}
+`%>mg%` <- function(x, y) ifelse(x>2*y, TRUE, FALSE)
+ 1:10 %>mg% 3
+```
+
+
+##Replacement Functions
+
+Consider the following code:
+
+```{r}
+x <- 1:3
+names(x) <- letters[1:3]
+```
+
+Nothing strange here, right? Except, look at it again: we are assining values ("a", ..) to a function call! (names(x)). How is this possible?
+
+The above code is is actually short for this one:
+
+```{r}
+x <- "names<-"(x, value=letters[1:3])
+```
+
+and yes, the <- needs to be inside the quotes.
+
+In general functions never change the objects outside of them
+
+```{r}
+x
+f <- function(x) {
+  x <- "A"
+  x
+}
+f(x)
+x
+```
+
+
+This function (names) however does just that, it changes the names of x. This type of function is called a *replacement function*. 
+
+We can actually write our own:
+
+**Example**
+
+Let's write a function that changes the order of the objects, maybe reverses it:
+
+```{r}
+`change.order<-` <- 
+  function(x, value) {
+    x <- x[value]
+    x
+  }
+x <- letters[1:5]
+x
+change.order(x) <- c(2, 4, 3, 1, 5)
+x
+```
+
+
+**Exercise**
+
+Write a replacement function that adds n NA's to a vector
+
+```{r, echo=FALSE, eval=FALSE}
+`add.n<-` <- 
+  function(x, value) {
+    x <- c(x, rep(NA, value))
+    x
+  }
+x <- 1:5
+add.n(x) <- 3
+x
+```
+
+##Other Special Functions
+
+We said before that in R everything that does something is a function. So how about
+
+```{r}
+x <- 1:5
+x[2] <- 7
+```
+
+[ ] does something (it replaces an element), so it must be a function. In fact we could write it as such:
+
+```{r}
+`[`(x, 1) <- 9
+x
+```
+
+There are many other such special purpose functions in R:
+
+```{r}
+`for`
+```
+
+
+
+#Case Study: Binary Arithmetic
 
 In our everyday world we use 10 digits to express numbers, a system called decimal. There is however nothing special about 10 (except that we have 10 fingers and toes!) In fact, computers only use 2 digits, 0 and 1 (or electricity is on and off), a system called binary. Every decimal number has an equivalent binary number, and one can do arithmetic in either system. 
 

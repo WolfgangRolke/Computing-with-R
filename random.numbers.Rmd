@@ -1,4 +1,5 @@
 ---
+title: Generating Random Variates
 header-includes: \usepackage{color}
 output:
   html_document: default
@@ -22,9 +23,7 @@ library(grid)
 ```
 `r hl()$basefontsize()`
 
-#Generate Random Variates
-
-##Random Numbers
+#Random Numbers
 
 Everything starts with generating X~1~, X~2~, .. iid U[0,1]. These are simply called random numbers. There are some ways to get these:
 
@@ -71,15 +70,38 @@ sample(1:10)
 if we want to allow repetitions we can do this as well. Also, we can give the (relative) probabilities:
 
 ```{r}
-table(sample(1:5, size=1000, replace=TRUE, 
-      prob=c(1, 2, 3, 2, 1)))
+table(sample(1:5, size=1000, 
+      replace=TRUE, prob=c(1, 2, 3, 2, 1)))
 ```
 
 Notice that the probabilities need not be normalized (aka add up to 1)
 
+**Exercise**
+
+How can we randomly select 20 rows of the **upr** data set?
+
+**Exercise**
+
+A very useful technic in Statistics is called the *Bootstrap*. To use it one needs to find (many) Bootstrap samples. These are observations from the original data set, chosen at random and with repetition, as many as the original data set had. For example if the data is
+
+```{r echo=FALSE}
+x <- sort(round(runif(10, 0, 50)))
+x
+```
+
+Bootstrap samples might be
+
+```{r echo=FALSE}
+sort(sample(x, size=10, replace = TRUE))
+sort(sample(x, size=10, replace = TRUE))
+sort(sample(x, size=10, replace = TRUE))
+```
+
+How can we find Bootstrap samples of the **upr** data set?
+
 ##Standard Probability Distributions
 
-many standard distributions are part of base R. For each the format is
+Not surprisingly many standard distributions are part of base R. For each the format is
 
 -  dname = density  
 -  pname = cumulative distribution function  
@@ -89,9 +111,13 @@ many standard distributions are part of base R. For each the format is
 ####Example:  Poisson distribution
 
 ```{r}
+#density
 dpois(c(0, 8, 12, 20), lambda=10)
+#cumulative distribution function
 ppois(c(0, 8, 12, 20), 10)
+#random generation
 rpois(5, 10)
+#quantiles
 qpois(1:4/5, 10)
 ```
 
@@ -131,7 +157,13 @@ Here is a list of the distributions included with base R:
 
 -  Weibull distribution: dweibull. 
 
-With some of these a bit of caution is needed. For example, the usual textbook definition of the geometric random variable is as the number of tries in a sequence of independent Bernoulli trials until a success. This means that the density is defined as
+**Exercise**
+
+Generate 10000 variates from a Binomial distribution with n=10, p=0.25 and compare the relative frequencies with the theoretical probabilities.
+
+`r hl()$hr()`
+
+With some of these a bit of caution is needed. For example, the usual textbook definition of the geometric random variable is the number of tries in a sequence of independent Bernoulli trials until a success. This means that the density is defined as
 
 $$
 P(X=x)=p(1-p)^{x-1}\text{, }x=1,2,..
@@ -179,7 +211,7 @@ dgamma(1.2, 0.5, 1/(1/2))
 ```
 
 
-##Other Variates
+#Other Variates
 
 if you need to generate  random variates from a distribution that is not part of base R you should first try to find a package that includes it.
 
@@ -189,10 +221,23 @@ there are actually several packages, the most commonly used one is *mvtnorm*
 
 ```{r}
 library(mvtnorm)
-x <- rmvnorm(1000, mean=c(0, 1), sigma=matrix(c(1, 0.8, 0.8, 2), 2, 2))
+x <- rmvnorm(1000, 
+             mean=c(0, 1), 
+             sigma=matrix(c(1, 0.8, 0.8, 2), 2, 2))
 plot(x)
 cor(x)[1, 2]
 ```
+
+sigma is the variance-covariance matrix, so in the above we have
+
+$$
+\begin{aligned}
+&\rho  = \textit{Cor}(X, Y) =\\
+&\frac{\textit{Cov}(X, Y)}{\sqrt{\textit{Var}(X)\textit{Var}(Y)}}    = \\
+&\frac{0.8}{\sqrt{1*2}}    = 0.566\\
+\end{aligned}
+$$
+`r hl()$hr()`
 
 If you can't find a package you have to write your own! Here is a simple routine that will generate random variates from any function *fun* (given as a character vector) in one dimension on a finite interval [A, B]:
 
@@ -218,7 +263,10 @@ Let's try it out:
 ```{r}
 y <- r.pit(1000, "x^2", 0, 1)
 hist(y, 50, freq=FALSE, main="")
-curve(3*x^2, 0, 1, add=TRUE)
+curve(3*x^2, 0, 1, 
+      col="blue",
+      lwd=2,
+      add=TRUE)
 ```
 
 notice that the function doesn't even have to be normalized!
@@ -241,10 +289,22 @@ but this is not a trivial integral, so we need to use a numerical method:
 ```{r}
 x <- seq(0, 1, length=250)
 f <- x*sin(2*pi*x)^2
-I <- sum( (f[-1]+f[-250])/2 *(x[-1]-x[-250])) #Riemann sum
+I <- sum( (f[-1]+f[-250])/2 *(x[-1]-x[-250])) 
+#Riemann sum
 hist(y, 50, freq=FALSE, main="")
-curve(x*sin(2*pi*x)^2/I, 0, 1, add=TRUE)
+curve(x*sin(2*pi*x)^2/I, 0, 1,
+      col="blue",
+      lwd=2,
+      add=TRUE)
 ```
+
+**Exercise**
+
+generate 1000 variates from a Beta (0.5, 3) distribution, draw the histogram with 50 bins and add the density curve.
+
+Hint: here you don't need **r.pit**
+
+`r hl()$hr())`
 
 
 Want to learn how to generate data from any random vector? Come to my course ESMA5015 Simulation!
