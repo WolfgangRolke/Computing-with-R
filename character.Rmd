@@ -169,11 +169,6 @@ The *Resma3* data set *worldpopulation* has some info on the population sizes of
 
 How many names of countries end with "o"? 
 
-```{r, eval=FALSE, echo=FALSE}
-co <- worldpopulation$Country
-co[endsWith(co, "o")]
-```
-
 `r hl()$hr()`
 
 Let’s ask the following question: what is the distribution of the vowels in the names of the states?  For instance, let’s start with the number of a’s in each name.  There’s a very useful function for this purpose: *gregexpr*.  

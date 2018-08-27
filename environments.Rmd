@@ -1,4 +1,5 @@
 ---
+title: Environments, Libraries
 header-includes: \usepackage{color}
 output:
   html_document: default
@@ -20,10 +21,7 @@ library(grid)
 ```
 `r hl()$basefontsize()`
 
-
-#Environments, Libraries
-
-##Environments
+#Environments
 
 WARNING: In what follows I will only discuss a FEW of the issues involved with environments, and I will simplify them greatly. For a much more detailed discussion see [http://adv-r.had.co.nz/Environments.html](http://adv-r.had.co.nz/Environments.html).
 

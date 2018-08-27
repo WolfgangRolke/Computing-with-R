@@ -1,0 +1,312 @@
+---
+title: Answers to Exercises
+header-includes: \usepackage{color}
+output:
+  html_document: default
+  pdf_document:
+    fig_caption: no
+---
+<style>
+table, th, td { text-align:right; }
+th, td {padding: 10px;}
+</style>
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+whichcomp <- strsplit(getwd(),"/")[[1]][3]
+load(paste0("c:/users/", whichcomp, "/Dropbox/teaching/Resma3/Resma3.RData"))
+library(knitr)
+opts_chunk$set(fig.width=6, fig.align = "center", 
+      out.width = "70%", warning=FALSE, message=FALSE)
+library(ggplot2)
+library(grid)
+```
+`r hl()$basefontsize()`
+
+##2.1 Data Types
+
+What is the result of 
+
+```{r eval=FALSE}
+c(1, FALSE)
+c("A", FALSE)
+c(1L, FALSE)
+-1 < FALSE
+1 == "1"
+```
+
+```{r}
+ltrs <-  c("a", "b", "b", "c", "c", "c")
+f1 <- factor(ltrs)
+f1
+levels(f1) <- c("c", "b", "a")
+f1
+```
+
+#2.2 Data Formats
+
+what does as.matrix() do when it is applied to a data frame with columns of different types?
+
+```{r}
+df <- data.frame(x=1:3, y=letters[1:3])
+as.matrix(df)
+```
+
+the usual type conversion
+
+#2.3 Generate Vectors
+
+
+What does this do?
+
+```{r}
+rep(1:10, 10:1)
+```
+
+What (if anything) does this do?
+
+```{r}
+(1:3 %o% 1:3) %o% 1:2
+```
+
+#2.4 Subsetting
+
+What does this do?
+
+```{r}
+x <- 1:10
+x[]
+```
+
+Nothing!
+
+
+The data set *upr* (part of *Resma3.RData*) has the application information provided to the University of all students that were eventually accepted between 2003 and 2013. Here are the first three students:
+
+```{r}
+head(upr, 3)
+```
+
+How many female students applied in either 2010 or 2011, had a highschool GPA of at least 3.0 and a freshman GPA between 3.0 and 3.5?
+
+```{r}
+df <- upr[upr$Gender=="F", ]
+df <- df[df$Year>=2010 & df$Year<=2011, ]
+df <- df[df$Highschool.GPA>=3.0, ]
+df <- df[df$Freshmen.GPA>=3.0 & df$Freshmen.GPA<=3.5, ]
+df <- df[df$Class.Facultad!="INGE", ]
+df[sample(1:nrow(df), size=10), 
+   c("Gender", "Year", "Highschool.GPA",
+     "Freshmen.GPA", "Class.Facultad")]
+nrow(df)
+```
+
+
+why did I use 
+
+logfac[c("2", 5, 30, 301, 30)]
+
+and not
+
+logfac[c(2, 5, 30, 301, 30)]
+
+Vector indexes start at 1, not 0
+
+#2.5 Random Numbers
+
+How can we randomly select 20 rows of the **upr** data set?
+
+```{r}
+upr[sample(1:nrow(upr), size=20), 1:4]
+```
+
+How can we find Bootstrap samples of the **upr** data set?
+
+```{r}
+I <- sample(1:nrow(upr), 
+            size = nrow(upr),
+            replace = TRUE) 
+head(upr[, 1:4])
+```
+
+Generate 10000 variates from a Binomial distribution with n=10, p=0.25 and compare the relative frequencies with the theoretical probabilities.
+
+```{r}
+x <- rbinom(1e4, 10, 0.25)
+x.tbl <- round(as.numeric(table(x))/1e4, 3)
+x.vals <- sort(unique(x))
+x.prob <- round(dbinom(x.vals, 10, 0.25), 3)
+data.frame(x=x.vals, 
+           Simulation=x.tbl, 
+           Theory=x.prob)  
+```
+
+generate 1000 variates from a Beta (0.5, 3) distribution, draw the histogram with 50 bins and add the density curve.
+
+```{r}
+x <- rbeta(1e3, 0.5, 3)
+hist(x, 50, freq=FALSE)
+f <- function(x) dbeta(x, 0.5, 3)
+curve(f, 0, 1, add=TRUE, col="blue")
+```
+
+#2.6 Writing Functions, Programming
+
+What does this function return?
+
+```{r}
+f <- function(x=y) {
+  y <- 10
+  x
+}
+f()
+```
+
+What is the difference between these two functions:
+
+```{r}
+f1 <- function(x) {
+  if(x<10) return(0)
+  x
+}
+f2 <- function(x) {
+  ifelse(x<10, 0, x)
+}
+f1(1:20)
+f2(1:20)
+```
+
+We already encountered one such infix function. What was it?
+
+%o% outere product with *
+
+Write a "is much greater than" infix function, where much greater is defined as at least twice as large.
+
+```{r}
+`%>mg%` <- function(x, y) ifelse(x>2*y, TRUE, FALSE)
+ 1:10 %>mg% 3
+```
+
+Write a replacement function that adds n NA's to a vector
+
+```{r}
+`add.n<-` <- 
+  function(x, value) {
+    x <- c(x, rep(NA, value))
+    x
+  }
+x <- 1:5
+add.n(x) <- 3
+x
+```
+
+#2.7 Object-Oriented Programming
+
+#2.8 Vector Arithmetic, Linear Algebra
+
+#2.9 Character Manipulation
+
+The *Resma3* data set *worldpopulation* has some info on the population sizes of 227 countries. 
+
+How many names of countries end with "o"? 
+
+```{r}
+co <- worldpopulation$Country
+co[endsWith(co, "o")]
+```
+
+Let's say we have a vector x of numbers and we want to display them as a row in an html table. Write a single command that creates the needed html code
+
+```{r}
+x <- 1:5
+paste0("<tr>", 
+       paste0("<td>", x, "</td>", collapse = ""),
+       "<tr>")
+```
+
+#2.10 Data Input/Output, Transfering R Objects
+
+How many a's are there?
+
+```{r, comment="", echo=FALSE}
+x <- sample(letters[1:4], size=150, replace=T)
+cat(x, "\n")
+```
+
+high-light letters, copy-paste, run
+
+```{r eval=FALSE}
+table(scan("clipboard", what="char"))
+```
+
+#2.11 Graphs
+
+#2.12 Model Notation
+
+for the **upr** data what is the coefficient of Highschool.GPA in a model that predicts Freshmen.GPA from Aptitud.Verbal, Aptitud.Matem, Aprov.Ingles and  Highschool.GPA with all second-order interactions except for Highschool.GPA-Aprov.Ingles?
+
+```{r}
+z <- summary(lm(Freshmen.GPA ~ (Aptitud.Verbal + Aptitud.Matem + Aprov.Ingles + Highschool.GPA)^2 - Highschool.GPA:Aprov.Ingles, data=upr))
+z[[4]][5, 1]
+```
+
+#2.13 Numerical Methods
+
+#2.14 Environments, Libraries
+
+#2.15 Customizing R: .First, .Rprofile, Dropbox
+
+#2.16 List of Important base R Commands
+
+#3.1 Graphics with ggplot2
+
+The data set *highways* has the rate of traffic accidents and other information for 39 highways.
+
+Draw this graph:
+
+```{r}
+ggplot(aes(x=len, y=rate), data=highways) +
+  geom_point()
+```
+
+Draw this graph:
+
+```{r}
+ggplot(aes(x=len, y=rate), data=highways) +
+  geom_point() +
+  labs(x = "Length of Highway", 
+       y = "Rate of Accidents") +
+  labs(title = "Rate decreases with length of highway") +
+  geom_smooth(method="lm", se=FALSE)
+```
+
+#3.2 C++ with Rcpp
+
+#3.3 Parallel and gpu Computing
+
+#3.4 Input/Output Revisited
+
+#3.5 The pipe, dplyr, tibbles, tidyverse
+  
+#3.6 Character Manipulation with strngr
+
+#3.7 Dates with lubridate
+
+#3.8 Factors with forcats
+
+#3.9 Iteration with purrr
+
+#3.10 Interactive Apps with shiny
+
+#3.11 Version Control and Collaboration with github
+
+
+#4.1  Estimation
+
+#4.2  The Bootstrap
+
+#4.3  Curve Fitting / Regression
+
+#4.4  Classification
+
+#4.5  Bayesian Analysis
+

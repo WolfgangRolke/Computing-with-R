@@ -1,4 +1,5 @@
 ---
+title: Model Notation
 header-includes: \usepackage{color}
 output:
   html_document: default
@@ -22,8 +23,6 @@ library(grid)
 ```
 `r hl()$basefontsize()`
 
-#Model Notation
-
 A number of R routines (for example boxplot and lm) use the *model* notation *y~x*, which you should read as *y modeled as a function of x*. So for example if we want to find the least squares regression model of y on x we use
 
 ```{r eval=FALSE}
@@ -35,7 +34,7 @@ In standard math notation that means fitting an equation of the form
 $$
 Y = \beta_0 + \beta_1 x + \epsilon
 $$
-Some times one wants to fit a no-intercept model:
+Sometimes one wants to fit a no-intercept model:
 
 $$
 Y = \beta_1 x + \epsilon
@@ -168,3 +167,8 @@ summary(lm(Price ~ (Sqfeet + Feature + Corner +  Tax)^2))
 ```{r}
 summary(lm(Price ~ (Sqfeet + Feature + Corner +  Tax)^4))
 ```
+
+**Exercise**
+
+for the **upr** data what is the coefficient of Highschool.GPA in a model that predicts Freshmen.GPA from Aptitud.Verbal, Aptitud.Matem, Aprov.Ingles and  Highschool.GPA with all second-order interactions except for Highschool.GPA-Aprov.Ingles?
+

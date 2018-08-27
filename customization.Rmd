@@ -1,9 +1,10 @@
 ---
+title: Costumizing R
 header-includes: \usepackage{color}
 output:
+  html_document: default
   pdf_document:
     fig_caption: no
-  html_document: default
 ---
 
 <style>
@@ -22,14 +23,20 @@ library(grid)
 ```
 `r hl()$basefontsize()`
 
-#Costumizing R: .First, .Rprofile, Dropbox
 
-There are quite a few things that one might want to change from the defaults of R. For example, I prefer a certain editor when writing a function, and there are a number of libraries that I will need sooner or later, so I would like to have them loaded. Also, over the years I have written a number of small routines that I use for various tasks, and I want them available at any time. The two routines to set up things the way I want are
+There are quite a few things that one might want to change from the defaults of R. For example, I prefer a certain editor when writing a function, and there are a number of libraries that I will need sooner or later, so I would like to have them loaded. Also, over the years I have written a number of small routines that I use for various tasks, and I want them available at any time. 
+
+The two routines to set up things the way I want are
 
 -  .First, to set up stuff specific to the project I am working on.  
 -  .Rprofile, to set up stuff I need regardless of the current project.
 
-Note that the . in front means that you can't see this object when you run ls().
+Note that the . in front means that you can't see this object when you run ls(). You can however with
+
+```{r eval=FALSE}
+ls(all.names = TRUE)
+```
+
 
 The .First is part of the .RData file whereas the .Rprofile is separate.
 
@@ -37,25 +44,30 @@ When R starts it looks for a file called .Rprofile and executes any commands the
 
 Well, at least that is how it used to be when we were using the command console. For reasons never explained (and much complained about by the users) RStudio ignores the .First file at startup, so we will need to have a work around.
 
-Let's start with a simple. Rprofile. This is a stand-alone file usually loacted in your default working directory. You can find out where it is by running
+Let's start with a simple .Rprofile. This is a stand-alone file usually loacted in your default working directory. You can find out what that is by running
 
 ```{r eval=FALSE}
 dir("~")
 ```
+
+Exactly in what folder the .Rprofile should be in is bit of a mystery, it depends not just on your operating system but even on its version. You might need to do a bit of trial and error!
+
+`r hl()$hr()`
 
 So here is what (part of) mine looks like:
 
 
 options(help_type="html")  #ignored in RStudio
 options(show.signif.stars=FALSE)  #for p-values
-options(stringsAsFactors=FALSE)  #a classic source of errors
+options(stringsAsFactors=FALSE)  #a classic source of errors  
 library(ggplot2)  
-library(wolfr)
+library(wolfr)  #Two of my own
 library(moodler)  
 .MyEnv <- new.env()   
 .MyEnv\$sc <- function() source("clipboard")  
 .MyEnv\$dp <- function(x) { dump(x,"clipboard") }  
-.MyEnv\$ip <- function(x) { #Install and immediately load a package
+.MyEnv\$ip <- function(x) { 
+\#Install and immediately load a package
     install.packages(x, lib = "C:/R/library")  
     library(x, character.only = TRUE)   
 }  
@@ -76,19 +88,24 @@ library(shiny)
 
 Notice because a single .Rprofile sits in the default working directory the same one gets executed everytime I start RStudio, but different working directories might have different First.R's (or none) 
 
-##Dropbox
+#Dropbox
 
 Disclaimer: I discuss here Dropbox, but there are other companies that offer the same service and this is not meant as an endorsement of Dropbox (although I do like it myself!).
 
 Dropbox is a cloud based storage site. For me it helps to solve a number of issues:
 
 -  backup: done automatically  
+
 -  version control: Dropbox keeps all old versions, so if (when!!!) you save a file and then see that this was a mistake you can always go back and find a previous (good) version.  
--  keep things consistent: I have a number of computers, I don't want to have to work on keeping them synchronized. When I change a file in a Drpbox folder on one computer and then go to another, as soon as the new file is downleaded I got it there as well.   
+
+-  keep things consistent: I have a number of computers, I don't want to have to work on keeping them synchronized. When I change a file in a Dropbox folder on one computer and then go to another, as soon as the new file is uploaded I got it there as well.   
+
 - availability: I can get to my files anyplace, anytime.
+
+- deal with submissions of students, avoids email
 
 so I have a folder named R in the Dropbox folder. Inside that I have many folders, one for each project. 
 
-There is a bit of an issue with this: every minute or so Dropbox wants to synchronize, but RStudio "sees" this and shows an annoying pop-up. To avoid that, open Dropbox by right-clicking the icon on the task bar, select the settings icon, choose preferences, click on the Sync button, selective sync, and uncheck the box of the R folder.
+There is a bit of an issue with this: every minute or so Dropbox wants to synchronize, but RStudio "sees" this and shows an annoying pop-up. To avoid that, open Dropbox by right-clicking the icon on the task bar, select the settings icon, choose preferences, click on the Sync button, selective sync, and uncheck the box of the Rproj folder.
 
 Now of course Dropbox won't save anything automatically, so don't forget to do it regularly yourself!

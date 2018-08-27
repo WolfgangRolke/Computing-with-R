@@ -1,4 +1,5 @@
 ---
+title: Data Input/Output, Transfering R Objects
 header-includes: \usepackage{color}
 output:
   html_document: default
@@ -22,10 +23,7 @@ library(grid)
 ```
 `r hl()$basefontsize()`
 
-
-#Data Input/Output, Transfering R Objects
-
-##Printing Info to Screen
+#Printing Info to Screen
 
 The basic functions to display information on the screen are
 
@@ -63,7 +61,7 @@ Some times you need a high level of control over the output, for example when wr
 sprintf("%f", pi)
 ```
 
-Here the f stands for floating point, the most common type. Also note that the result if a call to sprintf is a character vector.
+Here the f stands for floating point, the most common type. Also note that the result of a call to sprintf is a character vector.
 
 Here are some variations:
 
@@ -88,7 +86,7 @@ p
 sprintf("%.3f", p)
 ```
 
-##Reading a Vector
+#Reading in a Vector
 
 Often the easiest thing to do is to use copy-paste on a vector and then simply *scan* it into R:
 
@@ -99,6 +97,17 @@ x <- scan("clipboard")
 -  use the argument sep=";" to change the symbol that is being use as a separator. The default is empty space, common cases include  comma, semi-colon, and newline (\\n)  
 
 -  scan assumes that the  data is numeric, if not use the argument what="char".
+
+**Exercise** 
+
+How many a's are there?
+
+```{r, comment="", echo=FALSE}
+x <- sample(letters[1:4], size=150, replace=T)
+cat(x, "\n")
+```
+
+`r hl()$hr()`
 
 I need to do this so often I wrote a little routine for it:
 
@@ -146,7 +155,7 @@ the most useful are
 -  blank.lines.skip=TRUE:  does not read in empty lines. This is a problem if you want to write the file out again later and want it to look as much as possible like the original. 
 
 
-##Data Frames
+#Data Frames
 
 the standard command to read data from a table into a data frame is *read.table*. 
 
@@ -177,7 +186,7 @@ read.table("c:/folder/student.data.R",
 
 the row.names=1 tells R to use the first column as row names.
 
-##Transfering Objects from one R to another
+#Transfering Objects from one R to another
 
 Say you have a few data sets and routines you want to send to someone else. The easiest thing to do is use *dump* and *source*.
 
@@ -198,15 +207,15 @@ dp <- function (x) dump(x, "clipboard")
 sc <- function () source("clipboard")
 ```
 
-##Special File Formats
+#Special File Formats
 
 There are routines to read all sorts of file formats. The most important one is likely *read.csv*, which can read Excel files saved in the comma delimited format.
 
-##Packages
+#Packages
 
 there are a number of packages written to help with data I/O. We will discuss some of them later.
 
-##Working on Files
+#Working on Files
 
 R can also be used to create, copy, move and delete files and folders on your hard drive. The routines are
 

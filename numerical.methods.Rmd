@@ -1,4 +1,5 @@
 ---
+title: Numerical Methods
 header-includes: \usepackage{color}
 output:
   html_document: default
@@ -22,11 +23,9 @@ library(grid)
 ```
 `r hl()$basefontsize()`
 
-#Numerical Methods
-
 R has a number of routines useful for numerical analysis
 
-##Integration
+#Integration
 
 the basic function for numerical integration is *integrate*
 
@@ -40,7 +39,7 @@ curve(f, 0, 1)
 integrate(f, 0, 1) 
 ```
 
-the routine returns a list, usually we only want the value of the integral, so run
+the routine returns a list, usually we only want the value of the integral, so 
 
 ```{r}
 integrate(f, 0, 1)$value 

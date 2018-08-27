@@ -263,20 +263,6 @@ head(upr, 3)
 
 How many female students applied in either 2010 or 2011, had a highschool GPA of at least 3.0 and a freshman GPA between 3.0 and 3.5?
 
-```{r, eval=FALSE, echo=FALSE}
-df <- upr[upr$Gender=="F", ]
-df <- df[df$Year>=2010 & df$Year<=2011, ]
-df <- df[df$Highschool.GPA>=3.0, ]
-df <- df[df$Freshmen.GPA>=3.0 & df$Freshmen.GPA<=3.5, ]
-df <- df[df$Class.Facultad!="INGE", ]
-df[sample(1:nrow(df), size=10), 
-   c("Gender", "Year", "Highschool.GPA",
-     "Freshmen.GPA", "Class.Facultad")]
-nrow(df)
-```
-
-
-
 #*order*
 
 if we need to sort a vector we have the sort command:

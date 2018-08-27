@@ -631,12 +631,6 @@ is sensible.
 
 Write a "is much greater than" infix function, where much greater is defined as at least twice as large.
 
-```{r echo=FALSE}
-`%>mg%` <- function(x, y) ifelse(x>2*y, TRUE, FALSE)
- 1:10 %>mg% 3
-```
-
-
 ##Replacement Functions
 
 Consider the following code:
@@ -692,18 +686,7 @@ x
 
 **Exercise**
 
-Write a replacement function that adds n NA's to a vector
-
-```{r, echo=FALSE, eval=FALSE}
-`add.n<-` <- 
-  function(x, value) {
-    x <- c(x, rep(NA, value))
-    x
-  }
-x <- 1:5
-add.n(x) <- 3
-x
-```
+Write a replacement function that adds n NA's to a vector.
 
 ##Other Special Functions
 

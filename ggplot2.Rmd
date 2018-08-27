@@ -1,4 +1,5 @@
 ---
+title: Graphics with ggplot2
 header-includes: \usepackage{color}
 output:
   html_document: default
@@ -22,11 +23,9 @@ library(grid)
 ```
 `r hl()$basefontsize()`
 
-#Graphics with ggplot2
-
 A large part of this chapter is taken from various works of Hadley Wickham. Among others [The layered grammar of graphics](http://byrneslab.net/classes/biol607/readings/wickham_layered-grammar.pdf) and [R for Data Science](http://r4ds.had.co.nz/).
 
-##Why ggplot2?
+#Why ggplot2?
 
 Advantages of ggplot2
 
@@ -37,7 +36,7 @@ Advantages of ggplot2
 -  mature and complete graphics system  
 -  many users, active mailing list
 
-##Grammar of Graphics
+#Grammar of Graphics
 
 In 2005 Wilkinson, Anand, and Grossman published the book "The Grammar of Graphics". In it they layed out a systematic way to describe any graph in terms of basic building blocks. ggplot2 is an implementation of their ideas.
 
@@ -111,6 +110,18 @@ again it seems to do the same thing, but there is a big difference:
 -  if aes(x, y) is part of ggplot, it applies to all the geom's that come later (unless a different one is specified)  
 -  an aes(x, y) as part of a geom applies only to it.
 
+**Exercise**
+
+The data set *highways* has the rate of traffic accidents and other information for 39 highways.
+
+Draw this graph:
+
+```{r echo=FALSE}
+ggplot(aes(x=len, y=rate), data=highways) +
+  geom_point()
+```
+
+
 Let's say we want to identify the cars by the cylinders:
 
 ```{r}
@@ -118,16 +129,16 @@ ggplot(mtcars, aes(hp, mpg, color=cyl)) +
   geom_point()
 ```
 
-Notice that the legend is a continous color scale. This is because the variable cyl has values 4, 6, and 8, and so is identified by R as a numeric variable. In reality it is categorical (ever seen a car with 1.7 cylinders?), and so we should change that:
+Notice that the legend is a continuous color scale. This is because the variable cyl has values 4, 6, and 8, and so is identified by R as a numeric variable. In reality it is categorical (ever seen a car with 1.7 cylinders?), and so we should change that:
 
 
 ```{r}
 mtcars$faccyl <- factor(cyl, 
-  levels = c(4, 6, 8), ordered = TRUE) 
+                       levels = c(4, 6, 8), 
+                       ordered = TRUE) 
 ggplot(mtcars, aes(hp, mpg, color=faccyl)) +
   geom_point()
 ```
-
 
 we can also change the shape of the plotting synbols:
 
@@ -164,6 +175,21 @@ plt3 <- plt2 +
 plt3
 ```
 
+**Exercise**
+
+Draw this graph:
+
+```{r echo=FALSE}
+ggplot(aes(x=len, y=rate), data=highways) +
+  geom_point() +
+  labs(x = "Length of Highway", 
+       y = "Rate of Accidents") +
+  labs(title = "Rate decreases with length of highway") +
+  geom_smooth(method="lm", se=FALSE)
+```
+
+
+
 There is another way to include a categorical variable in a scatterplot. The idea is to do several graphs, one for each value of the categorical variable. These are called *facets*:
 
 ```{r}
@@ -193,11 +219,11 @@ plt4 <- plt4 +
 plt4
 ```
 
-This is almost a bit to much, with just 32 data points ther is not really enough for such a split.
+This is almost a bit to much, with just 32 data points there is not really enough for such a split.
 
-##Some standard graphs
+#Some standard graphs
 
-###Histograms
+##Histograms
 
 ```{r}
 x <- rnorm(1000, 100, 30)
@@ -242,7 +268,7 @@ ggplot(df5, aes(x=x)) +
 
 Notice the use of alpha. In general this "lightens" the color so we can see "behind".
 
-###Boxplots
+##Boxplots
 
 ```{r}
 y <- rnorm(120, 10, 3)
@@ -272,7 +298,7 @@ ggplot(df6, aes(z, y)) +
   xlab("")
 ```
 
-###Barcharts
+##Barcharts
 
 ```{r}
 x <- sample(LETTERS[1:5], 
@@ -310,7 +336,7 @@ ggplot(df7, aes(x=x, fill = y)) +
     labs(x="", y="Percentages", fill="Y") 
 ```
 
-##Axis Ticks and Legend Keys
+#Axis Ticks and Legend Keys
 
 Let's return to the basic plot of mpg by hp. Let's say we want to change the axis tick marks:
 
@@ -339,7 +365,7 @@ plt2 +
                            override.aes = list(size=4)))
 ```
 
-##Saving the graph
+#Saving the graph
 
 It is very easy to save a ggplot2 graph. Simply run
 
