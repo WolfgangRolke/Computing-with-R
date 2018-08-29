@@ -22,7 +22,9 @@ library(grid)
 ```
 `r hl()$basefontsize()`
 
-##2.1 Data Types
+These are the answers to the exercise questions:
+
+#2.1 Data Types
 
 What is the result of 
 

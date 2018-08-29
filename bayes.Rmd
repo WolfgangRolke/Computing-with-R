@@ -1,4 +1,5 @@
 ---
+title: Bayesian Analysis
 header-includes: \usepackage{color}
 output:
   html_document: default
@@ -21,9 +22,8 @@ library(grid)
 ```
 `r hl()$basefontsize()`
 
-#Bayesian Analysis
 
-##Prior and Posterior Distribution
+#Prior and Posterior Distribution
 
 Say we have a sample $\textbf{X}=(X_1,..,X_n)$, iid from some probability density $f(.| \theta)$, and we want to do some inference on the parameter $\theta$.
 

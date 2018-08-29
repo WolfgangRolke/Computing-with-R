@@ -1,4 +1,5 @@
 ---
+title: Factors with forcats
 header-includes: \usepackage{color}
 output:
   html_document: default
@@ -21,8 +22,6 @@ library(ggplot2)
 library(grid)
 ```
 `r hl()$basefontsize()`
-
-#Factors with forcats
 
 We have previously discussed factors, that is categorical data with fixed values and ordering. Now we will discuss the package *forcats*, which has a number of useful functions when working with factors.
 

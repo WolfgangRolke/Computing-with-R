@@ -1,9 +1,10 @@
 ---
+title: Iteration with purrr
 header-includes: \usepackage{color}
 output:
+  html_document: default
   pdf_document:
     fig_caption: no
-  html_document: default
 ---
 
 <style>
@@ -21,8 +22,6 @@ library(ggplot2)
 library(grid)
 ```
 `r hl()$basefontsize()`
-
-#Iteration with purrr
 
 We have previously learned how to write loops and how to use apply. In this section we will learn about another variation on that theme.
 

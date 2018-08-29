@@ -1,9 +1,10 @@
 ---
+title: The pipe, dplyr, tibbles, tidyverse
 header-includes: \usepackage{color}
 output:
+  html_document: default
   pdf_document:
     fig_caption: no
-  html_document: default
 ---
 <style>
 table, th, td { text-align:right; }
@@ -14,6 +15,7 @@ th, td {padding: 10px;}
 whichcomp <- strsplit(getwd(),"/")[[1]][3]
 load(paste0("c:/users/", whichcomp, "/Dropbox/teaching/Resma3/Resma3.RData"))
 library(knitr)
+library(wolfr)
 opts_chunk$set(fig.width=6, fig.align = "center", 
       out.width = "70%", warning=FALSE, message=FALSE)
 library(ggplot2)
@@ -21,7 +23,6 @@ library(grid)
 ```
 `r hl()$basefontsize()`
 
-#The pipe, dplyr, tibbles, tidyverse
 
 The traditional workflow of R comes in large part from other computer languages. So a typical sequence would be like this:
 

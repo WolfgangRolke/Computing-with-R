@@ -1,9 +1,10 @@
 ---
+title: Parallel and GPU Computing
 header-includes: \usepackage{color}
 output:
+  html_document: default
   pdf_document:
     fig_caption: no
-  html_document: default
 ---
 
 <style>
@@ -22,7 +23,6 @@ library(grid)
 ```
 `r hl()$basefontsize()`
 
-#Parallel and GPU Computing
 
 ```{r}
 library(microbenchmark)

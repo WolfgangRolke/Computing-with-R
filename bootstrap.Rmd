@@ -1,4 +1,5 @@
 ---
+title: The Bootstrap
 header-includes: \usepackage{color}
 output:
   html_document: default
@@ -21,7 +22,6 @@ library(grid)
 ```
 `r hl()$basefontsize()`
 
-#The Bootstrap
 
 The idea of the Bootstrap is rather strange: say we have some data from some distribution and we want to use it to estimate some parameter $\theta$. We have a formula (a *statistic*) $T(x_1, .. , x_n)$. What is the standard error in this estimate? That is, what is $sd[T(X_1, .. , X_n)]$?
 

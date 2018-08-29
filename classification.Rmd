@@ -1,9 +1,10 @@
 ---
+title: Classification
 header-includes: \usepackage{color}
 output:
+  html_document: default
   pdf_document:
     fig_caption: no
-  html_document: default
 ---
 <style>
 table, th, td { text-align:right; }
@@ -20,8 +21,6 @@ library(ggplot2)
 library(grid)
 ```
 `r hl()$basefontsize()`
-
-#Classification
 
 ##Example: Fisher's Iris data set
 

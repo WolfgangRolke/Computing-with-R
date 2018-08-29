@@ -1,9 +1,10 @@
 ---
+title: Dates with lubridate
 header-includes: \usepackage{color}
 output:
+  html_document: default
   pdf_document:
     fig_caption: no
-  html_document: default
 ---
 
 <style>
@@ -20,7 +21,6 @@ opts_chunk$set(fig.width=6, fig.align = "center",
 ```
 `r hl()$basefontsize()`
 
-#Dates with lubridate
 
 ```{r}
 library(tidyverse)

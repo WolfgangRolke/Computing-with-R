@@ -1,4 +1,5 @@
 ---
+title: Input/Output Part 2
 header-includes: \usepackage{color}
 output:
   html_document: default
@@ -22,11 +23,9 @@ library(grid)
 ```
 `r hl()$basefontsize()`
 
-#Input/Output Part 2
-
 There are a number of packages that help with data I/O. Some are specialized for certain data types, others are more general
 
-##rio
+#rio
 
 One of my favorites is *rio*. An introduction can be found at [https://cran.r-project.org/web/packages/rio/vignettes/rio.html](https://cran.r-project.org/web/packages/rio/vignettes/rio.html). The list of supported file formats is quite impressive! You use the import function to import data and the export function to export. The routine uses the extension to figure out the file format. So say you have a file called mytestdata.csv in a folder called c:/tmpdata, just run
 
@@ -49,12 +48,12 @@ library(rio)
 head(import("c:/tmpdata/mytestdata.csv"), 3)
 ```
 
-###Minitab to R
+##Minitab to R
 
 rio has the ability to read Minitab files. Unfortunately they have to be in the portable format, and Minitab stopped using that some versions ago. So the easiest thing to do is save files in Minitab as .csv.
  
  
-##readr
+#readr
 
 This package is specific to rectangular data, such as data from an Excel spreadsheet. It's main advantage is it's speed when compared to the corresponding base R routine read.csv:
 
@@ -70,7 +69,7 @@ head(import("c:/tmpdata/mytestdata.csv"), 2)
 
 **Note** that the data is in the form of a *tibble*. This is a  special kind of data frame which we will talk about later.
 
-##data.table
+#data.table
 
 Similar to read.table but faster and more convenient. The command is called *fread*:
 
@@ -89,7 +88,7 @@ This command is what I would recommend if you deal with Big Data. These days we 
 
 In the case of Bigger Data you can no longer have all of it in memory, but it becomes necessary to use a hard drive as memory. A useful package for that is *bigmemory*.
 
-##pdftools
+#pdftools
 
 The pdf format is the most common document format on the internet, so quite often we are faced with the following problem: we want to extract some data from a pdf. Here we can use
 

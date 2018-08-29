@@ -1,9 +1,10 @@
 ---
+title: Version Control and Collaboration, Github
 header-includes: \usepackage{color}
 output:
+  html_document: default
   pdf_document:
     fig_caption: no
-  html_document: default
 ---
 
 <style>
@@ -21,8 +22,6 @@ library(ggplot2)
 library(grid)
 ```
 `r hl()$basefontsize()`
-
-#Version Control and Collaboration, Github
 
 Notice that the title doesn't read *with Github*. This is because github is not an R package. It is much more general.
 
