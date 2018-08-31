@@ -1,0 +1,59 @@
+---
+title: Solution Homework 2
+header-includes: \usepackage{color}
+output:
+  html_document: default
+  pdf_document:
+    fig_caption: no
+---
+
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+library(knitr)
+opts_chunk$set(fig.width=6, fig.align = "center", 
+      out.width = "70%", warning=FALSE, message=FALSE)
+library(ggplot2)
+library(grid)
+```
+
+
+```{r}
+n <- sample(500:1000, 1)
+#Ages <- c("Child", "Adult", "Elderly")
+Ages <- c("Young", "Middle Aged", "Old")
+var1 <- sample(Ages, 
+               size = n, 
+               replace = TRUE, 
+               prob = c(1, 4, 2))
+var2 <- sample(c("Infected", "Not Infected"), 
+               size = n, 
+               replace = TRUE, 
+               prob = c(1, 4))
+table(var1, var2)
+```
+
+
+```{r echo=FALSE}
+var1.fac <- factor(var1, levels=Ages, ordered=TRUE)
+tbl <- table(var1.fac, var2)
+```
+
+
+<table border="1">
+<tr><th>Age</th><th>Infected</th><th>Not Infected</th></tr>
+<tr><th>`r Ages[1]`</th><td>`r tbl[1, 1]` </td><td>`r tbl[1, 2]`</td></tr>
+<tr><th>`r Ages[2]`</th><td>`r tbl[2, 1]` </td><td>`r tbl[2, 2]`</td></tr>
+<tr><th>`r Ages[3]`</th><td>`r tbl[3, 1]` </td><td>`r tbl[3, 2]`</td></tr>
+</table>
+
+Now the table is correct, but it is still a bit ugly. The numbers are to close to the borders. In the past to change the appearance of an html table one could add some arguments to the tag, for example \<td cellpadding="10">. This however was changes some years ago and nowadays one is supposed to use a *cascading style sheet*, that is a separate file with instructions on how to display items in an html file. I have the follwoing code as part of all my Rmds:
+
+\<style>  
+table, th, td { text-align:right; }  
+th, td {padding: 10px;}  
+\</style>  
+
+and with that the table looks as it does in the homework.
+
+
+

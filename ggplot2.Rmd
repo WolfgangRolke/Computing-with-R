@@ -121,6 +121,7 @@ ggplot(aes(x=len, y=rate), data=highways) +
   geom_point()
 ```
 
+`r hl()$hr()`
 
 Let's say we want to identify the cars by the cylinders:
 
