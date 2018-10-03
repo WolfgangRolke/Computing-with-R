@@ -384,6 +384,8 @@ setwd("..")
 install("testlib")
 ```
 
+**Note** if you now look into the folder C://R//library there will be a folder testlib, which is this library.
+
 Let's check:
 
 ```{r}
@@ -435,3 +437,4 @@ so when I make a change to one of the routines in (say) wolfr all I need to do i
 make.library("wolfr")
 ```
 
+**Note** that ultimately a library is a folder. You can send someone a library by sending them the folder (usually as a compressed zip file)

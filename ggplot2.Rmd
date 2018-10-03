@@ -299,6 +299,7 @@ ggplot(df6, aes(z, y)) +
   xlab("")
 ```
 
+
 ##Barcharts
 
 ```{r}

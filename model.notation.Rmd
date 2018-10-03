@@ -45,19 +45,32 @@ and this is done with
 lm(y ~ x - 1)
 ```
 
-If there are several predictors you can 
+If there are two predictors you can 
 
--  fit an addititive model with
+-  fit an *addititive* model of the form
+$$
+Y = \beta_0 + \beta_1 x + \beta_2 z + \epsilon
+$$
+
+with
 
 ```{r eval=FALSE}
 lm(y ~ x + z)
 ```
 
--  fit the interaction term with
+-  fit a model with an *interaction* term 
+
+$$
+Y = \beta_0 + \beta_1 x + \beta_2 z + \beta_3 x \times z + \epsilon
+$$
+
+with
 
 ```{r eval=FALSE}
 lm(y ~ x * z)
 ```
+
+`r hl()$vspace()`
 
 In the case of three (or more predictors) there are all sorts of possibilities:
 
@@ -74,8 +87,10 @@ lm(y ~ x1 + x2 + x3)
 -  model with all interactions
 
 $$
-Y_i = \beta_0 + \sum_{i=1}^n \beta_i x_i + 
-\sum_{i,j=1}^n \beta_{ij} x_i x_j + \beta_{123}x_1 x_2 x_3 + \epsilon
+Y_i = \beta_0 + \sum_{i=1}^n \beta_i x_i +
+\sum_{i,j=1}^n \beta_{ij} x_i x_j + \\
++ \text{ ... } + \\
+\beta_{1..n}x_1 \times .. \times x_n + \epsilon
 $$
 
 ```{r eval=FALSE} 
@@ -129,6 +144,16 @@ is the same as
 lm(y ~ x1 + x2 + x3 + x1*x3 +x2*x3)
 ```
 
+`r hl()$vspace()`
+
+if there are more than a few predictors it is usally easier to generate a matrix of predictors:
+
+```{r eval=FALSE}
+X <- cbind(x1, x2, x3, x4)
+lm(y ~ X)
+```
+
+
 ###Case Study
 
 we have a list of prices and other information on houses in Albuquerque, New Mexico:
@@ -141,7 +166,7 @@ head(albuquerquehouseprice)
 
 ```{r}
 attach(albuquerquehouseprice)
-summary(lm(Price ~ Sqfeet + Feature + Corner +  Tax))
+summary(lm(Price ~ Sqfeet + Feature + Corner + Tax))
 ```
 
 - additive model, Sqfeet and Features
@@ -168,7 +193,4 @@ summary(lm(Price ~ (Sqfeet + Feature + Corner +  Tax)^2))
 summary(lm(Price ~ (Sqfeet + Feature + Corner +  Tax)^4))
 ```
 
-**Exercise**
-
-for the **upr** data what is the coefficient of Highschool.GPA in a model that predicts Freshmen.GPA from Aptitud.Verbal, Aptitud.Matem, Aprov.Ingles and  Highschool.GPA with all second-order interactions except for Highschool.GPA-Aprov.Ingles?
 

@@ -1,5 +1,5 @@
 ---
-title: Character Manipulation
+title: Working with Characters
 header-includes: \usepackage{color}
 output:
   html_document: default
@@ -56,7 +56,7 @@ head(states)
 to find out how long a string is use
 
 ```{r}
-nchar(states)[1:6]
+nchar(states)
 ```
 
 What state has the longest name?
@@ -68,7 +68,7 @@ states[which(nchar(states) == max(nchar(states)))]
 Say we want to shorten the strings to just the first three letters:
 
 ```{r}
-substring(states, first=1, last=3)[1:6]
+substring(states, first=1, last=3)
 ```
 
 Now, though, several of the strings are the same ("Ala"). If that is a problem use
@@ -77,12 +77,17 @@ Now, though, several of the strings are the same ("Ala"). If that is a problem u
 abbreviate(states)[1:6]
 ```
 
-this routine figures out what the length of the shortest string is that makes all of them unique (here 4). We can make it a little longer if we want:
+This routine figures out what the length of the shortest string is that makes all of them unique (here 4). We can make it a little longer if we want:
 
 
 ```{r}
 abbreviate(states, minlength = 6)[1:6]
 ```
+
+
+Notice that this keeps the full strings as names.
+
+`r hl()$hr()`
 
 Say we want the last 3 letters of the states names:
 
@@ -136,18 +141,26 @@ Notice that above we only got the states whose names have a capital P. What if w
 grep(pattern = "[pP]", x = states, value = TRUE)
 ```
 
-or we can use the function *tolower*, which turns all the letters into lower case:
+the syntax [pP] matches either p or P. This is an example of a *regular expression*, which we will discuss shortly.
+
+We can also use the function *tolower*, which turns all the letters into lower case:
 
 ```{r}
+tolower(states)[1:4]
 grep("p", tolower(states), value = TRUE)
 ```
 
+but now all the letters are lower case.
+
 Of course there is also a *toupper* function.
+
+`r hl()$hr()`
 
 We have the *grepl* function, which returns TRUE if the string contains the pattern:
 
 ```{r}
-grepl(pattern = "A", states)[1:6]
+states[1:6]
+grepl(pattern = "s", states)[1:6]
 ```
 
 Suppose we want to replace all the A's with *'s:
@@ -156,7 +169,7 @@ Suppose we want to replace all the A's with *'s:
 gsub("A", "*", states)[1:6]
 ```
 
-There is also the *sub* function, which does the same as gsub but only to the first occurance:
+There is also the *sub* function, which does the same as *gsub* but only to the first occurance:
 
 ```{r}
 sub("a", "A", c("abba"))
@@ -164,10 +177,30 @@ gsub("a", "A", c("abba"))
 ```
 
 **Exercise**
+```{r echo=FALSE, comment=""}
+y <- sample(letters, size=150, replace=TRUE)
+```
 
-The *Resma3* data set *worldpopulation* has some info on the population sizes of 227 countries. 
+```{r comment=""}
+cat(y, "\n")
+```
 
-How many names of countries end with "o"? 
+How many a' are in this string? 
+
+```{r, echo=FALSE, eval=FALSE}
+length(y[grep("a", y)])
+```
+
+You can get the vector into R as follows: copy it and in R run
+
+
+```{r eval=FALSE}
+#Windows
+x <- scan("clipboard", what="char")
+#Mac
+x <- scan(pipe("pbpaste"), what="char")
+```
+
 
 `r hl()$hr()`
 
@@ -204,7 +237,8 @@ num_vowels <- rep(0, 5)
 names(num_vowels) <- vowels
 for(i in seq_along(vowels)) {
   positions <- gregexpr(pattern = vowels[i], 
-          text = states, ignore.case = TRUE)
+                        text = states, 
+                        ignore.case = TRUE)
   num_vowels[i] <- sum(sapply(positions, f))
 }
 num_vowels
@@ -235,13 +269,20 @@ paste0("a", 1:3, collapse="-")
 
 **Exercise**
 
-Let's say we have a vector x of numbers and we want to display them as a row in an html table. Write a single command that creates the needed html code
+write a routine that generates a licence plate in Puerto Rico at random. For example
 
-```{r, eval=FALSE, echo=FALSE}
-x <- 1:5
-paste0("<tr>", 
-       paste0("<td>", x, "</td>", collapse = ""),
-       "<tr>")
+```{r echo=FALSE}
+license.plate <- function()
+  paste0(
+    paste(sample(LETTERS, size=3, replace=TRUE),
+          collapse=""),
+    paste(sample(0:9, size=3, replace=TRUE),
+          collapse="")
+    )
+```
+
+```{r}
+license.plate()
 ```
 
 `r hl()$hr()`
@@ -282,7 +323,7 @@ Let's take the vector
 
 ```{r echo=2}
 txt <- c("In", 2017, "there", "where", 17, "hurricanes")
-txt
+cat(txt)
 ```
 
 Let's say I want to pick out those elements of the vector that are (or at least could be) numeric. Here is one way to do it:
@@ -297,6 +338,7 @@ or we can use regexp:
 ```{r}
 txt[grepl("\\d", txt)]
 ```
+
 
 say we want to replace the spaces in a sentence with the underscore:
 
@@ -378,62 +420,6 @@ Finally, let's check whether the words are the same, but taking into account tha
 wrds[tolower(wrds) == tolower(rev.wrds)]
 ```
 
-###HTML Table
-
-Let's write a routine that takes a data frame and creates a vector of 
-characters which correspond to an html table.
-
-The general format of such a table is this
-
-```{r echo=FALSE}
-txt <- c(" <table border=\"1\">",
-         "<tr><th>First</th><th>Second</th</tr>",
-         "<tr><td>1.0</td><td>2.5</td</tr>",
-         "<tr><td>1.5</td><td>1.5</td</tr>",
-         "</table>")
-cat(paste(txt,"\n"))
-```
-
-which results in this table:
-
-<table border="1">
-<tr><th>First</th><th>Second</th</tr>
-<tr><td>1.0</td><td>2.5</td</tr>
-<tr><td>1.5</td><td>1.5</td</tr>
-</table>
-
-As an example consider this table for the data set *brainsize*:
-
-```{r echo=FALSE}
-knitr::kable(brainsize[1:5,])
-```
-
-First we write a routine that adds the tags to a vector:
-
-```{r}
-add.tags <- function(x, which="header") {
-  if(which=="header")
-     out <- paste0("<th>", x, "</th>", collapse="")
-  else
-    out <- paste0("<td>", x, "</td>", collapse="")
-  out
-}
-```
-
-and now we can write the routine:
-
-```{r}
-make.html.table <- function(x) {
-  txt <- c(add.tags(colnames(x), "header"),
-  apply(x, 1, add.tags, which="body"))
-  html.tbl <- c("<table border=\"1\">",
-      paste0("<tr>", txt, "</tr>"),
-      "</table>")
-  write(html.tbl, "clipboard", ncol=1)
-}  
-```
-
-Notice the routine writes the table to the clipboard. You can now run the routine, go to any html editor and simply paste the text in there.
 
 ###Email Addresses
 
@@ -455,7 +441,7 @@ txt <- scan("C:\\Users\\Wolfgang\\Dropbox\\teaching\\Computing-with-R\\emails.tx
 Next we need to figure out what defines an email address. Obviously it needs to have the @ symbol, so let's go through the text and pick out those lines that have the @ symbol:
 
 ```{r}
-sum(str_count(txt, "@"))
+sum(unlist(gregexpr("@", txt))>0)
 txt <- grep("@", txt, value = TRUE)
 length(txt)
 ```
@@ -466,14 +452,12 @@ So the @ symbol appears 236 time. but strangly there are only 5 lines with @ sym
 substring(txt[1], 1, 500)
 ```
 
-so on the website the addresses are in a table, which we read in as a single string. We can see that immediately after each email address is the text \</a\> , which is the html tag to end a link. Let's split up the text according to the \</a\> tag:
+so on the website the addresses are in an html table, which was read in as a single string. We can see that immediately after each email address is the text \</a\> , which is the html tag to end a link. Let's split up the text according to the \</a\> tag:
 
 ```{r}
-txt <- unlist(str_split(paste(txt, collapse=""), "</a>"))
+txt <- unlist(strsplit(paste(txt, collapse=""), "</a>"))
 txt[1:2]
 ```
-
-Notice that here I use the routine *str_split* from the package *stringr* , because the basic R routine strsplit does not recognize regular expressions. Don't worry about this now, we will discuss the package *stringr* soon.
 
 Ok, next we have to eliminate all the lines that don't have a @ in it:
 

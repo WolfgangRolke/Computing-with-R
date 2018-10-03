@@ -51,6 +51,19 @@ x[c("A","D")]
 ```
 
 
+There are also strange things one can do and sometimes get away with:
+
+```{r error=TRUE}
+x <- 1:10
+names(x) <- letters[1:10]
+x
+x[0]
+x[3.1]
+x[3.6]
+x[a]
+```
+
+
 Another way to subset a vector is with logical conditions:
 
 ```{r}

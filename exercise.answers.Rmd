@@ -179,14 +179,7 @@ f2(1:20)
 
 We already encountered one such infix function. What was it?
 
-%o% outere product with *
-
-Write a "is much greater than" infix function, where much greater is defined as at least twice as large.
-
-```{r}
-`%>mg%` <- function(x, y) ifelse(x>2*y, TRUE, FALSE)
- 1:10 %>mg% 3
-```
+%o% outer product with *
 
 Write a replacement function that adds n NA's to a vector
 

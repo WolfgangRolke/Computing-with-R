@@ -39,7 +39,7 @@ require(random)
 randomNumbers(20, 0, 100)
 ```
 
-##Pseudo-Random Numbers
+#Pseudo-Random Numbers
 
 These are numbers that look random, smell random ...
 
@@ -99,7 +99,7 @@ sort(sample(x, size=10, replace = TRUE))
 
 How can we find Bootstrap samples of the **upr** data set?
 
-##Standard Probability Distributions
+#Standard Probability Distributions
 
 Not surprisingly many standard distributions are part of base R. For each the format is
 
@@ -108,11 +108,20 @@ Not surprisingly many standard distributions are part of base R. For each the fo
 -  rname = random generation  
 -  qname = quantile function  
 
-####Example:  Poisson distribution
+**Note** we will use the term *density* for both discrete and continuous random variable.
+
+**Example**  Poisson distribution
+
+We have $X \sim \text{Pois}(\lambda)$ if 
+
+$$
+P(X=x)=\frac{\lambda^x}{x!}e^{-\lambda}\text{, }x=0,1, ...
+$$
 
 ```{r}
 #density
 dpois(c(0, 8, 12, 20), lambda=10)
+10^c(0, 8, 12, 20)/factorial(c(0, 8, 12, 20))*exp(-10)
 #cumulative distribution function
 ppois(c(0, 8, 12, 20), 10)
 #random generation
@@ -222,10 +231,12 @@ there are actually several packages, the most commonly used one is *mvtnorm*
 ```{r}
 library(mvtnorm)
 x <- rmvnorm(1000, 
-             mean=c(0, 1), 
-             sigma=matrix(c(1, 0.8, 0.8, 2), 2, 2))
-plot(x)
-cor(x)[1, 2]
+             mean = c(0, 1), 
+             sigma = matrix(c(1, 0.8, 0.8, 2), 2, 2))
+plot(x, 
+     pch=20,
+     xlab = expression(x[1]),
+     ylab = expression(x[2]))
 ```
 
 sigma is the variance-covariance matrix, so in the above we have
@@ -237,12 +248,19 @@ $$
 &\frac{0.8}{\sqrt{1*2}}    = 0.566\\
 \end{aligned}
 $$
-`r hl()$hr()`
-
-If you can't find a package you have to write your own! Here is a simple routine that will generate random variates from any function *fun* (given as a character vector) in one dimension on a finite interval [A, B]:
 
 ```{r}
-r.pit <- function (n, fun, A, B) 
+round(c(var(x[, 1]),
+        var(x[, 2]),
+        cor(x[, 1], x[, 2])), 3)
+```
+
+`r hl()$hr()`
+
+If you can't find a package you have to write your own! Here is a routine that will generate random variates from any function *fun* (given as a character vector) in one dimension on a finite interval [A, B]:
+
+```{r}
+rpit <- function (n, fun, A, B) 
 {
   f <- function(x) eval(parse(text=fun))
   m <- min(2 * n, 1000)
@@ -261,20 +279,20 @@ r.pit <- function (n, fun, A, B)
 Let's try it out:
 
 ```{r}
-y <- r.pit(1000, "x^2", 0, 1)
+y <- rpit(1000, "x^2", 0, 1)
 hist(y, 50, freq=FALSE, main="")
 curve(3*x^2, 0, 1, 
-      col="blue",
-      lwd=2,
-      add=TRUE)
+      col = "blue",
+      lwd = 2,
+      add = TRUE)
 ```
 
-notice that the function doesn't even have to be normalized!
+notice that for *rpit* the function doesn't even have to be normalized (aka integrate to 1).
 
 or a bit more complicated:
 
 ```{r}
-y <- r.pit(1000, "x*sin(2*pi*x)^2", 0, 1)
+y <- rpit(1000, "x*sin(2*pi*x)^2", 0, 1)
 hist(y, 50, freq=FALSE, main="")
 ```
 
@@ -293,18 +311,18 @@ I <- sum( (f[-1]+f[-250])/2 *(x[-1]-x[-250]))
 #Riemann sum
 hist(y, 50, freq=FALSE, main="")
 curve(x*sin(2*pi*x)^2/I, 0, 1,
-      col="blue",
-      lwd=2,
-      add=TRUE)
+      col = "blue",
+      lwd = 2,
+      add = TRUE)
 ```
 
 **Exercise**
 
-generate 1000 variates from a Beta (0.5, 3) distribution, draw the histogram with 50 bins and add the density curve.
+generate 1000 variates from a Beta (1.5, 3) distribution, draw the histogram with 50 bins and add the density curve.
 
-Hint: here you don't need **r.pit**
+Hint: here you can use base R routines.
 
-`r hl()$hr())`
+`r hl()$hr()`
 
 
 Want to learn how to generate data from any random vector? Come to my course ESMA5015 Simulation!

@@ -77,7 +77,7 @@ sum(mid)*(x[2]-x[1])
 - Simpson's Rule
 
 $$
-\int_a^b f(x) dx \approx \frac{x_2-x_1}6 \sum_{i=1}^{n-1} f(x_{i-1}+4f(x_i)+f(x_{i+1}))
+\int_a^b f(x) dx \approx \frac{x_2-x_1}6 \sum_{i=1}^{n-1} f(x_{i-1})+4f(x_i)+f(x_{i+1}))
 $$
 
 ```{r}
@@ -158,19 +158,22 @@ $$
 T(x;a,k)=\sum_{i=0}^k \frac{d^i f}{dx^i}(a)(x-a)^i
 $$
 
-Let's write a function that draws the function and it's Taylor polynomial of order k:
+Let's write a routine that draws the function and it's Taylor polynomial of order k:
 
 ```{r}
 taylor <- function(f, a, k=1, from, to) {
   expr <- parse(text=f)
+#x and y coordinates of function  
   x <- seq(from, to, length=250)
   y <- eval(expr)
   t <- x
+#x value of interest a  
   x <- a
   z <- eval(expr)
   taylor.coefficients <- rep(z, k+1)
+#create text version of Taylor polynomial  
   x.text <- ifelse(a==0, "x", paste0("(x-", a,")"))
-  ttl <- paste0(f, " ~ ")
+  ttl <- paste0(f, " == ")
   if(z==0) nosgn <- TRUE
   else {
     nosgn <- FALSE
@@ -184,13 +187,14 @@ taylor <- function(f, a, k=1, from, to) {
      if(tmp!=0) {
         ttl <- paste0(ttl, " ", 
           ifelse(nosgn, "", ifelse(tmp>0, "+", "-")), 
-          " ", ifelse(abs(tmp)==1, "", abs(tmp)),
+          " ", ifelse(abs(tmp)==1, "", paste0(abs(tmp),"*")),
           x.text, 
           ifelse(i==1, "", paste0("^", i)))
      }
      nosgn <- FALSE
   }
-  plot(t, y, type="l", lwd=2, main=ttl)
+  plot(t, y, type="l", lwd=2, 
+       main=parse(text=ttl))
   lines(t, z, col="blue")
   
 }
@@ -283,7 +287,7 @@ $$
 polyroot(c(1, 1, -1, 0, 1))
 ```
 
-as we can see that gieves also the complex solutions. Often we only want the real ones:
+this gives also the complex solutions. Often we only want the real ones:
 
 ```{r}
 z <- polyroot(c(1, 1, -1, 0, 1))

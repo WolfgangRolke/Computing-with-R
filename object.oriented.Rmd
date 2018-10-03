@@ -29,15 +29,17 @@ We start with the following:
 
 ```{r}
 x <- rnorm(100)
+#Expirical Distribution Function
 a <- ecdf(x)
 plot(a)
+#Non parametric density estimate
 a <- density(x)
 plot(a)
 ```
 
 so although we call the same command (plot) we get different graphs, one of the empirical distribution function and the other a non-parametric density estimate.
 
-But how does R know what to do in either case? The reason is that each object has a class property:
+But how does R know what to do in either case? The reason is that each object has a *class* property:
 
 ```{r}
 a <- ecdf(x)
@@ -54,6 +56,9 @@ There are many different plot functions (or *methods*)
 methods(plot)
 ```
 
+so when we call plot with an object of class density, it in turn class the function plot.density.
+
+`r hl()$hr()`
 
 R actually has three different ways to use object-oriented programming, called S3, S4 and RC. We won't go into the details and which of them is more useful under what circumstances. In the following examples we use S3, which is the easiest to use but also usually sufficient.
 
@@ -81,9 +86,12 @@ report <- function(dta) {
   tbl <- matrix(0, length(salespersons), 3)
   rownames(tbl) <- salespersons
   colnames(tbl) <- c("Sales", "Mean", "SD")
-  tbl[, 1] <- tapply(dta$Sales, dta$Salesperson, length)
-  tbl[, 2] <- round(tapply(dta$Sales, dta$Salesperson, mean), 2)
-  tbl[, 3] <- round(tapply(dta$Sales, dta$Salesperson, sd), 2)
+  for(i in seq_along(salespersons)) {
+      df <- dta[dta$Salesperson==salespersons[i], ]
+      tbl[i, 1] <- nrow(df)
+      tbl[i, 2] <- round(mean(df$Sales), 2)
+      tbl[i, 3] <- round(sd(df$Sales), 2)
+  }
   print(tbl)
   boxplot(dta$Sales~dta$Salesperson, horizontal=TRUE)
 }
@@ -94,7 +102,7 @@ Here is the object oriented one. First we have to define a new class:
 
 ```{r}
 as.sales <- function(x) {
-  class(x) <- "sales"
+  class(x) <- c("sales", "data.frame")
   return(x)
 }
 ```
@@ -104,19 +112,23 @@ Next we have to define the methods:
 ```{r}
 stats <- function(x) UseMethod("stats")
 stats.sales <- function(dta) {
-  salespersons <- unique(dta$Salesperson)
+  salespersons <- unique(dta$Salesperson) 
   tbl <- matrix(0, length(salespersons), 3)
   rownames(tbl) <- salespersons
   colnames(tbl) <- c("Sales", "Mean", "SD")
-  tbl[, 1] <- tapply(dta$Sales, dta$Salesperson, length)
-  tbl[, 2] <- round(tapply(dta$Sales, dta$Salesperson, mean), 2)
-  tbl[, 3] <- round(tapply(dta$Sales, dta$Salesperson, sd), 2)
+  for(i in seq_along(salespersons)) {
+      df <- dta[dta$Salesperson==salespersons[i], ]
+      tbl[i, 1] <- nrow(df)
+      tbl[i, 2] <- round(mean(df$Sales), 2)
+      tbl[i, 3] <- round(sd(df$Sales), 2)
+  }
   tbl
 }
 ```
 
+"plot" already exists, so we don't need the UseMethod part:
+
 ```{r}
-plot <- function(x) UseMethod("plot")
 plot.sales <- function(dta) 
   boxplot(dta$Sales~dta$Salesperson, horizontal=TRUE)
 ```
@@ -142,15 +154,16 @@ sales.time.data <- data.frame(Sales=x, Salesperson=z, Time=u)
 kable(sales.time.data[1:5, ])
 ```
 
-```{r error=T}
-class(sales.time.data) <- c("salestime", "sales")
+```{r}
+class(sales.time.data) <- c("salestime", 
+                            "sales",
+                            "data.frame")
 plot(sales.time.data)
 ```
 
 and so we see that because sales.data is also of class sales plot still works. But we can also define its own plot method:
 
-```{r error=T}
-plot <- function(x) UseMethod("plot")
+```{r}
 plot.salestime <- function(dta) {
   par(mfrow=c(1,2))
   Sales <- dta$Sales[dta$Time=="Morning"]
@@ -164,9 +177,73 @@ plot.salestime <- function(dta) {
 plot(sales.time.data)
 ```
 
+**Note** that we already used inheritance in the definition of the sales class:
+
+```{r eval=FALSE}
+class(x) <- c("sales", "data.frame")
+```
+
+so that the data remains as a data frame. If we had used
+
+```{r eval=FALSE}
+class(x) <- "sales"
+```
+
+sales.data would have been turned into a list.
+
+`r hl()$hr()`
+
 generally every class has at least three methods:
 
 -  print  
 -  summary (stats)  
 -  plot
+
+`r hl()$hr()`
+
+**Example**
+
+Let's return to the empirical distribution function discussed earlier. It is defined as follows: Let $x_1, .., x_n$ be a sample from some probability density $f$. Then the empirical distribution function $\hat F (x)$ is defined by
+
+$$
+\hat F (x) = \frac{\text{# of }x_i \le x}n
+$$
+
+Let's have a closer look at the ecdf object:
+
+```{r}
+x <- sort(rnorm(10))
+y <- ecdf(x)
+class(y)
+```
+
+so the classes of an ecdf object are ecdf, stepfun and function. Let's see what that means:
+
+```{r}
+plot(y)
+class(y) <- c("stepfun", "function")
+plot(y)
+class(y) <- "function"
+plot(x, y(x))
+```
+
+**Example**
+
+Let's say we have a data frame with anx and a y column, which are the coordinates of some function. We want to plot command to graph that function:
+
+```{r}
+x <- seq(0, 1, length=250)
+y <- sin(4*pi*x)
+df <- data.frame(x=x, y=y)
+plot(df)
+```
+
+```{r}
+class(df) <- c("fn", "data.frame")
+plot.fn <- function(df) {
+  plot(df[, 1], df[, 2], type="l", 
+       xlab="x", ylab="y")
+}
+plot(df)
+```
 

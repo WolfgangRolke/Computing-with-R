@@ -53,7 +53,25 @@ print(x, digits=4)
 cat("The mean is ", round(mean(x), 1), "\n")
 ```
 
-The "\\n" (**n**ewline) is needed so that the cursor moves to the next line. 
+The "\\n" (**n**ewline) is needed so that the cursor moves to the next line. This also sometimes referred as a *carriage return*.
+
+Another advantage of cat is that one can have different rounding for for different numbers:
+
+```{r}
+x <- 1100; y <- 0.00123334
+print(c(x, y), 4)
+cat(x, "  ", round(y, 4), "\n")
+```
+
+Notice that in the case of print R switches to scientific notation. This default behaviour can be changed with
+
+```{r}
+options(scipen=999)
+print(c(x, y), 4)
+options(scipen=0)
+print(c(x, y), 4)
+```
+
 
 Some times you need a high level of control over the output, for example when writing data to a file that then will be read by a computer program that wants things just so. For this you can use the *sprintf* command.
 
@@ -88,24 +106,22 @@ sprintf("%.3f", p)
 
 #Reading in a Vector
 
-Often the easiest thing to do is to use copy-paste on a vector and then simply *scan* it into R:
+Often the easiest thing to do is to use copy-paste the data and then simply *scan* it into R:
 
 ```{r eval=FALSE}
 x <- scan("clipboard")
 ```
 
--  use the argument sep=";" to change the symbol that is being use as a separator. The default is empty space, common cases include  comma, semi-colon, and newline (\\n)  
+*Note*: if you are using a Mac you need to use
+
+```{r eval=FALSE}
+x <- scan(pipe("pbpaste"))
+```
+
+
+-  use the argument sep=";" to change the symbol that is being used as a spearator. The default is empty space, common cases include  comma, semi-colon, and newline (\\n)  
 
 -  scan assumes that the  data is numeric, if not use the argument what="char".
-
-**Exercise** 
-
-How many a's are there?
-
-```{r, comment="", echo=FALSE}
-x <- sample(letters[1:4], size=150, replace=T)
-cat(x, "\n")
-```
 
 `r hl()$hr()`
 
@@ -125,7 +141,7 @@ getx <- function(sep="") {
 
 Notice some features:
 
--  the routine always reads the data as character vector, whether it is character or numeric.
+-  the routine always reads the data as a character vector, whether it is character or numeric.
 
 -  it then tries to turn it into numeric. If that works, fine, otherwise it stays character. This is done with as.numeric(x), which returns NA if it can't turn an entry into numeric, so is.na(as.numeric(x)) returns TRUE if x can't be made numeric.
 
@@ -136,6 +152,13 @@ If the data is in a stand-alone file saved on your hard drive you can also read 
 ```{r eval=FALSE}
 x <- scan("c:/folder/file.R")
 ```
+
+If it is a webpage use
+
+```{r eval=FALSE}
+x <- scan(url("http://somesite.html"))
+```
+
 
 Notice the use of / in writing folders. \\ does not work on Windows because it is already used for other things, \\\\ would work but is more work to type!
 
@@ -153,6 +176,85 @@ the most useful are
 -  skip:  number of lines at beginning to skip, for example if there is some header.  
 -  quiet=FALSE:  by default R will say how many lines have been read, this can be a nuisance if you have a routine that reads in many files.  
 -  blank.lines.skip=TRUE:  does not read in empty lines. This is a problem if you want to write the file out again later and want it to look as much as possible like the original. 
+
+**Example:** A non-standard input format. 
+
+Consider the file at 
+
+```{r eval=FALSE}
+x <- scan("http://academic.uprm.edu/wrolke/esma6835/sales.txt")
+```
+
+```{r, echo=FALSE}
+x <- scan("sales.txt", what="char", sep="\n")
+```
+
+```{r, comment=""}
+for(i in 1:5) cat(x[i],"\n")
+```
+
+these are sales data for some store. We want to find the mean sales amount. So we need to read the data into R, but there are some issues:
+
+-  the data delimits the decimals European-style, using a comma instead of a period.
+
+-  for easier readability the million and the thousand are separated by a space.
+
+so the first number really is 152278.11.
+
+How can we do this? To start we need to read the data as a single character string:
+
+```{r eval=FALSE}
+x <- paste0()
+  scan("http://academic.uprm.edu/wrolke/esma6835/sales.txt",
+   sep="\n"), collapse="")
+```
+
+
+```{r, echo=FALSE}
+x <- paste0(scan("sales.txt", what="char", sep="\n"),
+            collapse="")
+```
+
+```{r}
+substring(x, 1, 100)
+```
+
+Next we can replace the , with .:
+
+```{r}
+x <- gsub(",", "\\.", x)
+substring(x, 1, 100)
+```
+
+notice the \\\\. This is needed because . is a special character in R, it actually needs to be escaped twice!
+
+Next notice that the numbers are always separated by at least two spaces, so we can split them up with
+
+```{r}
+x <- strsplit(x, "  ")[[1]]
+x[1:10]
+```
+
+Now we can remove any spaces:
+
+```{r}
+x <- gsub(" ", "", x)
+x[1:10]
+```
+
+and get rid of the "":
+
+```{r}
+x <- x[x!=""]
+x[1:10]
+```
+
+Almost done:
+
+```{r}
+x <- as.numeric(x)
+mean(x)
+```
 
 
 #Data Frames
