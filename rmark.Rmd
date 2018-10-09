@@ -31,7 +31,7 @@ R Markdown is a program for making dynamic documents with R. An R Markdown docum
 
 In recent years I (along with many others) who work a lot with R have made Rmarkdown the basic way to work with R. So when I work on a new project I immediately start a corresponding R markdown document. 
 
-###Get Started
+### Get Started
 
 to start writing an R Markdown document open RStudio, File > New File > R Markdown. You can type in the title and some other things.
 
@@ -52,7 +52,7 @@ Then there is other stuff you should erase. Next File > Save. Give the document 
 
 I have a number of things that I need in (almost) all of my Rmd files, and I am to lazy to erase the stuff that the default starting document comes with. So I found the file that RStudio uses at this point, it is called r_markdown_v2.Rmd and sits in the folder ../RStudio/resources/templates (on my Win 10 machine, anyway). I renamed it  r_markdown_v2OLD.Rmd (just so I can get it back if something goes wrong) and put what I want in it. Now when I click on  File > New File > R Markdown, I get a file that is ready to go!
 
-###Basic R Markdown Syntax
+### Basic R Markdown Syntax
 
 for a list of the basic syntax go to [https://rmarkdown.rstudio.com/articles_intro.html](https://rmarkdown.rstudio.com/articles_intro.html) or to 
 [https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet)
@@ -60,7 +60,7 @@ for a list of the basic syntax go to [https://rmarkdown.rstudio.com/articles_int
 
 - 
 
-###Embedded Code
+### Embedded Code
 
 There are two ways to include code chunks (yes, that's what they are called!) into an R Markdown document:
 
@@ -136,11 +136,11 @@ We have already seen the message and warning options. The other one puts any fig
 
 If you have to override these defaults just include that in the specific chunk.
 
-###Creating Output
+### Creating Output
 
 To create the output you have to "knit" the document. This is done by clicking on the *knit* button above. If you click on the arrow you can change the output format.
 
-####HTML vs Latex(Pdf)
+#### HTML vs Latex(Pdf)
 
 In order to knit to pdf you have to install a latex interpreter. My suggestion is to use [Miktex](https://miktex.org/), but if you already have one installed it might work as well.
 
@@ -153,7 +153,7 @@ There are several advantages / disadvantages to each output format:
 
 I generally use HTML when writting a document, and use pdf only when everything else is done. There is one problem with this, namely that a document might well knit ok to HTML but give an error message when knitting to pdf. Moreover, those error messages are weird! Not even the line numbers are anywhere near right. So it's not a bad idea to also knit to pdf every now and then.
 
-###Tables
+### Tables
 
 One of the more complicated things to do in R Markdown is tables. For a nice illustration look at
 
@@ -218,7 +218,7 @@ cat(txt)
 it will appear as `r fontcolor("this is in red")` in either html or latex.
 
 
-###LATEX
+### LATEX
 
 You have not worked with latex (read: latek) before? Here is your chance to learn. It is well worthwhile, latex is the standard document wordprocessor for science. And once you get used to it is WAY better and easier than (say) Word. 
 
@@ -227,7 +227,7 @@ Because latex code will generally display correctly in an html document but html
 A nice list of common symbols is found on [https://artofproblemsolving.com/wiki/index.php/LaTeX:Symbols](https://artofproblemsolving.com/wiki/index.php/LaTeX:Symbols).
 
 
-####Multiline math
+#### Multiline math
 
 say you want the following in your document:
 
@@ -259,7 +259,7 @@ output:
 
 notice the spaces before the text, they are needed!
 
-##snippets
+## snippets
 
 A *snippet* is a short piece of code that one uses quite often, and so it would be nice not to have to type it in every time. RStudio has a number of them pre-defined. Go to Tools > Global Options > Code > Edit Snippets.
 

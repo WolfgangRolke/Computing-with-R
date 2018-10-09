@@ -23,7 +23,7 @@ library(grid)
 ```
 `r hl()$basefontsize()`
 
-#Vectors
+# Vectors
 
 Consider the following vector:
 
@@ -90,7 +90,7 @@ GenderCode[Gender=="Male"] <- 1
 GenderCode
 ```
 
-#Matrices and Data Frames
+# Matrices and Data Frames
 
 Consider the following data frame:
 
@@ -176,7 +176,7 @@ students[20 <= Age <= 22, 1]
 
 does not work. 
 
-#Lists
+# Lists
 
 Subsetting of lists is very similar to data frames:
 
@@ -201,7 +201,7 @@ This can be quite confusing. Here is useful memory device
 
 *If list x is a train, x[[5]] is the content of car 5, whereas x[4:5] is the train consisting of cars 4 and 5*
 
-#Partial Matching
+# Partial Matching
 
 There is one important difference between \$ and [[]], the first one does partial matching:
 
@@ -213,7 +213,7 @@ x[[o]]
 
 I don't however recommend to make use of this feature unless necessary. 
 
-#Useful logic commands
+# Useful logic commands
 
 ```{r}
 x<-1; y<-2; z<-3
@@ -253,7 +253,7 @@ How come $1.1-0.2 \ne 0.9$? This is because of machine precision issues:
 all.equal(0.9, 1.1 - 0.2, tolerance = 1e-16) 
 ```
 
-#*subset*
+# *subset*
 
 Finally there is a command that was written for subsetting:
 
@@ -276,7 +276,7 @@ head(upr, 3)
 
 How many female students applied in either 2010 or 2011, had a highschool GPA of at least 3.0 and a freshman GPA between 3.0 and 3.5?
 
-#*order*
+# *order*
 
 if we need to sort a vector we have the sort command:
 

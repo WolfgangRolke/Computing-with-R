@@ -25,7 +25,7 @@ library(grid)
 `r hl()$basefontsize()`
 
 
-#Basics
+# Basics
 
 For this section you will need the Rcpp and the microbenchmark packages.
 
@@ -68,7 +68,7 @@ tmpR
 Can we do even better?  
 
 ```{r engine='Rcpp'}
-#include <Rcpp.h>
+# include <Rcpp.h>
 using namespace Rcpp;
 // [[Rcpp::export]]
 NumericVector dist3(NumericVector x, NumericVector y) {
@@ -90,7 +90,7 @@ Notice that the above chunk starts like this:
 Actually, we can even do better than that:
 
 ```{r engine='Rcpp'}
-#include <Rcpp.h>
+# include <Rcpp.h>
 using namespace Rcpp;
 // [[Rcpp::export]]
 NumericVector dist4(NumericVector x, NumericVector y) {
@@ -121,7 +121,7 @@ To start let's discuss a few differences between R and C++ syntax:
 
 Moreover, to be linked to R the C++ routine has to start with
 
-\#include <Rcpp.h>  
+\# include <Rcpp.h>  
 using namespace Rcpp;  
 // [[Rcpp::export]]  
 
@@ -129,12 +129,12 @@ The easiest way to get started is to just use RStudio - File - New File - C++ Fi
 
 There are some special variable types you need to use when moving data from R to C++ and back. The most important is the one used in our programs above: NumericVector. It is just what it says it is.
 
-#Debugging
+# Debugging
 
 Generally you should only turn fairly short code into C++, so debugging is not to big a problem. However, on occasion you might want to add a print statement to your code, so you can find out where it fails. here is how:
 
 ```{r engine='Rcpp'}
-#include <Rcpp.h>
+# include <Rcpp.h>
 using namespace Rcpp;
 // [[Rcpp::export]]
 NumericVector dist5(NumericVector x, NumericVector y) {
@@ -152,7 +152,7 @@ NumericVector dist5(NumericVector x, NumericVector y) {
 dist5(x[1:5], y[1:5])
 ```
 
-##Sugar
+## Sugar
 
 Not only is Rcpp vectorized, many standard R functions have been ported to Rcpp. For example, say we want to write a routine that simulates Brownian motion in $R^2$. That is, a stochastic process that moves as follows: if at time $t$ it is at $(x_0, y_0)$, then at time $t+\delta$ it is at $(x_0+\delta X, y_0+\delta Y)$ where $X,Y\sim N(0, 1)$.
 
@@ -161,7 +161,7 @@ Note: generating stochastic process can be quite slow in R because they are diff
 The output of our function is going to be a nx2 matrix, so we will use the data type *NumericMatrix*.
 
 ```{r engine='Rcpp'}
-#include <Rcpp.h>
+# include <Rcpp.h>
 using namespace Rcpp;
 // [[Rcpp::export]]
 NumericMatrix bw(int n, double delta) {
@@ -188,7 +188,7 @@ Notice the term *rnorm(1)[0]*, a little different from the standard R usage.
 
 Anyone (like me!) who ever had to write a routine in C++ and needed a simple routine like rnorm which does not exist in C++ will find this very sweet! And that is why it is called sugar!
 
-##STD (standard template library)
+## STD (standard template library)
 
 The standard template library (STL) provides a set of extremely useful data structures and algorithms. 
 
@@ -196,7 +196,7 @@ Let's start with a simple C++ implementation of the R *sum* function:
 
 
 ```{r engine='Rcpp'}
-#include <Rcpp.h>
+# include <Rcpp.h>
 using namespace Rcpp;
 // [[Rcpp::export]]
 double sum_cpp(NumericVector x) {
@@ -216,7 +216,7 @@ Notice the term *total+=x(i);* which is standard C++ shorthand for *total = tota
 Now the same can be written as:
 
 ```{r engine='Rcpp'}
-#include <Rcpp.h>
+# include <Rcpp.h>
 using namespace Rcpp;
 // [[Rcpp::export]]
 double sum_cpp1(NumericVector x) {
@@ -259,7 +259,7 @@ fibR(10)
 Let's write this with Rcpp:
 
 ```{r engine='Rcpp'}
-#include <Rcpp.h>
+# include <Rcpp.h>
 using namespace Rcpp;
 // [[Rcpp::export]]
 int fib_cpp(const int n) {
@@ -295,14 +295,14 @@ golden_ratio(30, fun=fib_cpp)
 
 The actual value of the golden ratio is of course $\frac{1+\sqrt{5}}2 =1.618..$.
 
-##Using C++ routines. 
+## Using C++ routines. 
 
 So far we used C++ to speed up calculations, and we could use Sugar to call standard R functions in the C++ routine. There is another use, though. C++ has been the main computing language in many fields for a long time, and so there exist a large number of excellent routines already written. Say you found one of these and want to use it in your R program. Here is how:
 
 What we need to do is to write a Rcpp wrapper routine, that eventually calls the C++ subroutine. Here is an example:
 
 ```{r engine='Rcpp'}
-#include <Rcpp.h>
+# include <Rcpp.h>
 using namespace Rcpp;
 
 //function declaration

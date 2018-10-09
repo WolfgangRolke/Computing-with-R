@@ -29,10 +29,10 @@ We start with the following:
 
 ```{r}
 x <- rnorm(100)
-#Expirical Distribution Function
+# Expirical Distribution Function
 a <- ecdf(x)
 plot(a)
-#Non parametric density estimate
+# Non parametric density estimate
 a <- density(x)
 plot(a)
 ```
@@ -137,7 +137,7 @@ and now we can run
 
 ```{r}
 sales.data <- as.sales(sales.data)
-#assign class sales to data frame
+# assign class sales to data frame
 stats(sales.data)
 plot(sales.data)
 ```
@@ -206,7 +206,7 @@ generally every class has at least three methods:
 Let's return to the empirical distribution function discussed earlier. It is defined as follows: Let $x_1, .., x_n$ be a sample from some probability density $f$. Then the empirical distribution function $\hat F (x)$ is defined by
 
 $$
-\hat F (x) = \frac{\text{# of }x_i \le x}n
+\hat F (x) = \frac{\text{#  of }x_i \le x}n
 $$
 
 Let's have a closer look at the ecdf object:

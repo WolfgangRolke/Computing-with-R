@@ -121,7 +121,7 @@ sometimes you want the " to be treated as a character. This can be done with the
 "color=\"red\""
 ```
 
-###Vectors
+### Vectors
 
 the basic data unit of R is a vector. One can create a vector with the *c*ombine command:
 
@@ -182,7 +182,7 @@ Sys.Date()
 ```
 
 
-##Type Conversion
+## Type Conversion
 
 Consider the following:
 
@@ -211,7 +211,7 @@ y
 x <- as.character(y)
 x
 as.numeric(x)
-x <- c("2", "1", "#", "2", "A")
+x <- c("2", "1", "# ", "2", "A")
 as.numeric(x)
 ```
 
@@ -252,7 +252,7 @@ c(1L, FALSE)
 ```
 
 
-##Dates:
+## Dates:
 
 The default format is yyyy-mm-dd:
 
@@ -263,7 +263,7 @@ mydates[2]-mydates[1]
 ```
 
 
-##Factor
+## Factor
 
 a very common data type in Statistics is a factor. These are vectors with a fixed number of different values (called  levels) and possibly an ordering.
 

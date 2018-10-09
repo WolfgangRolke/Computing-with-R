@@ -195,9 +195,9 @@ You can get the vector into R as follows: copy it and in R run
 
 
 ```{r eval=FALSE}
-#Windows
+# Windows
 x <- scan("clipboard", what="char")
-#Mac
+# Mac
 x <- scan(pipe("pbpaste"), what="char")
 ```
 
@@ -223,7 +223,7 @@ Now we need to go through all the states names and find out how many a's there a
 ```{r}
 f <- function(x) {
   ifelse(x[1] > 0, length(x), 0)
-#if there is no a, x is -1, so we get 0  
+# if there is no a, x is -1, so we get 0  
 }
 num_a <- sapply(positions_a, f)
 num_a
@@ -246,7 +246,7 @@ num_vowels
 
 `r hl()$hr()`
 
-#paste
+# paste
 
 One of the most useful commands in R is *paste*. It let's us put together various parts as a string:
 
@@ -300,7 +300,7 @@ notice that the result is a list, so often we use
 unlist(strsplit(txt, " "))
 ```
  
-#Regular Expressions
+# Regular Expressions
 
 A *regular expression* (a.k.a. regex) is a special text string for describing a certain amount of text.  This “certain amount of text” receives the formal name of pattern.  Hence we say that a regular expression is a pattern that describes a set of strings. 
 
@@ -359,7 +359,7 @@ gsub("[^0-9]", "%", txt)
 ```
 
 
-##POSIX
+## POSIX
 
 Closely related to the regex character classes we have what is known as
 POSIX  character classes. In R, POSIX character classes are represented with expressions inside double brackets [[ ]]. 
@@ -371,7 +371,7 @@ POSIX  character classes. In R, POSIX character classes are represented with exp
 [[:alnum:]] Alphanumeric characters ([[:alpha:]] and [[:digit:]])  
 [[:blank:]] Blank characters:  space and tab 
 [[:cntrl:]] Control characters  
-[[:punct:]] Punctuation characters:  !  ” # % & ’ ( ) * + , - .  / :  ;  
+[[:punct:]] Punctuation characters:  !  ” #  % & ’ ( ) * + , - .  / :  ;  
 [[:space:]] Space characters:  tab, newline, vertical tab, form feed,
 carriage return, and space  
 [[:digit:]] Hexadecimal digits:  0-9 A B C D E F a b c d e f  
@@ -385,9 +385,9 @@ as.numeric(txt[grepl("[[:digit:]]", txt)])
 ```
 
 
-#Some Examples
+# Some Examples
 
-##Palindrome
+## Palindrome
 
 a *palindrome* is a word that is the same when read forwards or backwards. Some examples are noon, civic, radar, level, rotor, kayak, reviver, racecar, redder, madam, and refer. Let's write a sequence of commands that take a sentence and return any palindromes. As an example, consider
 
@@ -421,7 +421,7 @@ wrds[tolower(wrds) == tolower(rev.wrds)]
 ```
 
 
-###Email Addresses
+### Email Addresses
 
 Consider the web site of the Math department at [http://math.uprm.edu/academic/people.php](http://math.uprm.edu/academic/people.php)
 
@@ -490,7 +490,7 @@ Programs like these are routinely used to go through millions of websites and se
 
 wolfgang[dot]rolke[at]upr[dot]edu
 
-###Example: Binary Arithmetic
+### Example: Binary Arithmetic
 
 We have previously discussed binary arithmetic. There we used a simple vector of 0's and 1's. The main problem with that is that it is hard to vectorize the routines. Instead we will now use character sequences like "1001". 
 
@@ -503,12 +503,12 @@ decimal.2.binary <- function(x) {
   n <- length(x)
   y <- rep("0", n)
   for(k in 1:n) {
-    if(x[k]==0 | x[k]==1) {  #simple cases 
+    if(x[k]==0 | x[k]==1) {  # simple cases 
         y[k] <- x[k]
         next
     }    
-    i <- floor(log(x[k], base=2)) #largest power of 2 less than x
-    bin.x <- rep(1, i+1) #we will need i+1 0'1 and 1's, first is 1
+    i <- floor(log(x[k], base=2)) # largest power of 2 less than x
+    bin.x <- rep(1, i+1) # we will need i+1 0'1 and 1's, first is 1
     x[k] <- x[k]-2^i 
     for(j in (i-1):0) {
        if(2^j>x[k]) 
@@ -570,28 +570,28 @@ Here I am going to reuse the routine we had already written:
 
 ```{r}
 binary_addition <- function(x, y) {
-#First make x and y of equal length and with one extra 
-#slot in case it's needed for carry over
-#Fill x and y with 0's as needed. 
+# First make x and y of equal length and with one extra 
+# slot in case it's needed for carry over
+# Fill x and y with 0's as needed. 
   n <- length(x)
   m <- length(y)
   N <- max(n, m)+1
   x <- c(rep(0, N-n), x)
   y <- c(rep(0, N-m), y)  
-  s <- rep(0, N) # for result
-  ca <- 0 #for carry over term
+  s <- rep(0, N) #  for result
+  ca <- 0 # for carry over term
   for(i in N:1) {
       n <- x[i]+y[i]+ca
-      if(n<=1) {#no carry over
+      if(n<=1) {# no carry over
         s[i] <- n
         ca <- 0
       }  
-      else {#with carry over
+      else {# with carry over
         s[i] <- 0
         ca <- 1
       }
     }
-  if(s[1]==0) s <- s[-1]#leading 0 removed if necessary
+  if(s[1]==0) s <- s[-1]# leading 0 removed if necessary
   s
 }
 binary_addition(c(1, 0), c(1, 1, 0))
@@ -678,8 +678,8 @@ summary.binary <- function(x) {
     z <- z[z==max(z)]
     mode <- names(z)
   }  
-  y <- paste(x, collapse = "") #one long string
-  y <- as.numeric(strsplit(y, "")[[1]]) #vector of 0's and 1's
+  y <- paste(x, collapse = "") # one long string
+  y <- as.numeric(strsplit(y, "")[[1]]) # vector of 0's and 1's
   y <- round(sum(y==0)/length(y)*100, 1)
   cat("N =", n, "\n")
   cat("Mode =", mode, "\n")

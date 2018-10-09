@@ -25,7 +25,7 @@ library(grid)
 
 R has a number of routines useful for numerical analysis
 
-#Integration
+# Integration
 
 the basic function for numerical integration is *integrate*
 
@@ -87,7 +87,7 @@ sum(y[-1]+4*y[-2]+y[-3])*(x[2]-x[1])/6
 or any other standard numerical integration formula, see for example [Numerical Integration Formulas](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.714.5588&rep=rep1&type=pdf)
 
 
-###Double Integrals
+### Double Integrals
 
 R doesn't have a dedicated routine for double integrals but it is easy to use the integrate function for this as well using the fact that
 
@@ -127,7 +127,7 @@ but the function inside the brackets is the density of a bivariate normal random
 2*pi*sqrt(1-(1/2)^2)
 ```
 
-##Differentiation
+## Differentiation
 
 We saw before the D function for finding derivatives:
 
@@ -163,15 +163,15 @@ Let's write a routine that draws the function and it's Taylor polynomial of orde
 ```{r}
 taylor <- function(f, a, k=1, from, to) {
   expr <- parse(text=f)
-#x and y coordinates of function  
+# x and y coordinates of function  
   x <- seq(from, to, length=250)
   y <- eval(expr)
   t <- x
-#x value of interest a  
+# x value of interest a  
   x <- a
   z <- eval(expr)
   taylor.coefficients <- rep(z, k+1)
-#create text version of Taylor polynomial  
+# create text version of Taylor polynomial  
   x.text <- ifelse(a==0, "x", paste0("(x-", a,")"))
   ttl <- paste0(f, " == ")
   if(z==0) nosgn <- TRUE
@@ -220,7 +220,7 @@ y.prime <- (y[-1]-y[-250])/h
 mid <- (x[-1]+x[-250])/2
 plot(mid, y.prime, type="l",
      xlab="x", ylab="")
-#Second derivative
+# Second derivative
 y.2.prime <- rep(0, 248)
 for(i in 2:249) 
   y.2.prime[i-1] <- (y[i-1]-2*y[i]+y[i+1])/h^2
@@ -229,11 +229,11 @@ plot(x[-c(1, 250)], y.2.prime, type="l",
 ```
 
 
-##Root Finding
+## Root Finding
 
 A very common problem is to have to solve an equation of the form $f(x)=a$. As a specific example we will consider $x\sin(x^2)=1$. Here are some ideas:
 
-###Direct Method (Grid Search)
+### Direct Method (Grid Search)
 
 ```{r}
 f <- function(x) x*sin(x^2)
@@ -266,7 +266,7 @@ optimize(f, c(0.5, 2), maximum = TRUE)
 ```
 
 
-###uniroot
+### uniroot
 
 R has the function *uniroot* to find the roots of a univariate function:
 
@@ -275,7 +275,7 @@ f <- function(x) x*sin(x^2)-1
 uniroot(f, c(0, 1.2))$root
 ```
 
-###polyroot
+### polyroot
 
 In the case of a polynomial one can also use *polyroot*. Say we want to find the roots of
 
@@ -295,7 +295,7 @@ z <- Re(z[round(Im(z), 10)==0])
 z
 ```
 
-###Higher Dimensional Optimization
+### Higher Dimensional Optimization
 
 If we have a function of more than one variable we can use *nlm*. Again it finds minima, but there is no argument maximum=TRUE, so if we want a maximum we have to use -f.
 

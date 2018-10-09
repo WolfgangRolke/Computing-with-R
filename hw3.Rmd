@@ -15,6 +15,7 @@ th, td {padding: 10px;}
 whichcomp <- strsplit(getwd(),"/")[[1]][3]
 load(paste0("c:/users/", whichcomp, "/Dropbox/teaching/Resma3/Resma3.RData"))
 library(knitr)
+library(wolfr)
 opts_chunk$set(fig.width=6, fig.align = "center", 
       out.width = "70%", warning=FALSE, message=FALSE)
 library(ggplot2)
@@ -42,7 +43,7 @@ d.  How many female students applied in either 2010 or 2011, had a highschool GP
 
 **Problem 2**
 
-Generate the following sequences. Do not use c() anywhere. (There are more than one ways to do any of them, you just need to find one)
+Generate the following sequences. Do not use c() alone. There is more than one solution to each, you just need to find one.
 
 a. 
 

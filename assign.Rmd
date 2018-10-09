@@ -15,6 +15,7 @@ th, td {padding: 10px;}
 whichcomp <- strsplit(getwd(),"/")[[1]][3]
 load(paste0("c:/users/", whichcomp, "/Dropbox/teaching/Resma3/Resma3.RData"))
 library(knitr)
+library(wolfr)
 opts_chunk$set(fig.width=6, fig.align = "center", 
       out.width = "70%", warning=FALSE, message=FALSE)
 library(ggplot2)
@@ -22,9 +23,23 @@ library(grid)
 ```
 `r hl()$basefontsize()`
 
+[General Info for Assignments](general.info.homework.html)
+
 [Homework 1](hw1.html), [Solution](https://github.com/WolfgangRolke/Computing-with-R/blob/master/hw1a.Rmd) 
 
-[Homework 2](hw2.html),  [Solution](https://github.com/WolfgangRolke/Computing-with-R/blob/master/hw2sol.Rmd)
+[Homework 2](hw2.html),  [Solution](hw2sol.html)
 
-[Homework 3](hw3.html)  Due: Thursday September 6
+[Homework 3](hw3.html),  [Solution](hw3sol.html)
+
+[Homework 4](hw4.html),  [Solution](hw4sol.html)
+
+[Homework 5](hw5.html),  [Solution](hw5sol.html)
+
+[Homework 6](hw6.html),  [Solution](hw6sol.html)
+
+[Homework 7](hw7.html), [Solution](hw7sol.html)
+
+[Homework 8](hw8.html),  due: <font color="red"> Tuesday </font> October 16
+
+Midterm Exam: Saturday, October 20, 8am - Sunday October 21, midnight
 

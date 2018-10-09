@@ -25,7 +25,7 @@ library(grid)
 
 A large part of this chapter is taken from various works of Hadley Wickham. Among others [The layered grammar of graphics](http://byrneslab.net/classes/biol607/readings/wickham_layered-grammar.pdf) and [R for Data Science](http://r4ds.had.co.nz/).
 
-#Why ggplot2?
+#  Why ggplot2?
 
 Advantages of ggplot2
 
@@ -36,7 +36,7 @@ Advantages of ggplot2
 -  mature and complete graphics system  
 -  many users, active mailing list
 
-#Grammar of Graphics
+#  Grammar of Graphics
 
 In 2005 Wilkinson, Anand, and Grossman published the book "The Grammar of Graphics". In it they layed out a systematic way to describe any graph in terms of basic building blocks. ggplot2 is an implementation of their ideas.
 
@@ -92,7 +92,7 @@ this has the following logic:
 **Note** ggplot2 also has the *qplot* command. This stands for *qick plot*
 
 ```{r warning=FALSE}
-qplot(hp, mpg, mtcars)
+qplot(hp, mpg, data=mtcars)
 ```
 
 This seems much easier at first (and it is) but the qplot command is also very limitted. Very quickly you want to do things that aren't possible with qplot, and so I won't discuss it further here.
@@ -110,20 +110,9 @@ again it seems to do the same thing, but there is a big difference:
 -  if aes(x, y) is part of ggplot, it applies to all the geom's that come later (unless a different one is specified)  
 -  an aes(x, y) as part of a geom applies only to it.
 
-**Exercise**
-
-The data set *highways* has the rate of traffic accidents and other information for 39 highways.
-
-Draw this graph:
-
-```{r echo=FALSE}
-ggplot(aes(x=len, y=rate), data=highways) +
-  geom_point()
-```
-
 `r hl()$hr()`
 
-Let's say we want to identify the cars by the cylinders:
+Let's say we want to identify the cars by the number of  cylinders:
 
 ```{r}
 ggplot(mtcars, aes(hp, mpg, color=cyl)) + 
@@ -176,21 +165,6 @@ plt3 <- plt2 +
 plt3
 ```
 
-**Exercise**
-
-Draw this graph:
-
-```{r echo=FALSE}
-ggplot(aes(x=len, y=rate), data=highways) +
-  geom_point() +
-  labs(x = "Length of Highway", 
-       y = "Rate of Accidents") +
-  labs(title = "Rate decreases with length of highway") +
-  geom_smooth(method="lm", se=FALSE)
-```
-
-
-
 There is another way to include a categorical variable in a scatterplot. The idea is to do several graphs, one for each value of the categorical variable. These are called *facets*:
 
 ```{r}
@@ -222,14 +196,14 @@ plt4
 
 This is almost a bit to much, with just 32 data points there is not really enough for such a split.
 
-#Some standard graphs
+#  Some standard graphs
 
-##Histograms
+##  Histograms
 
 ```{r}
 x <- rnorm(1000, 100, 30)
 df3 <- data.frame(x = x)
-bw <- diff(range(x))/50
+bw <- diff(range(x))/50 # use about 50 bins
 ggplot(df3, aes(x)) +
   geom_histogram(color = "black", 
                  fill = "white", 
@@ -248,7 +222,9 @@ ggplot(df3, aes(x)) +
         fill = "white", 
         binwidth = bw) + 
   labs(x = "x", y = "Density") + 
-  geom_line(data = df4, aes(x, y), colour = "blue") +
+  geom_line(data = df4, aes(x, y), 
+            colour = "blue",
+            inherit.aes = FALSE) +
   geom_density(color = "red")
 ```
 
@@ -269,7 +245,7 @@ ggplot(df5, aes(x=x)) +
 
 Notice the use of alpha. In general this "lightens" the color so we can see "behind".
 
-##Boxplots
+##  Boxplots
 
 ```{r}
 y <- rnorm(120, 10, 3)
@@ -285,8 +261,7 @@ ggplot(df6, aes(x, y)) +
 strangly enough doing a boxplot without groups takes a little work. We have to "invent" a categorical variable:
 
 ```{r}
-df6$z <- rep(" ", length(y))
-ggplot(df6, aes(z, y)) + 
+ggplot(df6, aes(x="", y)) + 
   geom_boxplot() + 
   xlab("")
 ```
@@ -294,13 +269,13 @@ ggplot(df6, aes(z, y)) +
 There is a modern version of this graph called a violin plot:
 
 ```{r}
-ggplot(df6, aes(z, y)) + 
+ggplot(df6, aes(x="", y)) + 
   geom_violin() + 
   xlab("")
 ```
 
 
-##Barcharts
+##  Barcharts
 
 ```{r}
 x <- sample(LETTERS[1:5], 
@@ -325,7 +300,7 @@ ggplot(df7, aes(x=x)) +
 
 Notice how this works: in geom_bar we use a new aes, but the values in it are calculated from the old data frame.
 
-Finally an an example of a contingency table: 
+Finally an example of a contingency table: 
 
 ```{r}
 df7$y <- sample(c("X", "Y"), 
@@ -338,7 +313,7 @@ ggplot(df7, aes(x=x, fill = y)) +
     labs(x="", y="Percentages", fill="Y") 
 ```
 
-#Axis Ticks and Legend Keys
+#  Axis Ticks and Legend Keys
 
 Let's return to the basic plot of mpg by hp. Let's say we want to change the axis tick marks:
 
@@ -358,7 +333,7 @@ ggplot(mtcars, aes(hp, mpg)) +
   scale_y_continuous(labels = NULL)
 ```
 
-By default ggplot2 draws the legends on the right. We can however change that. We can also change appearance of the legend. Recall that the basic graph is in *plt2*. Then
+By default ggplot2 draws the legends on the right. We can however change that. We can also change the appearance of the legend. Recall that the basic graph is in *plt2*. Then
 
 ```{r}
 plt2 +
@@ -367,7 +342,7 @@ plt2 +
                            override.aes = list(size=4)))
 ```
 
-#Saving the graph
+#  Saving the graph
 
 It is very easy to save a ggplot2 graph. Simply run
 

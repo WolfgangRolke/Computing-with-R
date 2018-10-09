@@ -182,7 +182,7 @@ stopCluster(cl)
 ```
 
 
-##GPU Programing
+## GPU Programing
 
 20 years ago or so there was a lot of talk about *massively parallel* computing. This was the idea of using 100s or 1000s of cpu's (*computer processing units*). It never went very far because such computers were way to expensive.
 

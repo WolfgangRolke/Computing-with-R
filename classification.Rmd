@@ -22,7 +22,7 @@ library(grid)
 ```
 `r hl()$basefontsize()`
 
-##Example: Fisher's Iris data set
+## Example: Fisher's Iris data set
 
 One of the most famous data sets in all of statistics is Fisher's iris data. This is data on four types of iris flowers together with information on the length and width of their sepals and petals. The problem is to use this information to predict the type of iris.
 
@@ -273,7 +273,7 @@ fit <- lda(z1~x+y, data=dta)
 plot(fit)
 ```
 
-###Non-parametric Method
+### Non-parametric Method
 
 As before we can replace the least squares solution with a non-parametric one, say loess:
 
@@ -298,7 +298,7 @@ fit <- loess(z2 ~ x+y, data=dta)
 do.graph2(dta, fit)
 ```
 
-###k-nearest neighbor
+### k-nearest neighbor
 
 Here is another, completely different way: for a new point (x1,x2) find the point in the dataset that is closest, and classify (x1,x2) the same! This is called the 1-nearest neighbor classifier. It is implemented by the function *knn*, part of the *class* library:
 
@@ -372,7 +372,7 @@ do.graph1(dta) +
 
 Clearly, we should use an odd k.
 
-###Neural Networks
+### Neural Networks
 
 Another popular approach is to fit a *neural network*. This is large topic, and we won't have time for any detailed discussion. Here is just one example:
 
@@ -385,7 +385,7 @@ fit <- nnet(x = cbind(dta$x, dta$y),
 do.graph2(dta, fit)
 ```
 
-###Tree based methods
+### Tree based methods
 
 Yet another idea is as follows. Let's define a "distance" between the groups. Now let's take one variable (say x) and for some number a split the data set into two parts $x< a$ and $x> a$. For each a we get a distance in the two splits. Find a such that this distance is maximized. Do the same for all the variables. Use the best overall split. 
 
@@ -437,7 +437,7 @@ do.graph2(dta, fit)
 
 Tree based methods using advanced methods such as bagging, boosting, random forrests etc. can be very effective, they are however often difficult to interpret.
 
-##Misclassification Rate
+## Misclassification Rate
 
 How can we choose among all of those methods? The most common measure of how good a classifier is is the *misclassification rate*, that is how many observations would have been classified wrong. Let's find this rate for the various methods:
 
@@ -516,7 +516,7 @@ So 1-nearest neighbor wins, with misc=0!
 
 Or does it? The problem is that we evaluated the methods on the same data set that we used for fitting (or "training"). In the case of 1-nearest neighbor that means we never get this wrong. But if we then applied the fit to a new data set we likely would do much worse. This is true to a lesser extent for all the methods, and in real life we should always use different data sets for training and for evaluation. If only one data set is available we can again use the idea of cross-validation.
 
-##Fisher's iris data
+## Fisher's iris data
 
 Let's apply all of these methods to Fisher's iris data
 

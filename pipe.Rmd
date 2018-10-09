@@ -91,7 +91,7 @@ mtcars %>%
 
 Notice how *filter* is aware of the pipe, it doesn't need to be told that it is supposed to work with mtcars. So far, *ggplot* is not fully pipe aware (otherwise we could have written %>% geom_point()), but this will change in the near future.
 
-##tibbles
+## tibbles
 
 dataframes have been the main data format of R since its beginnings, and are likely to stay that way for a long time. They do, however have some shortcomings. Among other things, when you type the name of a dataframe and hit enter, all of it is shown, even if the data set is huge. On the other hand, interesting information such as the data types of the columns is not shown. To eliviate these (and some other) issues the data format *tibble* was invented. We can turn a dataframe into a tibble with
 
@@ -112,7 +112,7 @@ tibble(x=1:5, y=x^2)
 
 Also, tibbles never use row.names, and it only recycles vectors of length 1. This is because recycling vectors of greater lengths is a frequent source of bugs.
 
-##dplyr
+## dplyr
 
 We have already seen the filter command, the *dplyr* version of subset. Here are the most important *dplyr* commands: 
 
@@ -124,7 +124,7 @@ We have already seen the filter command, the *dplyr* version of subset. Here are
 -  group_by 	allows for group operations in the  “split-apply-combine” concept (base R command: none)
 
 
-###Example: babynames
+### Example: babynames
 
 The library *babynames* (also by Hadley Wickham) has the number of children of each sex given each name for each year from 1880 to 2015 according to the US census. All names with more than 5 uses are given.
 
@@ -162,31 +162,31 @@ Looks like my name is getting more popular (even if it is still rare)!
 What were the most popular girls names each year?
 
 ```{r}
-babynames %>%              #take babynames
-    filter(sex=="F") %>%   #then pick girls only
-    group_by(year) %>%     #then separate the years
-    mutate(M=max(n)) %>%   #then find most often used name
-    filter(n==M) %>%       #then pick only those rows
-    ungroup() %>%          #then join data back together
-    select(name) %>%       #then select names only
-    table() %>%            #then count how often each happened  
-    sort(decreasing = TRUE) %>% #then organize data
-    cbind()               # then turn data around for easier reading  
+babynames %>%              # take babynames
+    filter(sex=="F") %>%   # then pick girls only
+    group_by(year) %>%     # then separate the years
+    mutate(M=max(n)) %>%   # then find most often used name
+    filter(n==M) %>%       # then pick only those rows
+    ungroup() %>%          # then join data back together
+    select(name) %>%       # then select names only
+    table() %>%            # then count how often each happened  
+    sort(decreasing = TRUE) %>% # then organize data
+    cbind()               #  then turn data around for easier reading  
 ```
 
 Let's say we want to save a data set made with the pipe. Logically we should be able to do this
 
 ```{r error=T}
-babynames %>%              #take babynames
-  filter(name=="Wolfgang") %>%   #then pick me
-  wolfgangs                #then give new data set a name
+babynames %>%              # take babynames
+  filter(name=="Wolfgang") %>%   # then pick me
+  wolfgangs                # then give new data set a name
 ```
 
 but that results in an error, only functions can be used in a pipe. So it is done like this:
  
 ```{r error=T}
-wolfgangs <- babynames %>%              #take babynames
-  filter(name=="Wolfgang")    #then pick me
+wolfgangs <- babynames %>%              # take babynames
+  filter(name=="Wolfgang")    # then pick me
 print(wolfgangs, n=3)
 ```
 
@@ -194,9 +194,9 @@ This unfortunately breaks the logic of piping. There is a better way, though. Ju
 
 
 ```{r error=T}
-babynames %>%              #take babynames
-  filter(name=="Wolfgang") ->   #then pick me
-  wolfgangs               #then assign it a name
+babynames %>%              # take babynames
+  filter(name=="Wolfgang") ->   # then pick me
+  wolfgangs               # then assign it a name
 print(wolfgangs, n=3)
 ```
 
@@ -235,7 +235,7 @@ babynames %>%
 
 so the *mutate* command let's us calculate new variables and the *arrange* command let's us change the order of the rows.
 
-##The tidyverse
+## The tidyverse
 
 *ggplot2* and *dplyr* are two of a number of packages that together form the *tidyverse*. They are centered around what is called *tidy data*. For a detailed discussion go to [https://www.tidyverse.org/](https://www.tidyverse.org/).
 

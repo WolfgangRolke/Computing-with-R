@@ -24,7 +24,7 @@ library(stringr)
 ```
 `r hl()$basefontsize()`
 
-# General Information
+#  General Information
 
 In R/RStudio you have several ways to write your own functions:
 
@@ -74,9 +74,9 @@ If *myfun* is open in RStudio there are some useful keyboard shortcuts. If the c
 -  CTRL-Shift-Enter run complete chunk 
 -  CTRL-Shift-P rerun previous
 
-#R Functions
+# R Functions
 
-##Testing
+## Testing
 
 As always you can test whether an object is a function:
 
@@ -94,7 +94,7 @@ get("f")(4)
 get("g")(4)
 ```
 
-##Arguments
+## Arguments
 
 There are several ways to specify arguments in a function:
 
@@ -193,7 +193,7 @@ f()
 
 this is called *recursion* and is a very powerful programming technique.
 
-##Lazy Evaluation
+## Lazy Evaluation
 
 R uses a concept called *lazy evaluation*. This means that an argument is not evaluated until it is used:
 
@@ -229,7 +229,7 @@ test <- first+second
 
 but force makes it clearer that the purpose here is to make sure first and second are of the correct type.
 
-##Return Values
+## Return Values
 
 A function can either return nothing or exactly one thing. It will automatically return the last object evaluated:
 
@@ -284,7 +284,7 @@ f <- function(x) {
 f(1:3)
 ```
 
-##*on.exit*
+## *on.exit*
 
 *on.exit* is a routine that you use inside a function and that gets called and executed whenever the function terminates.
 
@@ -305,11 +305,11 @@ f()
 ```
 
 
-#Basic Programmming Structures in R
+# Basic Programmming Structures in R
 
 R has all the standard programming structures:
 
-##Conditionals (if-else)
+## Conditionals (if-else)
 
 ```{r}
 f <- function(x) {
@@ -358,11 +358,11 @@ f2 <- function(x) {
 ```
 
 
-##Loops
+## Loops
 
 there are three standard loops in R:
 
-###for loop
+### for loop
 
 ```{r}
 y <- rep(0, 10)
@@ -399,7 +399,7 @@ A
 ```
 
 
-###while loop
+### while loop
 
 this is useful if we don't know how often the loop needs to run.
 
@@ -415,7 +415,7 @@ while (length(table(x))!=1) {
 k
 ```
 
-###repeat loop
+### repeat loop
 
 similar to while loop, except that check is done at the end
 

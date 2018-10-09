@@ -24,7 +24,7 @@ library(grid)
 
 In this section we will discuss some graphs that are part of base R. Later we will study more advanced graphics, but it is still a good idea to know how to draw a base graph.
 
-#Barcharts
+# Barcharts
 
 Say we have the data on the number of freshman, sophomores etc at some college:
 
@@ -110,7 +110,7 @@ barplot(tbl.students.fac,
 
 Here I used the *par* command to set some parameters for how the graph is drawn. There is a very long list of such parameters see ?par
 
-#Histogram
+# Histogram
 
 ```{r}
 x <- rnorm(1000, 100, 20)
@@ -147,14 +147,14 @@ curve(f(x)/I, from=min(x), to=max(x),
       lwd = 2)
 ```
 
-#Empirical Distribution Function
+# Empirical Distribution Function
 
 ```{r}
 plot(ecdf(x))
 ```
 
 
-#Boxplot
+# Boxplot
 
 ```{r}
 boxplot(x, horizontal = TRUE)
@@ -162,14 +162,14 @@ attach(mothers)
 boxplot(Length~Status)
 ```
 
-#Normal Probability Plot
+# Normal Probability Plot
 
 ```{r}
 qqnorm(x)
 qqline(x)
 ```
 
-#Scatterplot
+# Scatterplot
 
 
 ```{r echo=FALSE}
@@ -264,7 +264,7 @@ for(i in c(4, 6, 8)) {
 ```
 
 
-#Multiple Graphs
+# Multiple Graphs
 
 sometimes we want to combine several graphs into one
 
@@ -296,7 +296,7 @@ par(mar = c(3, 0, 1, 1))
 boxplot(mpg, axes = FALSE)
 ```
 
-#Functions that create graphs
+# Functions that create graphs
 
 When I write a paper or a talk or anything else that requires some graphs I always write a routine *plot.mytalk*, which has everything to recreate every graph. This is a great way to not only make changes if necessary but also to remind myself what I did back years ago when I wrote it.
 
@@ -319,7 +319,7 @@ figure1 <- function() {
 ```
 
 
-#Graphs that don't look like Graphs
+# Graphs that don't look like Graphs
 
 we can use R to make other types of pictures. Consider this diagram, which I use to illustrate the topic of Cause vs Effect:
 
@@ -380,7 +380,7 @@ say("Hello world!", by = "cow")
 
 
 
-#Printing Graphs
+# Printing Graphs
 
 Often we need to save a graph as a png or a postscript file, so we can include it in a webpage or a latex document. I have to do this often enough I wrote a routine for it:
 

@@ -24,7 +24,7 @@ library(grid)
 
 These are the answers to the exercise questions:
 
-#2.1 Data Types
+# 2.1 Data Types
 
 What is the result of 
 
@@ -44,7 +44,7 @@ levels(f1) <- c("c", "b", "a")
 f1
 ```
 
-#2.2 Data Formats
+# 2.2 Data Formats
 
 what does as.matrix() do when it is applied to a data frame with columns of different types?
 
@@ -55,7 +55,7 @@ as.matrix(df)
 
 the usual type conversion
 
-#2.3 Generate Vectors
+# 2.3 Generate Vectors
 
 
 What does this do?
@@ -70,7 +70,7 @@ What (if anything) does this do?
 (1:3 %o% 1:3) %o% 1:2
 ```
 
-#2.4 Subsetting
+# 2.4 Subsetting
 
 What does this do?
 
@@ -113,7 +113,7 @@ logfac[c(2, 5, 30, 301, 30)]
 
 Vector indexes start at 1, not 0
 
-#2.5 Random Numbers
+# 2.5 Random Numbers
 
 How can we randomly select 20 rows of the **upr** data set?
 
@@ -151,7 +151,7 @@ f <- function(x) dbeta(x, 0.5, 3)
 curve(f, 0, 1, add=TRUE, col="blue")
 ```
 
-#2.6 Writing Functions, Programming
+# 2.6 Writing Functions, Programming
 
 What does this function return?
 
@@ -194,11 +194,11 @@ add.n(x) <- 3
 x
 ```
 
-#2.7 Object-Oriented Programming
+# 2.7 Object-Oriented Programming
 
-#2.8 Vector Arithmetic, Linear Algebra
+# 2.8 Vector Arithmetic, Linear Algebra
 
-#2.9 Character Manipulation
+# 2.9 Character Manipulation
 
 The *Resma3* data set *worldpopulation* has some info on the population sizes of 227 countries. 
 
@@ -218,7 +218,7 @@ paste0("<tr>",
        "<tr>")
 ```
 
-#2.10 Data Input/Output, Transfering R Objects
+# 2.10 Data Input/Output, Transfering R Objects
 
 How many a's are there?
 
@@ -233,9 +233,9 @@ high-light letters, copy-paste, run
 table(scan("clipboard", what="char"))
 ```
 
-#2.11 Graphs
+# 2.11 Graphs
 
-#2.12 Model Notation
+# 2.12 Model Notation
 
 for the **upr** data what is the coefficient of Highschool.GPA in a model that predicts Freshmen.GPA from Aptitud.Verbal, Aptitud.Matem, Aprov.Ingles and  Highschool.GPA with all second-order interactions except for Highschool.GPA-Aprov.Ingles?
 
@@ -244,15 +244,15 @@ z <- summary(lm(Freshmen.GPA ~ (Aptitud.Verbal + Aptitud.Matem + Aprov.Ingles + 
 z[[4]][5, 1]
 ```
 
-#2.13 Numerical Methods
+# 2.13 Numerical Methods
 
-#2.14 Environments, Libraries
+# 2.14 Environments, Libraries
 
-#2.15 Customizing R: .First, .Rprofile, Dropbox
+# 2.15 Customizing R: .First, .Rprofile, Dropbox
 
-#2.16 List of Important base R Commands
+# 2.16 List of Important base R Commands
 
-#3.1 Graphics with ggplot2
+# 3.1 Graphics with ggplot2
 
 The data set *highways* has the rate of traffic accidents and other information for 39 highways.
 
@@ -274,34 +274,34 @@ ggplot(aes(x=len, y=rate), data=highways) +
   geom_smooth(method="lm", se=FALSE)
 ```
 
-#3.2 C++ with Rcpp
+# 3.2 C++ with Rcpp
 
-#3.3 Parallel and gpu Computing
+# 3.3 Parallel and gpu Computing
 
-#3.4 Input/Output Revisited
+# 3.4 Input/Output Revisited
 
-#3.5 The pipe, dplyr, tibbles, tidyverse
+# 3.5 The pipe, dplyr, tibbles, tidyverse
   
-#3.6 Character Manipulation with strngr
+# 3.6 Character Manipulation with strngr
 
-#3.7 Dates with lubridate
+# 3.7 Dates with lubridate
 
-#3.8 Factors with forcats
+# 3.8 Factors with forcats
 
-#3.9 Iteration with purrr
+# 3.9 Iteration with purrr
 
-#3.10 Interactive Apps with shiny
+# 3.10 Interactive Apps with shiny
 
-#3.11 Version Control and Collaboration with github
+# 3.11 Version Control and Collaboration with github
 
 
-#4.1  Estimation
+# 4.1  Estimation
 
-#4.2  The Bootstrap
+# 4.2  The Bootstrap
 
-#4.3  Curve Fitting / Regression
+# 4.3  Curve Fitting / Regression
 
-#4.4  Classification
+# 4.4  Classification
 
-#4.5  Bayesian Analysis
+# 4.5  Bayesian Analysis
 

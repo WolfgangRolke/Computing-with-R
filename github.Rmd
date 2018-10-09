@@ -39,7 +39,7 @@ The main idea behind github is to *branch* a *repo* (repository). Essentially th
 
 This course (the Rmds) is available on github at [https://github.com/WolfgangRolke/Computing-with-R](https://github.com/WolfgangRolke/Computing-with-R). 
 
-##Setting up a new repo
+## Setting up a new repo
 
 github is independent of R and/or RStudio. You can use it for any purpose, even storing your poetry. RStudio however was designed to work closely with github, and I will discuss how to use gitub in this way.
 

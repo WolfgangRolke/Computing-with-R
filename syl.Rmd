@@ -19,7 +19,7 @@ Professor: Dr. Wolfgang Rolke
 Time and Place:  
 Tuesday, Thursday 2:00 - 3:15pm  SH005
 
-###Reading List:
+### Reading List:
 
 There are literally 100s of books about R, with new ones coming out almost every week. Here are some that I found useful:
 
@@ -31,7 +31,7 @@ There are literally 100s of books about R, with new ones coming out almost every
 
 [Advanced R](https://englianhu.files.wordpress.com/2016/05/advanced-r.pdf)
 
-###Office hours
+### Office hours
 
 Tuesday, Thursday 12:00-12:30pm OF407  
 Tuesday, Thursday 3:15-5:15pm OF407 (by appointment)  
@@ -40,13 +40,13 @@ email: wolfgang[dot]rolke[at]upr[dot]edu
 
 when you send me an email `r hl()$fontcolor("ALWAYS")` start the subject line with ESMA6835
 
-###Grading:
+### Grading:
 
 1.  Homework: 50%  
 2.  Midterm 25%  
 3.  Final 25%  
 
-###Submit your work
+### Submit your work
 
 all homeworks and exams have to be done using RMarkdown and have to be submitted via Dropbox. You will be sent an invitation to join Dropbox soon (if you are not already a user). A little while later you will receive an email with an invitation to share a Dropbox folder with me. 
 

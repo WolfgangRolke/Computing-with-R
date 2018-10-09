@@ -144,7 +144,7 @@ Let’s see some examples:
 ```{r}
 str_pad("Great!", width = 7)
 str_pad("Great", width = 8, side = "both")
-str_pad("Great!", width = 7, pad="#")
+str_pad("Great!", width = 7, pad="# ")
 ```
 
 Often when dealing with character vectors we end up with white spaces. These are easily taken care of with str_trim:
@@ -173,7 +173,7 @@ declaration.of.independence <- "We hold these truths to be self-evident, that al
 cat(str_wrap(declaration.of.independence, width=40))
 ```
 
-##Dracula by Bram Stoker
+## Dracula by Bram Stoker
 
 Let's do a textual analysis of Bram Stoker's Dracula. We can get an electronic copy of the book from the Project Gutenberg [http://www.gutenberg.org/](http://www.gutenberg.org/). To get a book into R is very easy, there is a package:
 
@@ -225,7 +225,7 @@ dracula %>%
 
 so *time* is the most common word, it appears 390 times in the book.
 
-How do the words in Dracula compare to another famous fiction book of the era, The Time Machine, by H. G. Wells? This is book #35 in the Gutenberg catalogue:
+How do the words in Dracula compare to another famous fiction book of the era, The Time Machine, by H. G. Wells? This is book # 35 in the Gutenberg catalogue:
 
 ```{r cache=TRUE}
 time.machine <- gutenberg_download(35)[, 2]
@@ -258,14 +258,14 @@ Next we add some useful columns:
 ```{r }
 freqs %>% 
   mutate(word=str_extract(word, "[a-z']+")) %>% 
-        #take out things like , etc
+        # take out things like , etc
   count(book, word) %>% 
   group_by(book) %>%
-  mutate(prop=n/sum(n)) %>% #take into account 
-                  #different lengths of the books
+  mutate(prop=n/sum(n)) %>% # take into account 
+                  # different lengths of the books
   ungroup() %>% 
-  filter(n>10) %>%  #consider only words used frequently
-  select(-n) %>%  #not needed anymore
+  filter(n>10) %>%  # consider only words used frequently
+  select(-n) %>%  # not needed anymore
   arrange(desc(prop)) ->
   freqs
 ```
@@ -275,10 +275,10 @@ Next we find all the words that appear in both books, and look at their relative
 ```{r}
 freqs %>% 
    spread(key=book, value = prop) %>% 
-            #use one column for Dracula's 
-            #proportions and another for Time Machine
-   na.omit()  -> #words that appear in only one book are NA, 
-                #eliminate them    
+            # use one column for Dracula's 
+            # proportions and another for Time Machine
+   na.omit()  -> # words that appear in only one book are NA, 
+                # eliminate them    
   common.words
 print(common.words, n=4)
 common.words %>%

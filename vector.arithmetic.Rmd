@@ -49,7 +49,7 @@ x
 x^2
 ```
 
-#Matrix Algebra
+# Matrix Algebra
 
 R can also handle basic matrix calculations:
 
@@ -102,7 +102,7 @@ t(A)
 
 Other functions for matrices are *qr* for decomposition, *eigen* for computing eigenvalues and eigenvectors, and *svd* for singular value decomposition. There are also packages for dealing with things like sparse matrices etc.
 
-#Vectorize
+# Vectorize
 
 When you write your own functions you should write them in such a way that they in turn are vectorized, that is can be applied to vectors. Here is one way to this. Consider the function *integrate*, which does numerical integration:
 
@@ -153,7 +153,7 @@ fA.vec <- function (A) {
 fA.vec(c(1, 2))
 ```
 
-##apply family of functions
+## apply family of functions
 
 There is a set of routines that can be used to vectorize. Say we want to do a simulation to study the variance of the mean and the median in a sample from the normal distribution.
 

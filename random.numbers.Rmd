@@ -23,7 +23,7 @@ library(grid)
 ```
 `r hl()$basefontsize()`
 
-#Random Numbers
+# Random Numbers
 
 Everything starts with generating X~1~, X~2~, .. iid U[0,1]. These are simply called random numbers. There are some ways to get these:
 
@@ -39,7 +39,7 @@ require(random)
 randomNumbers(20, 0, 100)
 ```
 
-#Pseudo-Random Numbers
+# Pseudo-Random Numbers
 
 These are numbers that look random, smell random ...
 
@@ -99,7 +99,7 @@ sort(sample(x, size=10, replace = TRUE))
 
 How can we find Bootstrap samples of the **upr** data set?
 
-#Standard Probability Distributions
+# Standard Probability Distributions
 
 Not surprisingly many standard distributions are part of base R. For each the format is
 
@@ -119,14 +119,14 @@ P(X=x)=\frac{\lambda^x}{x!}e^{-\lambda}\text{, }x=0,1, ...
 $$
 
 ```{r}
-#density
+# density
 dpois(c(0, 8, 12, 20), lambda=10)
 10^c(0, 8, 12, 20)/factorial(c(0, 8, 12, 20))*exp(-10)
-#cumulative distribution function
+# cumulative distribution function
 ppois(c(0, 8, 12, 20), 10)
-#random generation
+# random generation
 rpois(5, 10)
-#quantiles
+# quantiles
 qpois(1:4/5, 10)
 ```
 
@@ -220,7 +220,7 @@ dgamma(1.2, 0.5, 1/(1/2))
 ```
 
 
-#Other Variates
+# Other Variates
 
 if you need to generate  random variates from a distribution that is not part of base R you should first try to find a package that includes it.
 
@@ -308,7 +308,7 @@ but this is not a trivial integral, so we need to use a numerical method:
 x <- seq(0, 1, length=250)
 f <- x*sin(2*pi*x)^2
 I <- sum( (f[-1]+f[-250])/2 *(x[-1]-x[-250])) 
-#Riemann sum
+# Riemann sum
 hist(y, 50, freq=FALSE, main="")
 curve(x*sin(2*pi*x)^2/I, 0, 1,
       col = "blue",

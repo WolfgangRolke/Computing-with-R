@@ -51,7 +51,7 @@ There are also many regional differences in how date and time are written:
 
 Imagine you need to analyse some stock market data, starting from 1980 to today and in second intervals. You would need to include all of these details!
 
-###Create a date object
+### Create a date object
 
 to get todays time and date:
 
@@ -119,7 +119,7 @@ flights %>%
   print(n=4)
 ```
 
-##Time Spans
+## Time Spans
 
 lubridate has a number of functions to do arithmetic with dates. For example, my age is
 

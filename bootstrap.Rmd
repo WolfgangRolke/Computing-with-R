@@ -60,7 +60,7 @@ sim.theta(n=25)
 But what do we do if didn't know that the data comes from the normal distribution? Then we can't simulate from $F$. We can, however simulate from the next best thing, namely the empirical distribution function *edf* $\hat F$. This is defined as:
 
 $$
-\hat F (x) = \frac1{n} \sum_{i=1}^n I_{(-\infty, x]} (X_i) = \frac{\# X_i \le x}{n}
+\hat F (x) = \frac1{n} \sum_{i=1}^n I_{(-\infty, x]} (X_i) = \frac{\#  X_i \le x}{n}
 $$
  
  Here are two examples:
@@ -107,7 +107,7 @@ sd(bootstrap(x, 500, mean)$thetastar)
 sd(bootstrap(x, 500, median)$thetastar)
 ```
 
-###Example 
+### Example 
 
 the *skewness* of a distribution is a measure of it's lack of symmetry. It is defined by
 
@@ -139,11 +139,11 @@ x <- rgamma(250, 2.5, 1/2)
 sd(bootstrap(x, 500, T.fun)$thetastar)
 ```
 
-##Confidence Intervals
+## Confidence Intervals
 
 There are two standard technics for using the Bootstrap to find confidence intervals:
 
-###Normal Theory
+### Normal Theory
 
 Let's continue the discussion of the skewness, and put a 95% confidence interval on the estimates:
 
@@ -178,7 +178,7 @@ T.fun(x.gamma) + c(-1, 1)*qnorm(0.975)*sd(thetastar.gamma)
 
 Notice that here there is no $/\sqrt{n}$, because sd(thetastar) is already the standard deviation of the estimator, not of an individual observation.
 
-###Percentile Intervals
+### Percentile Intervals
 
 An alternative way to find confidence intervals is by estimating the population  quantiles of the bootstrap sample with the sample quantiles:
 
@@ -187,7 +187,7 @@ sort(thetastar.normal)[2000*c(0.025, 0.975)]
 sort(thetastar.gamma)[2000*c(0.025, 0.975)]
 ```
 
-###More Advanced Intervals
+### More Advanced Intervals
 
 There are a number of ways to improve the performance of bootstrap based confidence intervals. One of the more popular ones is called *nonparametric bias-corrected and accelerated (BCa) intervals*. The package *bootstrap* has the routine *bcanon*. The intervals are the found via the percentile method but the percentile are found with
 

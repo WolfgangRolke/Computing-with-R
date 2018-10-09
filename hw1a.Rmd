@@ -4,7 +4,7 @@ output:
   html_document: default
 ---
 
-###Definition 
+### Definition 
 
 The random variable $X$ is said to have a standard normal distribution iff it has density
 
@@ -12,7 +12,7 @@ $$
 \phi(x) = \frac{1}{\sqrt{2 \pi}}e^{-\frac12 x^2}
 $$
 
-###Theorem 
+### Theorem 
 
 Let $X_1,..,X_n$ be a sequence of independent and identically distributied random variables with mean $\mu$ and variance $\sigma^2$. Let $\bar{X}=\frac1{n}\sum_{i=1}^n X_i$. Then 
 

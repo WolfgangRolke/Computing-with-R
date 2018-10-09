@@ -154,7 +154,7 @@ lm(y ~ X)
 ```
 
 
-###Case Study
+### Case Study
 
 we have a list of prices and other information on houses in Albuquerque, New Mexico:
 

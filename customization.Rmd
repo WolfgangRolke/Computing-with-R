@@ -57,22 +57,22 @@ Exactly in what folder the .Rprofile should be in is bit of a mystery, it depend
 So here is what (part of) mine looks like:
 
 
-options(help_type="html")  #ignored in RStudio
-options(show.signif.stars=FALSE)  #for p-values
-options(stringsAsFactors=FALSE)  #a classic source of errors  
+options(help_type="html")  # ignored in RStudio
+options(show.signif.stars=FALSE)  # for p-values
+options(stringsAsFactors=FALSE)  # a classic source of errors  
 library(ggplot2)  
-library(wolfr)  #Two of my own
+library(wolfr)  # Two of my own
 library(moodler)  
 .MyEnv <- new.env()   
 .MyEnv\$sc <- function() source("clipboard")  
 .MyEnv\$dp <- function(x) { dump(x,"clipboard") }  
 .MyEnv\$ip <- function(x) { 
-\#Install and immediately load a package
+\# Install and immediately load a package
     install.packages(x, lib = "C:/R/library")  
     library(x, character.only = TRUE)   
 }  
 attach(.MyEnv)  
-if("First.R" %in% dir()) {#check whether there is a .First  
+if("First.R" %in% dir()) {# check whether there is a .First  
   source("First.R")  
   .First()  
 }  
@@ -88,7 +88,7 @@ library(shiny)
 
 Notice because a single .Rprofile sits in the default working directory the same one gets executed everytime I start RStudio, but different working directories might have different First.R's (or none) 
 
-#Dropbox
+# Dropbox
 
 Disclaimer: I discuss here Dropbox, but there are other companies that offer the same service and this is not meant as an endorsement of Dropbox (although I do like it myself!).
 

@@ -64,7 +64,7 @@ qnorm(1-0.05/2)
 
 if $\alpha=0.05$.
 
-###Example: Inference for mean of normal distribution
+### Example: Inference for mean of normal distribution
 
 $X_1,..,X_n \sim N(\mu, \sigma)$, $\sigma$ known. 
 
@@ -105,7 +105,7 @@ $$
 $$
 this is of course the standard answer (for known $\sigma$).
 
-###Example: Beta distribution
+### Example: Beta distribution
 
 Say we have $X_1,..,X_n \sim B (\alpha, \alpha)$. 
 
@@ -164,19 +164,19 @@ Let's put all of this together and write a "find a confidence interval" routine:
 
 ```{r}
 mle.est <- 
-  function(f, #density
-           param, #starting value for nlm
-           alpha=0.05, #desired confidence level
-           rg, #range for plotting log-likelihood function
-           do.graph=FALSE #TRUE if we want to look at the
-                          #log-likelihood function
+  function(f, # density
+           param, # starting value for nlm
+           alpha=0.05, # desired confidence level
+           rg, # range for plotting log-likelihood function
+           do.graph=FALSE # TRUE if we want to look at the
+                          # log-likelihood function
            ) 
 {
-  ll <- function(a) { #log-likelihood function
+  ll <- function(a) { # log-likelihood function
      -sum(log(f(a)))
   } 
   tmp <- nlm(ll, param, hessian = TRUE)
-  if(do.graph) {  #if you want to see the loglikelihood curve
+  if(do.graph) {  # if you want to see the loglikelihood curve
      a <- seq(rg[1], rg[2], length=250)
      y <- rep(0, 250)
      for(i in seq_along(a))
@@ -190,7 +190,7 @@ mle.est <-
     names(ci) <- c("Lower", "Upper")
   }
   else {
-    I.inv <- solve(tmp$hessian) #find matrix inverse
+    I.inv <- solve(tmp$hessian) # find matrix inverse
     ci <- matrix(0, length(param), 2)
     colnames(ci) <- c("Lower", "Upper")
     if(!is.null(names(param)))
@@ -241,7 +241,7 @@ names(param) <- c("alpha", "beta")
 mle.est(function(a) {dbeta(x, a[1], a[2])}, param=param)
 ```
 
-###Example: Old Faithful guyser 
+### Example: Old Faithful guyser 
 
 The lengths of an eruption and the waiting time until the next eruption of the Old Faithful guyser in Yellowstone National Park have been studied many times. Lets's focus on the waiting times:
 
@@ -294,7 +294,7 @@ curve(res$mle[1] * dnorm(x, res$mle[2], res$mle[3]) +
 
 Now this sounds good, and it is, however this is based on having a *large enough* sample. In order to be sure ours is large enough one usually has to do some kind of coverage study.
 
-###Hurricane Maria
+### Hurricane Maria
 
 How many people died due to Hurricane Maria when it struck Puerto Rico on September 20, 2017? Dr Roberto Rivera and I tried to answer this question. We got the following information from the Department of Health: during the time period September 1st to September 19 there where 1582 deaths. During the period September 20 to October 31 there where 4319. 
 
@@ -365,9 +365,9 @@ Notice how in general the number of deaths is much higher in the winter than in 
 ```{r}
 deaths.before <- 2315+2494+2392+2390+2369+2367+2321+2928-1317
 deaths.after <- 1317+3040+2671
-deaths.before/231 #Daily Deaths before Maria
-deaths.after/72 #Daily Deaths after Maria
-round(72*(deaths.after/72 - deaths.before/231)) #point estimate for total deaths due to Maria
+deaths.before/231 # Daily Deaths before Maria
+deaths.after/72 # Daily Deaths after Maria
+round(72*(deaths.after/72 - deaths.before/231)) # point estimate for total deaths due to Maria
 
 f <- function(a) 
   -deaths.before*log(231*a[1]) + 231*a[1] -
@@ -385,7 +385,7 @@ ggplot(data=data.frame(x=1:12, y=Deaths), aes(x, y)) +
   geom_point()
 ```
 
-##Packages
+## Packages
 
 There are a number of packages available for maximum likelihood fitting:
 

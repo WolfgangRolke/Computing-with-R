@@ -23,7 +23,7 @@ library(grid)
 ```
 `r hl()$basefontsize()`
 
-#Printing Info to Screen
+# Printing Info to Screen
 
 The basic functions to display information on the screen are
 
@@ -84,14 +84,14 @@ Here the f stands for floating point, the most common type. Also note that the r
 Here are some variations:
 
 ```{r}
-sprintf("%.3f", pi) #everything before the ., 3 digits after
-sprintf("%1.0f", pi) #1 space, 0 after
-sprintf("%5.1f", pi) #5 spaces total, 1 after
-sprintf("%05.1f", pi) #same but fill with 0
-sprintf("%+f", pi) #all with + in front
-sprintf("% f", pi) #space in front
-sprintf("%e", pi) #in scientific notation, small e
-sprintf("%E", pi) #or large E
+sprintf("%.3f", pi) # everything before the ., 3 digits after
+sprintf("%1.0f", pi) # 1 space, 0 after
+sprintf("%5.1f", pi) # 5 spaces total, 1 after
+sprintf("%05.1f", pi) # same but fill with 0
+sprintf("%+f", pi) # all with + in front
+sprintf("% f", pi) # space in front
+sprintf("%e", pi) # in scientific notation, small e
+sprintf("%E", pi) # or large E
 sprintf("%g", 1e6*pi)
 ```
 `r hl()$vspace()`
@@ -104,7 +104,7 @@ p
 sprintf("%.3f", p)
 ```
 
-#Reading in a Vector
+# Reading in a Vector
 
 Often the easiest thing to do is to use copy-paste the data and then simply *scan* it into R:
 
@@ -129,12 +129,12 @@ I need to do this so often I wrote a little routine for it:
 
 ```{r}
 getx <- function(sep="") {
-  options(warn=-1) #It might give a warning, I don't care
+  options(warn=-1) # It might give a warning, I don't care
   x <- scan("clipboard", what="character", sep=sep)
-  #always read as character
-  if(all(!is.na(as.numeric(x)))) #are all elements numeric?
-    x <- as.numeric(x) #then make it numeric
-  options(warn=0) #reset warning
+  # always read as character
+  if(all(!is.na(as.numeric(x)))) # are all elements numeric?
+    x <- as.numeric(x) # then make it numeric
+  options(warn=0) # reset warning
   x  
 }
 ```
@@ -257,7 +257,7 @@ mean(x)
 ```
 
 
-#Data Frames
+# Data Frames
 
 the standard command to read data from a table into a data frame is *read.table*. 
 
@@ -288,7 +288,7 @@ read.table("c:/folder/student.data.R",
 
 the row.names=1 tells R to use the first column as row names.
 
-#Transfering Objects from one R to another
+# Transfering Objects from one R to another
 
 Say you have a few data sets and routines you want to send to someone else. The easiest thing to do is use *dump* and *source*.
 
@@ -309,15 +309,15 @@ dp <- function (x) dump(x, "clipboard")
 sc <- function () source("clipboard")
 ```
 
-#Special File Formats
+# Special File Formats
 
 There are routines to read all sorts of file formats. The most important one is likely *read.csv*, which can read Excel files saved in the comma delimited format.
 
-#Packages
+# Packages
 
 there are a number of packages written to help with data I/O. We will discuss some of them later.
 
-#Working on Files
+# Working on Files
 
 R can also be used to create, copy, move and delete files and folders on your hard drive. The routines are
 

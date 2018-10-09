@@ -43,9 +43,9 @@ Let's begin by creating a page that does the following: it generates a data set 
 **example1**
 ```{r example1, eval=FALSE}
 ui <- fluidPage(
-  numericInput(inputId = "n", #name of variable
-               label = "Sample Size", #text on page
-               value = 1000), #starting value
+  numericInput(inputId = "n", # name of variable
+               label = "Sample Size", # text on page
+               value = 1000), # starting value
   plotOutput("plot1")
 )
 server <- function(input, output) {
@@ -83,15 +83,15 @@ Next we will improve the app in three ways:
 ui <- fluidPage(
   titlePanel("Histogram App"),
   sidebarLayout(
-    sidebarPanel( #Input widgets on left side of page
+    sidebarPanel( # Input widgets on left side of page
     numericInput(inputId = "n", 
                label = "Sample Size", 
                value = 1000, 
-              width = "40%"), #size of box
+              width = "40%"), # size of box
     textInput(inputId = "nbins", 
               label = "Number of bins", 
               value = "50", 
-              width = "20%") #size of box
+              width = "20%") # size of box
     ),
     mainPanel(
       plotOutput("plot1")
@@ -302,7 +302,7 @@ server <- function(input, output) {
 shinyApp(ui, server)
 ```
 
-##Create/Run/Distribute Shiny Apps
+## Create/Run/Distribute Shiny Apps
 
 There are a number of ways to create, run and distribute shiny apps:
 

@@ -22,9 +22,9 @@ library(grid)
 ```
 `r hl()$basefontsize()`
 
-#Curve Fitting
+# Curve Fitting
 
-##Parametric Models
+## Parametric Models
 
 Let's have another look at the Old Faithful data. Now we will consider both variables, the length of the eruptions and the waiting time until the next one. 
 
@@ -221,7 +221,7 @@ c(1:6)[z$which[I, ]]
 
 so this chooses a model with highest degree 4. This is the same as before, which is nice. This does not however have to happen, the two solutions can sometimes yield different models. 
 
-##Nonparametric Regression
+## Nonparametric Regression
 
 Consider the following graph:
 

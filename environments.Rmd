@@ -21,7 +21,7 @@ library(grid)
 ```
 `r hl()$basefontsize()`
 
-#Environments
+# Environments
 
 WARNING: In what follows I will only discuss a FEW of the issues involved with environments, and I will simplify them greatly. For a much more detailed discussion see [http://adv-r.had.co.nz/Environments.html](http://adv-r.had.co.nz/Environments.html).
 
@@ -111,7 +111,7 @@ Let's clean up before we continue:
 detach(2)
 ```
 <hr>
-###runtime environments
+### runtime environments
 
 How does this work when we run a function? To find out we can  write a little function:
 
@@ -225,7 +225,7 @@ args(mailR::send.mail)
 
 Some R texts suggest to avoid using attach at all, and to always use ::. The reason is that what works on your computer with its specific setup may not work on someone elses. My preference is to use :: if I use a function in this package just once but to attach the package if I use the function several times.
 
-##Packages
+## Packages
 
 As we have already seen, packages/libraries are at the heart of R. Mostly it is where we can find routines already written for various tasks. The main repository is at [https://cran.r-project.org/web/packages/](https://cran.r-project.org/web/packages/). Currently there are over 12000!
 
@@ -255,7 +255,7 @@ If you install a new version of R you want to update all the packages:
 update.packages(ask=FALSE)
 ```
 
-##Creating your own library
+## Creating your own library
 
 It has been said that *as soon as your project has two functions, make a library*. While that might be a bit extreme, putting a collection of routines and data sets into a common library certainly is worthwhile. Here are the main steps to do so:
 
@@ -360,14 +360,17 @@ In the next step we need to add comments to the functions.
 
 Eventually these are the things will appear in the help files. They are
 
-\#' f1 Function  
-\#'  
-\#' This function finds the square.  
-\#' @param x.  
-\#' @keywords square  
-\#' @export  
-\#' @examples  
-\#' f1(2)  
+```{r eval=FALSE}
+# ' f1 Function  
+# '  
+# ' This function finds the square.  
+# ' @param x.  
+# ' @keywords square  
+# ' @export  
+# ' @examples  
+# ' f1(2)  
+```
+
 
 and the corresponding one for f2.
 
@@ -401,14 +404,14 @@ And that's it!
 I have several libraries that I often change, so I wrote a small routine to make it easy:
 
 ```{r eval=FALSE}
-#' make.library
-#'
-#' This function creates a library called name in folder
-#' @param name  name of library
-#' @param folder folder with R routines
-#' @export
-#' @examples
-#' make.library("moodler")
+# ' make.library
+# '
+# ' This function creates a library called name in folder
+# ' @param name  name of library
+# ' @param folder folder with R routines
+# ' @export
+# ' @examples
+# ' make.library("moodler")
 
 make.library <- function (name, folder) 
 {
@@ -419,14 +422,14 @@ make.library <- function (name, folder)
       folder <- paste0("C:/users/", whichcomp, "/Dropbox/R/wolfr")
     if(folder=="Resma3") 
       folder <- paste0("C:/users/", whichcomp, "/Dropbox/teaching/Resma3/Resma3")       
-    library(devtools)  #make sure packages are loaded
+    library(devtools)  # make sure packages are loaded
     library(roxygen2)
-    olddir <- getwd() #remember where you are
-    setwd(folder) #go where you need to be
-    document()  #make lib
+    olddir <- getwd() # remember where you are
+    setwd(folder) # go where you need to be
+    document()  # make lib
     setwd("..")
     install(name)
-    setwd(olddir) #go back
+    setwd(olddir) # go back
     
 }
 ```

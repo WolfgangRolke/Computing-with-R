@@ -22,7 +22,7 @@ library(grid)
 ```
 `r hl()$basefontsize()`
  
-#Installation and Updating
+# Installation and Updating
 
 You can get a free version of R for your computer from a number of sources. The download is about 70MB and setup is fully automatic. Versions for several operating systems can be found on the R web site
 
@@ -54,12 +54,12 @@ Hit enter
 Then, every command should work correctly. 
 
 
-###RStudio
+### RStudio
 
 We will run R using an interface called **RStudio**. You can download it at [RStudio](https://www.rstudio.com/). 
 
 
-###Updating
+### Updating
 
 R releases new versions about every three months or so. In general it is not necessary to get the latest version every time. Every now and then a package won't run under the old version, and then it is time to do so. In essence this just means to install the latest version of R from CRAN. More important is to now also update ALL your packages to the latest versions. This is done simply by running
 
