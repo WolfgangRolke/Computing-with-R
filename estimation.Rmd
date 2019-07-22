@@ -1,26 +1,22 @@
 ---
-title: Estimation
 header-includes: \usepackage{color}
+                 \usepackage{float}
 output:
   html_document: default
   pdf_document:
     fig_caption: no
 ---
-<style>
-table, th, td { text-align:right; }
-th, td {padding: 10px;}
-</style>
 
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
-whichcomp <- strsplit(getwd(),"/")[[1]][3]
-load(paste0("c:/users/", whichcomp, "/Dropbox/teaching/Resma3/Resma3.RData"))
-library(knitr)
-opts_chunk$set(fig.width=6, fig.align = "center", 
-      out.width = "70%", warning=FALSE, message=FALSE)
-library(ggplot2)
-library(grid)
+source("../R/setup.rmd.R", local=TRUE)
+setup.rmd(local.env=environment())
 ```
 `r hl()$basefontsize()`
+`r hl()$style()`
+
+## Parameter Estimation
+
+### Maximum Likelihood
 
 In this chapter we will study the problem of parameter estimation. In its most general form this is as follows: we have a sample $X_1,..,X_n$ from some probability density $f(x;\theta)$. Here both x and $\theta$ might be vectors. Also we will use the term density for both the discrete and the continuous case. 
 
@@ -39,6 +35,8 @@ $$
 l(\theta) = \sum_{i=1}^n \log f(x_i, \theta)
 $$
 the estimate of $\theta$ is then found by maximizing the function $l$. Let's call this $\hat \theta$.
+
+### Large Sample Theory of MLEs and Confidence Intervals
 
 One major reason for the popularity of this method is the following celebrated theorem, due to Sir R.A. Fisher: under some regularity conditions 
 
@@ -64,7 +62,7 @@ qnorm(1-0.05/2)
 
 if $\alpha=0.05$.
 
-### Example: Inference for mean of normal distribution
+#### **Example**: Inference for mean of normal distribution
 
 $X_1,..,X_n \sim N(\mu, \sigma)$, $\sigma$ known. 
 
@@ -105,7 +103,7 @@ $$
 $$
 this is of course the standard answer (for known $\sigma$).
 
-### Example: Beta distribution
+#### **Example**: Beta distribution
 
 Say we have $X_1,..,X_n \sim B (\alpha, \alpha)$. 
 
@@ -241,9 +239,9 @@ names(param) <- c("alpha", "beta")
 mle.est(function(a) {dbeta(x, a[1], a[2])}, param=param)
 ```
 
-### Example: Old Faithful guyser 
+#### **Example**: Old Faithful geyser 
 
-The lengths of an eruption and the waiting time until the next eruption of the Old Faithful guyser in Yellowstone National Park have been studied many times. Lets's focus on the waiting times:
+The lengths of an eruption and the waiting time until the next eruption of the Old Faithful geyser in Yellowstone National Park have been studied many times. Let's focus on the waiting times:
 
 ```{r}
 Time <- faithful$Waiting.Time
@@ -315,7 +313,7 @@ f <- function(a) -log(dbinom(1582, 19*N, a[1])) -
 nlm(f, c(1582/19/3500000, (4319/42-1582/19)/3350000), hessian = TRUE)
 ```
 
-Ohps, that didn't work. The problem is that the numbers for calculating the Hessian matrix become so small that it can not be done. 
+Oops, that didn't work. The problem is that the numbers for calculating the Hessian matrix become so small that it can not be done. 
 
 What to do? First we can try to use the usual Poisson approximation to the Binomial:
 
@@ -385,7 +383,7 @@ ggplot(data=data.frame(x=1:12, y=Deaths), aes(x, y)) +
   geom_point()
 ```
 
-## Packages
+### Packages for estimation
 
 There are a number of packages available for maximum likelihood fitting:
 

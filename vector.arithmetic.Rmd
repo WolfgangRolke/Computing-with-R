@@ -1,30 +1,27 @@
 ---
-title: Vector Arithmetic
 header-includes: \usepackage{color}
+                 \usepackage{float}
 output:
   html_document: default
   pdf_document:
     fig_caption: no
 ---
 
-<style>
-table, th, td { text-align:right; }
-th, td {padding: 10px;}
-</style>
-
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
-whichcomp <- strsplit(getwd(),"/")[[1]][3]
-load(paste0("c:/users/", whichcomp, "/Dropbox/teaching/Resma3/Resma3.RData"))
-library(knitr)
-opts_chunk$set(fig.width=6, fig.align = "center", 
-      out.width = "70%", warning=FALSE, message=FALSE)
-library(ggplot2)
-library(grid)
+source("../R/setup.rmd.R", local=TRUE)
+setup.rmd(local.env=environment())
 ```
 `r hl()$basefontsize()`
+`r hl()$style()`
 
+## Vector Arithmetic
 
-One of the most useful features of R is it's ability to do math on vectors. In fact we have already used this feature many times, but now we will study it explicitely. 
+One of the most useful features of R is it's ability to do math on vectors. In fact we have already used this feature many times, but now we will study it explicitly. 
+
+```{r}
+options(digits=4)
+```
+
 
 ```{r}
 x <- 1:10
@@ -49,7 +46,9 @@ x
 x^2
 ```
 
-# Matrix Algebra
+but this can also fail!
+
+### Matrix Algebra
 
 R can also handle basic matrix calculations:
 
@@ -61,10 +60,10 @@ y
 x*y
 ```
 
-so this does elementwise multiplication. If we want to do actual matrix multiplication we have
+so this does element wise multiplication. If we want to do actual matrix multiplication we have
 
 ```{r}
-x %*% y
+x %*% y # an infix operator!
 ```
 
 
@@ -100,9 +99,40 @@ transposition is done with
 t(A)
 ```
 
-Other functions for matrices are *qr* for decomposition, *eigen* for computing eigenvalues and eigenvectors, and *svd* for singular value decomposition. There are also packages for dealing with things like sparse matrices etc.
+**Note** so careful when using *t* as the name of an object! 
 
-# Vectorize
+As you know (I hope?) from linear algebra any (non-singular square) matrix A can be written in the form
+
+$$A=UDU^{-1}$$
+where D is a diagonal matrix. One use of this is we can then easily find
+
+$$
+\begin{aligned}
+&A^2    = AA = \\
+&UDU^{-1}UDU^{-1}  = \\
+&UDDU^{-1} =\\
+&UD^2U^{-1}  \\
+\end{aligned}
+$$
+and with induction we get
+
+$$A^n=UD^nU^{-1}$$
+
+**Example** Say
+
+```{r}
+A <- matrix(1:9/10, 3, 3)
+z <- eigen(A)
+z
+z$vectors %*% diag(z$values^2) %*% solve(z$vectors)
+A %*% A
+z$vectors %*% diag(z$values^10) %*% solve(z$vectors)
+```
+
+
+Other functions for matrices are *qr* for decomposition and *svd* for singular value decomposition. There are also packages for dealing with things like sparse matrices etc.
+
+### Vectorization
 
 When you write your own functions you should write them in such a way that they in turn are vectorized, that is can be applied to vectors. Here is one way to this. Consider the function *integrate*, which does numerical integration:
 
@@ -140,7 +170,7 @@ fAvec <- Vectorize(fA)
 fAvec(c(1, 2))
 ```
  
-This works fine, but does have some drawbacks. General functions like Vectorize have to work in a great many different cases, so they need to do a lot of checking, which takes time to do.  In practise it is often better to vectorize your routine yourself:
+This works fine, but does have some drawbacks. General functions like Vectorize have to work in a great many different cases, so they need to do a lot of checking, which takes time to do.  In practice it is often better to vectorize your routine yourself:
 
 
 ```{r}
@@ -153,7 +183,9 @@ fA.vec <- function (A) {
 fA.vec(c(1, 2))
 ```
 
-## apply family of functions
+Once you have a function that does something for one value, vectorizing it is (usually) very quick and almost always worthwhile!
+
+### *apply* family of functions
 
 There is a set of routines that can be used to vectorize. Say we want to do a simulation to study the variance of the mean and the median in a sample from the normal distribution.
 
@@ -171,6 +203,8 @@ sim1(50)
 ```
 
 Here is an alternative:
+
+-  *apply*
 
 ```{r cache=TRUE}
 sim2 <- function(n, B=1e4) {
@@ -190,9 +224,9 @@ microbenchmark(sim1(50), times = 10)
 microbenchmark(sim2(50), times = 10)
 ```
 
-so the loop is actually faster! A few versions ago the whole implementation of loops in R was rewritten, and these days they are actually quite fast!
+so the loop is actually faster! A few versions ago the whole implementation of loops in R was rewritten, and these days they are actually quite fast! That still leaves the advantage of short code. 
 
-That still leaves the advantage of short code. There are variants of apply for other data structures:
+There are variants of apply for other data structures:
 
 -  *lapply* for lists:
 
@@ -201,13 +235,15 @@ x <- list(A=rnorm(10), B=rnorm(20), C=rnorm(30))
 lapply(x, mean)
 ```
 
-as we see the result is again a list. Often we want it to be a vector. We could use *unlist*, or
+as we see the result is again a list. Notice that this goes against the way R is generally written: the resulting object could be type-converted to the simpler vector but is not.
+
+Often we want it to be a vector. We could use *unlist*, or
 
 ```{r}
 sapply(x, mean)
 ```
 
--  *tapply* 
+-  *tapply* for vectors
 
 apply a function to the numbers in one vector, grouped by the values in another (categorical) vector:
 
@@ -221,18 +257,14 @@ tapply(GPA, Gender, mean)
 Here is another less obvious example:
 
 ```{r eval=FALSE}
-GPA <- round(runif(1000, 2, 4), 2)
-Gender <- sample(c("Male", "Female"), 
-      size=1000, replace=TRUE)
 par(mfrow=c(1,2))
-tapply(GPA, Gender, hist, breaks=50, main="", xlab="")
+tapply(GPA, Gender, hist, breaks=50,
+       main="", xlab="", ylab="")
 ```
 
 ```{r echo=FALSE}
-GPA <- round(runif(1000, 2, 4), 2)
-Gender <- sample(c("Male", "Female"), 
-      size=1000, replace=TRUE)
 par(mfrow=c(1,2))
-invisible(tapply(GPA, Gender, hist, breaks=50, main="", xlab=""))
+invisible(tapply(GPA, Gender, hist,
+    breaks=50, main="", xlab="", ylab=""))
 ```
 

@@ -1,33 +1,41 @@
 ---
-title: Input/Output Part 2
 header-includes: \usepackage{color}
+                 \usepackage{float}
 output:
   html_document: default
   pdf_document:
     fig_caption: no
 ---
 
-<style>
-table, th, td { text-align:right; }
-th, td {padding: 10px;}
-</style>
-
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
-whichcomp <- strsplit(getwd(),"/")[[1]][3]
-load(paste0("c:/users/", whichcomp, "/Dropbox/teaching/Resma3/Resma3.RData"))
-library(knitr)
-opts_chunk$set(fig.width=6, fig.align = "center", 
-      out.width = "70%", warning=FALSE, message=FALSE)
-library(ggplot2)
-library(grid)
+source("../R/setup.rmd.R", local=TRUE)
+setup.rmd(local.env=environment())
 ```
 `r hl()$basefontsize()`
+`r hl()$style()`
 
-There are a number of packages that help with data I/O. Some are specialized for certain data types, others are more general
+## Input/Output revisited
 
-# rio
+Libraries used in this section:
 
-One of my favorites is *rio*. An introduction can be found at [https://cran.r-project.org/web/packages/rio/vignettes/rio.html](https://cran.r-project.org/web/packages/rio/vignettes/rio.html). The list of supported file formats is quite impressive! You use the import function to import data and the export function to export. The routine uses the extension to figure out the file format. So say you have a file called mytestdata.csv in a folder called c:/tmpdata, just run
+```{r}
+library(rio)
+library(readr)
+library(data.table)
+library(pdftools)
+```
+
+There are a number of packages that help with data I/O. Some are specialized for certain data types, others are more general.
+
+### *rio* library
+
+One of my favorites is *rio*. An introduction can be found at [https://cran.r-project.org/web/packages/rio/vignettes/rio.html](https://cran.r-project.org/web/packages/rio/vignettes/rio.html). The list of supported file formats is quite impressive! You use the *import* function to import data and the *export* function to export. The routine uses the extension to figure out the file format. So say you have a file called mytestdata.csv in a folder called c:/tmpdata, just run
+
+```{r eval=FALSE}
+import("c:/tmpdata/mytestdata.csv")
+```
+
+#### **Example**
 
 ```{r}
 B <- 2*1e6
@@ -37,23 +45,18 @@ z <- sample(letters[1:5], size=B, replace=TRUE)
 xyz <- data.frame(x, y, z)
 head(xyz, 3)
 dir.create("c:/tmpdata")
-library(rio)
 export(xyz, "c:/tmpdata/mytestdata.csv")
-detach(2)
 rm(xyz)
 ```
 
 ```{r}
-library(rio)
 head(import("c:/tmpdata/mytestdata.csv"), 3)
 ```
 
-## Minitab to R
-
 rio has the ability to read Minitab files. Unfortunately they have to be in the portable format, and Minitab stopped using that some versions ago. So the easiest thing to do is save files in Minitab as .csv.
+
  
- 
-# readr
+#### *readr* library
 
 This package is specific to rectangular data, such as data from an Excel spreadsheet. It's main advantage is it's speed when compared to the corresponding base R routine read.csv:
 
@@ -61,7 +64,6 @@ This package is specific to rectangular data, such as data from an Excel spreads
 tm <- proc.time()
 head(read.csv("c:/tmpdata/mytestdata.csv"), 2)
 (proc.time()-tm)[3]
-library(readr)
 tm <- proc.time()
 head(import("c:/tmpdata/mytestdata.csv"), 2)
 (proc.time()-tm)[3]
@@ -69,12 +71,12 @@ head(import("c:/tmpdata/mytestdata.csv"), 2)
 
 **Note** that the data is in the form of a *tibble*. This is a  special kind of data frame which we will talk about later.
 
-# data.table
+### *data.table* library
 
-Similar to read.table but faster and more convenient. The command is called *fread*:
+Similar to *read.table* but faster and more convenient. The command is called *fread*:
+
 
 ```{r}
-library(data.table)
 tm <- proc.time()
 head(fread("c:/tmpdata/mytestdata.csv"), 2)
 (proc.time()-tm)[3]
@@ -88,21 +90,19 @@ This command is what I would recommend if you deal with Big Data. These days we 
 
 In the case of Bigger Data you can no longer have all of it in memory, but it becomes necessary to use a hard drive as memory. A useful package for that is *bigmemory*.
 
-# pdftools
+### *pdftools* library
 
-The pdf format is the most common document format on the internet, so quite often we are faced with the following problem: we want to extract some data from a pdf. Here we can use
+The pdf format is the most common document format on the internet, so quite often we are faced with the following problem: we want to extract some data from a pdf. The problem is that pdf files are not plain text and so can not be read directly by R. Here we can use the package *pdftools*.
 
-```{r}
-library(pdftools)
-```
+#### **Example**
 
-As an example consider the report on the [World Mortality Rate 2017](http://academic.uprm.edu/wrolke/esma6835/World-Mortality-2017-Data-Booklet.pdf). It has a large table with mortality information. We begin by downloading it:
+Consider the report on the [World Mortality Rate 2017](http://academic.uprm.edu/wrolke/esma6835/World-Mortality-2017-Data-Booklet.pdf). It has a large table with mortality information. We begin by downloading it:
 
 ```{r eval=FALSE}
 download.file("http://academic.uprm.edu/wrolke/esma6835/World-Mortality-2017-Data-Booklet.pdf", "world-mortality.pdf", mode="wb")
 ```
  
-and then turn it into a text file:
+ and then turn it into a text file:
 
 ```{r}
 txt <- pdf_text("world-mortality.pdf")
@@ -208,7 +208,7 @@ txt <- txt[1:(k+13)]
 ```
 
 
-Unfortunately the table is not contigues, eventually there is a page break and then the title text repeats. However, this part always starts with the words "World Mortality" and ends with "(13)", so it is easy to remove all of them:
+Unfortunately the table is not contiguous, eventually there is a page break and then the title text repeats. However, this part always starts with the words "World Mortality" and ends with "(13)", so it is easy to remove all of them:
 
 ```{r}
 k <- seq_along(txt)[txt=="World Mortality"]
@@ -275,8 +275,7 @@ Let's look at the life expectancy, sorted from highest to lowest:
 dta <- data.tbl[order(data.tbl[, "LifeExpectancy.Both"], 
           decreasing = TRUE), c(1, 4)]
 colnames(dta)[2] <- "Life Expectancy"
-row.names(dta) <- NULL
-kable(dta)
+kable.nice(dta, do.row.names = FALSE)
 ```
 
 

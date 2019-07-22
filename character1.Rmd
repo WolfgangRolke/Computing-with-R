@@ -1,28 +1,18 @@
 ---
-title: Character Manipulation with stringr
 header-includes: \usepackage{color}
+                 \usepackage{float}
 output:
   html_document: default
   pdf_document:
     fig_caption: no
 ---
 
-<style>
-table, th, td { text-align:right; }
-th, td {padding: 10px;}
-</style>
-
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
-whichcomp <- strsplit(getwd(),"/")[[1]][3]
-load(paste0("c:/users/", whichcomp, "/Dropbox/teaching/Resma3/Resma3.RData"))
-library(knitr)
-opts_chunk$set(fig.width=6, fig.align = "center", 
-      out.width = "70%", warning=FALSE, message=FALSE)
-library(ggplot2)
-library(grid)
+source("../R/setup.rmd.R", local=TRUE)
+setup.rmd(local.env=environment())
 ```
-
 `r hl()$basefontsize()`
+`r hl()$style()`
 
 
 ```{r}
@@ -30,6 +20,7 @@ library(magrittr)
 library(dplyr)
 ```
 
+##  Character Manipulation with *stringr*
 
 Thanks to Hadley Wickham, we have the package *stringr* that adds more functionality to the base functions for handling strings in
 R. According to the description of the package at [http://cran.r-project.org/web/packages/stringr/index.html
@@ -144,7 +135,7 @@ Let’s see some examples:
 ```{r}
 str_pad("Great!", width = 7)
 str_pad("Great", width = 8, side = "both")
-str_pad("Great!", width = 7, pad="# ")
+str_pad(str_pad("Great!", width = 7), width = 8, pad="#")
 ```
 
 Often when dealing with character vectors we end up with white spaces. These are easily taken care of with str_trim:
@@ -173,7 +164,7 @@ declaration.of.independence <- "We hold these truths to be self-evident, that al
 cat(str_wrap(declaration.of.independence, width=40))
 ```
 
-## Dracula by Bram Stoker
+#### **Example**: Dracula by Bram Stoker
 
 Let's do a textual analysis of Bram Stoker's Dracula. We can get an electronic copy of the book from the Project Gutenberg [http://www.gutenberg.org/](http://www.gutenberg.org/). To get a book into R is very easy, there is a package:
 
@@ -185,7 +176,7 @@ dracula
 
 Why 345? This is the id number used by the Gutenberg web site to identify this book. Go to their website and check out what other books they have (there are over 57000 as of 2018).
 
-The first column is the gutenber_id, so we can get rid of that
+The first column is the Gutenberg_id, so we can get rid of that
 
 ```{r}
 dracula <- dracula[, 2]
@@ -199,7 +190,7 @@ dracula[1:100, ] %>%
   cat()
 ```
 
-What are the most commonly used words in the book? Well, it will be something like "a", "and" etc. Those kinds of words are called *stop_words*, and they are not very interesting, and it might be better to just take them out. There are lists of such words. One of them is in the liberary *tidytext*:
+What are the most commonly used words in the book? Well, it will be something like "a", "and" etc. Those kinds of words are called *stop_words*, and they are not very interesting, and it might be better to just take them out. There are lists of such words. One of them is in the library *tidytext*:
 
 ```{r}
 library(tidytext)
@@ -225,7 +216,10 @@ dracula %>%
 
 so *time* is the most common word, it appears 390 times in the book.
 
-How do the words in Dracula compare to another famous fiction book of the era, The Time Machine, by H. G. Wells? This is book # 35 in the Gutenberg catalogue:
+
+#### **Example**: Dracula vs The Time Machine
+
+How do the words in Dracula compare to another famous fiction book of the era, The Time Machine, by H. G. Wells? This is book # 35 in the Gutenberg catalog:
 
 ```{r cache=TRUE}
 time.machine <- gutenberg_download(35)[, 2]
@@ -249,7 +243,7 @@ We begin by joining the two books together, with a new column identifying the bo
 ```{r}
 library(tidyr)
 freqs <- bind_rows(mutate(dracula, book="Dracula"),
-       mutate(time.machine, book="Time Machine"))
+       mutate(time.machine, book="Time.Machine"))
 freqs
 ```
 
@@ -282,7 +276,7 @@ freqs %>%
   common.words
 print(common.words, n=4)
 common.words %>%
-  ggplot(aes(x=Dracula, y= common.words[ ,"Time Machine"])) +
+  ggplot(aes(x=Dracula, y=common.words$Time.Machine)) +
     labs(x = "Dracula", 
          y = "Time Machine") +
     geom_text(aes(label = word), 

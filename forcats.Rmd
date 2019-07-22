@@ -1,27 +1,20 @@
 ---
-title: Factors with forcats
 header-includes: \usepackage{color}
+                 \usepackage{float}
 output:
   html_document: default
   pdf_document:
     fig_caption: no
 ---
 
-<style>
-table, th, td { text-align:right; }
-th, td {padding: 10px;}
-</style>
-
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
-whichcomp <- strsplit(getwd(),"/")[[1]][3]
-load(paste0("c:/users/", whichcomp, "/Dropbox/teaching/Resma3/Resma3.RData"))
-library(knitr)
-opts_chunk$set(fig.width=6, fig.align = "center", 
-      out.width = "70%", warning=FALSE, message=FALSE)
-library(ggplot2)
-library(grid)
+source("../R/setup.rmd.R", local=TRUE)
+setup.rmd(local.env=environment())
 ```
 `r hl()$basefontsize()`
+`r hl()$style()`
+
+## Factors with *forcats*
 
 We have previously discussed factors, that is categorical data with fixed values and ordering. Now we will discuss the package *forcats*, which has a number of useful functions when working with factors.
 
@@ -67,12 +60,15 @@ Quite often the order we want is the order in which the values appear in the dat
 lvls <- unique(draft$Month)
 ```
 
-The forcats package includes a data set called gss_cat:
+`r hl()$hr()`
+
+The forcats package includes a data set called *gss_cat*:
 
 ```{r}
 gss_cat
 ```
- which has the results of the General Social Survey ([http://gss.norc.org](http://gss.norc.org)), which a survey in the US done by the University of Chicago. We will use it to illustrate forcats.
+
+which has the results of the General Social Survey ([http://gss.norc.org](http://gss.norc.org)). This is a survey in the US done by the University of Chicago. We will use it to illustrate forcats.
  
 Let's begin by considering the variable race:
  
@@ -103,7 +99,7 @@ Let's consider the average number of hours that a person spends watching TV per 
 ```{r}
 gss_cat %>%
   group_by(relig) %>%
-  summarize(
+  summarise(
     age = mean(age, na.rm = TRUE),
     tvhours = mean(tvhours, na.rm = TRUE),
     n = n()
@@ -119,7 +115,9 @@ This graph is hard to read, mainly because there is no ordering. But unlike Mont
 ```{r}
 tv.relig %>%
   ggplot(aes(tvhours, fct_reorder(relig, tvhours))) +
-  geom_point()
+  geom_point() +
+  labs(x="TV Hours",
+       y="Religion")
 ```
 
 Let's see how income varies with age:
@@ -127,14 +125,15 @@ Let's see how income varies with age:
 ```{r}
 gss_cat %>%
   group_by(rincome) %>% 
-  summarize(
+  summarise(
     age = mean(age, na.rm = TRUE),
     n = n()
   ) -> 
   rincome
 rincome %>%
   ggplot(aes(age, rincome)) +
-  geom_point()  
+  geom_point() +
+  labs(x="Age", y="Income")
 ```
 
 What ordering makes the most sense here? There are two types of levels: those with actual numbers, and those like "Not applicable". We should probably separate them. 
@@ -143,9 +142,12 @@ What ordering makes the most sense here? There are two types of levels: those wi
 rincome %>%
   ggplot(aes(age, fct_relevel(rincome, 
           c("Not applicable", "Refuse", "No answer")))) +
-  geom_point()  
+  geom_point()+
+  labs(x="Age", y="Income")  
 
 ```
+
+`r hl()$hr()`
 
 In a bar graph the most common ordering is by size:
 
@@ -155,6 +157,8 @@ gss_cat %>%
          fct_infreq() %>% fct_rev()
   ) %>% 
   ggplot(aes(marital)) +
-     geom_bar()
+     geom_bar() +
+     labs(x="Marital Status",
+          y="Counts")
 ```
 

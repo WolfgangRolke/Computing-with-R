@@ -1,5 +1,6 @@
 ---
 title: Iteration with purrr
+                 \usepackage{float}
 header-includes: \usepackage{color}
 output:
   html_document: default
@@ -76,7 +77,21 @@ df %>%
 out[1:5]
 ```
 
-Another is that *map* has a number of nice shortcuts. Say we want to fit a linear model to the mtcars data set but a different model for each cylinder:
+Another is that *map* has a number of nice shortcuts.
+
+On a number of occasions we already faced the following problem: we have a data set with two quantitative variables and a categorical one, and we want to fit separate linear models to each value of the categorical one.
+
+If the goal is a scatterplot this is easy:
+
+```{r}
+ggplot(data=mtcars, 
+       aes(wt, mpg, color=factor(cyl))) +
+  geom_point() +
+  geom_smooth(method = "lm", se=FALSE) +
+  labs(x="Weight", y="MPG", color="Cylinders")
+```
+
+but what if we want the actual models? Here is an easy way to do this:
 
 ```{r}
 mtcars %>% 
@@ -96,7 +111,9 @@ mtcars.models %>%
   map_dbl("r.squared") 
 ```
 
-Example: The data in the *gapminder* package has information on most of the countries in the world, including Puerto Rico. For a detailed explanation see its homepage at [https://www.gapminder.org/](https://www.gapminder.org/).
+**Example:**
+
+The data in the *gapminder* package has information on most of the countries in the world, including Puerto Rico. For a detailed explanation see its homepage at [https://www.gapminder.org/](https://www.gapminder.org/).
 
 ```{r}
 library(gapminder)
@@ -108,7 +125,8 @@ Let's consider for a moment the life expectancy per country over time:
 gapminder %>% 
   ggplot(aes(year, lifeExp)) +
     geom_point() +
-    geom_smooth(se=FALSE)
+    geom_smooth(se=FALSE) +
+    labs(x="Year", y="Life Expectancy")
 ```
 
 Not surprisingly, the life expectancy has increase over the last 70 years or so. Overall we have
@@ -117,6 +135,8 @@ Not surprisingly, the life expectancy has increase over the last 70 years or so.
 fit <- lm(gapminder$lifeExp ~ gapminder$year)
 summary(fit)
 ```
+
+so the life expectancy increased an average of 0.33 years or 4 months per year from 1950 to 2010.
 
 It does seem that the linear model is not quite right, and in fact
 
@@ -136,14 +156,20 @@ gapminder %>%
 gap.country
 ```
 
-What is this column "data"? As it says, it is a tibble again. So we have a tibble with a colunm, each entry if which is again a tibble!
+This splits the data set into 142 data sets, one for each country, but still organizes the whole as a tibble (rather than say as a list).
 
-Now
+What is this column "data"? As it says, it is a tibble again. So we have a tibble with a colunm, each entry of which is again a tibble!
+
+Let's check Puerto Rico:
 
 ```{r}
 I.PR <- c(1:dim(gap.country)[1])[gap.country$country=="Puerto Rico"]
 gap.country$data[[I.PR]]
 ```
+
+which shows us the year by changes in Puerto Rico.
+
+Next we find the least squares regression for each country:
 
 ```{r}
 gap.country %>% 

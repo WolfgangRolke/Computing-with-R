@@ -1,27 +1,29 @@
 ---
-title: Environments, Libraries
 header-includes: \usepackage{color}
+                 \usepackage{float}
 output:
   html_document: default
   pdf_document:
     fig_caption: no
 ---
 
-<style>
-table, th, td { text-align:right; }
-th, td {padding: 10px;}
-</style>
-
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
-library(knitr)
-opts_chunk$set(fig.width=6, fig.align = "center", 
-      out.width = "70%", warning=FALSE, message=FALSE)
-library(ggplot2)
-library(grid)
+  library(knitr)
+  library(wolfr)
+  library(ggplot2)
+  library(grid)
+  options(digits=4)
+  opts_chunk$set(fig.width=6, 
+                 fig.align = "center", 
+                 out.width = "70%",
+                 warning=FALSE,
+                 message=FALSE)
 ```
 `r hl()$basefontsize()`
+`r hl()$style()`
 
-# Environments
+
+## Environments and Libraries
 
 WARNING: In what follows I will only discuss a FEW of the issues involved with environments, and I will simplify them greatly. For a much more detailed discussion see [http://adv-r.had.co.nz/Environments.html](http://adv-r.had.co.nz/Environments.html).
 
@@ -52,7 +54,7 @@ ls()
 
 Next R starts looking for an object called *mean*. To do that it again first looks into ".GlobalEnv", but we already know it is not there.
 
-Next R looks into "package:knitr", which we can do with
+Next R looks into "`r search()[2]`", which we can do with
 
 ```{r}
 ls(2, pattern="mean")
@@ -110,7 +112,7 @@ Let's clean up before we continue:
 ```{r}
 detach(2)
 ```
-<hr>
+
 ### runtime environments
 
 How does this work when we run a function? To find out we can  write a little function:
@@ -225,13 +227,13 @@ args(mailR::send.mail)
 
 Some R texts suggest to avoid using attach at all, and to always use ::. The reason is that what works on your computer with its specific setup may not work on someone elses. My preference is to use :: if I use a function in this package just once but to attach the package if I use the function several times.
 
-## Packages
+### Packages
 
-As we have already seen, packages/libraries are at the heart of R. Mostly it is where we can find routines already written for various tasks. The main repository is at [https://cran.r-project.org/web/packages/](https://cran.r-project.org/web/packages/). Currently there are over 12000!
+As we have already seen, packages/libraries are at the heart of R. Mostly it is where we can find routines already written for various tasks. The main repository is at [https://cran.r-project.org/web/packages/](https://cran.r-project.org/web/packages/). Currently there are over 14500!
 
-In fact, that is one problem: for any one task there are likely a dozen packages that would work. Finding the one that works for you is not easy!
+In fact, that is a problem: for any one task there are likely a dozen packages that would work. Finding the one that works for you is not easy!
 
-Once you decide which one you want you can download it easily by clicking on the Packages tab in RStudio, select Install and typing the name. Occasionally RStudio won't find it, then you can do it manually:
+Once you decide which one you want you can download it by clicking on the Packages tab in RStudio, select Install and typing the name. Occasionally RStudio won't find it, then you can do it manually:
 
 ```{r eval=FALSE}
 install.packages("pckname")
@@ -255,7 +257,9 @@ If you install a new version of R you want to update all the packages:
 update.packages(ask=FALSE)
 ```
 
-## Creating your own library
+**Note** sometimes after a major upgrade this fails, and you have to update each package one by one. The last time this happened was after the upgrade from Ver 3.4.0 to 3.5.0.
+
+### Creating your own library
 
 It has been said that *as soon as your project has two functions, make a library*. While that might be a bit extreme, putting a collection of routines and data sets into a common library certainly is worthwhile. Here are the main steps to do so:
 
@@ -285,7 +289,7 @@ Title: What the Package Does (one line, title case)
 Version: 0.0.0.9000  
 Authors@R: person("First", "Last", email = "first.last@example.com", role = c("aut", "cre"))  
 Description: What the package does (one paragraph).  
-Depends: R (>= 3.4.3)  
+Depends: R (>= 3.5.0)  
 License: What license is it under?  
 Encoding: UTF-8  
 LazyData: true  
@@ -303,7 +307,7 @@ Title: Test Library
 Version: 0.0.0.9000  
 Authors@R: person("W", "R", email = "w.r@gmail.com", role = c("aut", "cre"))  
 Description: Let's us learn how to make our own libraries  
-Depends: R (>= 3.4.3)  
+Depends: R (>= 3.5.0)  
 License: Free  
 Encoding: UTF-8  
 LazyData: true  
@@ -387,7 +391,7 @@ setwd("..")
 install("testlib")
 ```
 
-**Note** if you now look into the folder C://R//library there will be a folder testlib, which is this library.
+**Note** if you now look into the folder C:/R/library there will be a folder testlib, which is this library.
 
 Let's check:
 
@@ -401,6 +405,15 @@ f2(2)
 
 And that's it!
 
+Now there will be <font color="red">two</font> folders with the name testlib:
+
+-  the one we just created  
+-  another one in the default library folder. On Windows machines that is usually ../R/library and on Macs /Library/Frameworks/R.framework/Resources/library . 
+
+These two are NOT the same and only the second one is an actual R library. In essence the *install* command takes the first folder and turns it into a library that it puts in the place where R can find it.
+
+`r hl()$hr()`
+
 I have several libraries that I often change, so I wrote a small routine to make it easy:
 
 ```{r eval=FALSE}
@@ -408,23 +421,16 @@ I have several libraries that I often change, so I wrote a small routine to make
 # '
 # ' This function creates a library called name in folder
 # ' @param name  name of library
-# ' @param folder folder with R routines
+# ' @param folder folder with library files
 # ' @export
 # ' @examples
-# ' make.library("moodler")
+# ' make.library("moodlr", folder="c:/files")
 
 make.library <- function (name, folder) 
 {
-    whichcomp <- strsplit(getwd(),"/")[[1]][3]
-    if(name=="moodler") 
-      folder <- paste0("C:/users/", whichcomp, "/Dropbox/teaching/moodle/moodler")
-    if(name=="wolfr") 
-      folder <- paste0("C:/users/", whichcomp, "/Dropbox/R/wolfr")
-    if(folder=="Resma3") 
-      folder <- paste0("C:/users/", whichcomp, "/Dropbox/teaching/Resma3/Resma3")       
-    library(devtools)  # make sure packages are loaded
+    library(devtools)  
     library(roxygen2)
-    olddir <- getwd() # remember where you are
+    olddir <- getwd() 
     setwd(folder) # go where you need to be
     document()  # make lib
     setwd("..")
@@ -437,7 +443,8 @@ make.library <- function (name, folder)
 so when I make a change to one of the routines in (say) wolfr all I need to do is run
 
 ```{r eval=FALSE}
-make.library("wolfr")
+make.library(name="wolfr",
+    folder="c:/wolfgang/R/mylibs")
 ```
 
 **Note** that ultimately a library is a folder. You can send someone a library by sending them the folder (usually as a compressed zip file)

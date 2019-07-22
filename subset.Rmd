@@ -1,29 +1,23 @@
 ---
-title: Subsetting / Data Wrangling
 header-includes: \usepackage{color}
+                 \usepackage{float}
 output:
   html_document: default
   pdf_document:
     fig_caption: no
 ---
 
-<style>
-table, th, td { text-align:right; }
-th, td {padding: 10px;}
-</style>
-
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
-whichcomp <- strsplit(getwd(),"/")[[1]][3]
-load(paste0("c:/users/", whichcomp, "/Dropbox/teaching/Resma3/Resma3.RData"))
-library(knitr)
-opts_chunk$set(fig.width=6, fig.align = "center", 
-      out.width = "70%", warning=FALSE, message=FALSE)
-library(ggplot2)
-library(grid)
+source("../R/setup.rmd.R", local=TRUE)
+setup.rmd(local.env=environment())
 ```
 `r hl()$basefontsize()`
+`r hl()$style()`
+`r hl()$basefontsize()`
 
-# Vectors
+## Sub-setting / Data Wrangling
+
+### Vectors
 
 Consider the following vector:
 
@@ -90,7 +84,31 @@ GenderCode[Gender=="Male"] <- 1
 GenderCode
 ```
 
-# Matrices and Data Frames
+**Exercise**
+
+Say we have vectors x and y with the coordinates of points:
+
+```{r}
+x <- runif(10000)
+y <- runif(10000)
+plot(x, y, pch=".")
+```
+
+subset x and y in such a way that only points in the circle are left:
+
+```{r echo=FALSE}
+d <- sqrt((x-0.5)^2+(y-0.5)^2)
+x1 <- x[d<1/2]
+y1 <- y[d<1/2]
+```
+
+```{r}
+plot(x1, y1, pch=".")
+```
+
+
+
+### Matrices and Data Frames
 
 Consider the following data frame:
 
@@ -109,7 +127,7 @@ Because a vector has rows and columns we now need to specify both:
 students[2, 3]
 ```
 
-There are a variety of ways to do subsetting:
+There are a variety of ways to do sub-setting:
 
 ```{r}
 students[, 1]
@@ -153,7 +171,7 @@ It is possible to tell R not to do this type conversion in the first case
 students[, 1, drop=FALSE]
 ```
 
-but this does not work for the [[1]] or \\$Age versions.
+but this does not work for the [[1]] or \$Age versions.
 
 ```{r}
 students[1:3, 1]
@@ -176,12 +194,24 @@ students[20 <= Age <= 22, 1]
 
 does not work. 
 
-# Lists
+**Exercise**
 
-Subsetting of lists is very similar to data frames:
+Subset students so that only females over 21 with a GPA of at least 3.0 are left.
+
+```{r echo=FALSE}
+students[Age>21 & Gender=="Male" & GPA>=3.0,]
+```
+
+
+### Lists
+
+Sub-setting of lists is very similar to data frames:
 
 ```{r}
-mylist <- list(First=1:5, Second=LETTERS[1:8], Third=20:22)
+mylist <- list(First=1:5, 
+               Second=LETTERS[1:8], 
+               Third=20:22)
+mylist
 mylist[1]
 mylist[[1]]
 mylist$Second
@@ -201,9 +231,10 @@ This can be quite confusing. Here is useful memory device
 
 *If list x is a train, x[[5]] is the content of car 5, whereas x[4:5] is the train consisting of cars 4 and 5*
 
-# Partial Matching
 
-There is one important difference between \$ and [[]], the first one does partial matching:
+### Partial Matching
+
+There is one important difference between \$ and [[]], the first one allows *partial matching*:
 
 ```{r error=TRUE}
 x <- list(inside=1:3, outside=5:10)
@@ -213,7 +244,7 @@ x[[o]]
 
 I don't however recommend to make use of this feature unless necessary. 
 
-# Useful logic commands
+### Useful logic commands
 
 ```{r}
 x<-1; y<-2; z<-3
@@ -253,9 +284,9 @@ How come $1.1-0.2 \ne 0.9$? This is because of machine precision issues:
 all.equal(0.9, 1.1 - 0.2, tolerance = 1e-16) 
 ```
 
-# *subset*
+### *subset* command
 
-Finally there is a command that was written for subsetting:
+Finally there is a command that was written for sub-setting:
 
 ```{r}
 subset(students, Age>20)
@@ -274,9 +305,9 @@ The data set *upr* (part of *Resma3.RData*) has the application information prov
 head(upr, 3)
 ```
 
-How many female students applied in either 2010 or 2011, had a highschool GPA of at least 3.0 and a freshman GPA between 3.0 and 3.5?
+How many female students applied in either 2010 or 2011, had a high school GPA of at least 3.0 and a freshman GPA between 3.0 and 3.5?
 
-# *order*
+### *order* command
 
 if we need to sort a vector we have the sort command:
 
@@ -290,9 +321,9 @@ but sometime we want to sort one vector by the order of another:
 students[order(Age), ]
 ```
 
-**Example** Lookup Tables
+**Example** Look-up Tables
 
-Say we want to write a function which many times need to calculate $\log(n!)$. We soon run into the following problem:
+Say we want to write a function which many times needs to calculate $\log(n!)$. We soon run into the following problem:
 
 ```{r error=TRUE}
 log(factorial(175))
@@ -305,7 +336,7 @@ There is of course a simple solution:
 $$
 \log(n!) = \log(\prod_{i=1}^n i) = \sum_{i=1}^n \log i 
 $$
-but this turns out to be quite slow. Here is a better solution: we will make use of **Sterling's formal**:
+but this turns out to be quite slow. Here is a better solution: we will make use of **Sterling's formula**:
 
 $$
 \begin{aligned}
@@ -314,7 +345,7 @@ $$
 \end{aligned}
 $$
 
-say we will need to find $\log(n!)$ for n ranging from 0 to 500, then we can create a lookup table. For small values of $n$ we use the exact formula, then the approximation:
+say we will need to find $\log(n!)$ for n ranging from 0 to 500, then we can create a look-up table. For small values of $n$ we use the exact formula, then the approximation:
 
 ```{r}
 logfac <- 0:500

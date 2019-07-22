@@ -1,31 +1,24 @@
 ---
-title: Version Control and Collaboration, Github
 header-includes: \usepackage{color}
+                 \usepackage{float}
 output:
   html_document: default
   pdf_document:
     fig_caption: no
 ---
 
-<style>
-table, th, td { text-align:right; }
-th, td {padding: 10px;}
-</style>
-
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
-whichcomp <- strsplit(getwd(),"/")[[1]][3]
-load(paste0("c:/users/", whichcomp, "/Dropbox/teaching/Resma3/Resma3.RData"))
-library(knitr)
-opts_chunk$set(fig.width=6, fig.align = "center", 
-      out.width = "70%", warning=FALSE, message=FALSE)
-library(ggplot2)
-library(grid)
+source("../R/setup.rmd.R", local=TRUE)
+setup.rmd(local.env=environment())
 ```
 `r hl()$basefontsize()`
+`r hl()$style()`
+
+## Version Control and Collaboration, Github
 
 Notice that the title doesn't read *with Github*. This is because github is not an R package. It is much more general.
 
-Once you start working on larger projects (like a thesis?) you quickly run into the following problem: you consider a change to the existing document but you are not sure yet. So you make a copy. Then the same thing hapens again, and again ... Eventually you have 10 copies with strange names and no idea what is what. Version control is a general principle to keep track of all these changes. 
+Once you start working on larger projects (like a thesis?) you quickly run into the following problem: you consider a change to the existing document but you are not sure yet. So you make a copy. Then the same thing happens again, and again ... Eventually you have 10 copies with strange names and no idea what is what. Version control is a general principle to keep track of all these changes. 
 
 It gets even more important when you begin to collaborate with others, and everyone makes changes to the same document, possibly at the same time.
 
@@ -74,7 +67,7 @@ Copy any files you wish to be part of the repo into this folder.
 
 Go to RStudio and click on Git in the upper right corner, next to Environment etc. You see all these files, check the boxes next to them under Staged.
 
-Click on Commit, type a meassage and click Commit. A new window will pop up, when it is done click Close. 
+Click on Commit, type a message and click Commit. A new window will pop up, when it is done click Close. 
 
 Finally click Push. RStudio will now send those files to github. When it is done click on close
 
@@ -82,7 +75,7 @@ Switch to your browser, refresh, and you should see those files.
 
 Click on an Rmd and you will see something interesting: these are quite readable. In essence you don't need to knit to html or pdf, if you use github the Rmd itself becomes a webpage.
 
-Now whenever you make a substancial change to one of these files, repeat the Commit-Push steps to upload the file to github.
+Now whenever you make a substantial change to one of these files, repeat the Commit-Push steps to upload the file to github.
 
 
 

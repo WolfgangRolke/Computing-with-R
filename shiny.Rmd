@@ -1,46 +1,41 @@
 ---
-title: Interactive Web Applications with shiny
 header-includes: \usepackage{color}
+                 \usepackage{float}
 output:
   html_document: default
   pdf_document:
     fig_caption: no
 ---
 
-<style>
-table, th, td { text-align:right; }
-th, td {padding: 10px;}
-</style>
-
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
-whichcomp <- strsplit(getwd(),"/")[[1]][3]
-load(paste0("c:/users/", whichcomp, "/Dropbox/teaching/Resma3/Resma3.RData"))
-library(knitr)
-opts_chunk$set(fig.width=6, fig.align = "center", 
-      out.width = "70%", warning=FALSE, message=FALSE)
-library(ggplot2)
-library(grid)
+source("../R/setup.rmd.R", local=TRUE)
+setup.rmd(local.env=environment())
 ```
 `r hl()$basefontsize()`
+`r hl()$style()`
 
+## Interactive web applications with shiny
 
 ```{r}
 library(shiny)
 ```
+
+### Basic shiny apps
 
 shiny is a package that has routines to create interactive web applications that run in a browser. 
 
 As an example consider the app [Taylor Polynomials]( https://wolfgangrolke.shinyapps.io/taylor/).
 
 
-Every app has two files:
+Every app has two parts:
 
 -  *ui* contains information about the layout of the page (**u**ser **i**nterface).   
 -  *server* has the R routines that create the content of the page.
 
 Let's begin by creating a page that does the following: it generates a data set with n observations from a standard normal distribution and then draws the histogram. The user can choose n:
 
-**example1**
+#### **Example 1**
+
 ```{r example1, eval=FALSE}
 ui <- fluidPage(
   numericInput(inputId = "n", # name of variable
@@ -79,6 +74,8 @@ Next we will improve the app in three ways:
 -  add the possibility to change the number of bins
 -  add a title
 
+#### **Example 2**
+
 ```{r example2, eval=FALSE}
 ui <- fluidPage(
   titlePanel("Histogram App"),
@@ -112,12 +109,13 @@ server <- function(input, output) {
 shinyApp(ui, server)
 ```
 
-notice also that instead of a numericInput I used a textInput, although nbins is meant to be a number. I often do this becasue I find the appearance of text inputs more pleasing. I can of course always turn it into a number with *as.numeric*.
+notice also that instead of a numericInput I used a textInput, although nbins is meant to be a number. I often do this because I find the appearance of text inputs more pleasing. I can of course always turn it into a number with *as.numeric*.
 
 Next we will use one of the most useful commands in shiny: *conditionalPanel*. With this we can control what happens in the app depending on the users choices.
 
 Let's add the possibility to show a boxplot instead of the histogram. Notice that there are no bins in a boxplot, so we want to show the nbins input only when a histogram is done:
 
+#### **Example 3**
 
 ```{r example3, eval=FALSE}
 ui <- fluidPage(
@@ -171,6 +169,8 @@ shinyApp(ui, server)
 
 Another useful feature is the ability to create tabs. Let's say we want to show the histogram on one tab and the boxplot on another:
 
+#### **Example 4**
+
 ```{r example4, eval=FALSE}
 ui <- fluidPage(
   titlePanel("Histogram or Boxplot App"),
@@ -197,6 +197,7 @@ Did you notice a slight flaw in the program? When we switch from one graph to th
 
 Also let's say we want on another tab to show some summary statistics:
 
+#### **Example 5**
 
 ```{r example5, eval=FALSE}
 ui <- fluidPage(
@@ -263,6 +264,7 @@ This also shows that we can use html syntax in shiny. This is not a surprise bec
 
 shiny apps are incredible versatile, you can write apps with a lot of stuff in it. You can even make little movies:
 
+#### **Example 6**
 
 ```{r example6, eval=FALSE}
 ui <- fluidPage(
@@ -302,7 +304,7 @@ server <- function(input, output) {
 shinyApp(ui, server)
 ```
 
-## Create/Run/Distribute Shiny Apps
+### Create/Run/Distribute shiny apps
 
 There are a number of ways to create, run and distribute shiny apps:
 
@@ -357,4 +359,11 @@ runUrl("http://websiteurl/shiny/myapp1.zip")
 ```
    -  go to [https://www.shinyapps.io](https://www.shinyapps.io), set up a (free) account. Then you can upload a few apps. The big advantage of this is that even people who don't have R can now run your app. There are restrictions, though, on a free account, for example no more than 10 people can run an app at the same time.
    
+Uploading an app to shinyapps should be very simple: run the app and click on the Publish button in the upper right corner. I have however had occasional problems with this method. If it does not work run the following command from the console:
 
+```{r eval=FALSE}
+shinyapps::deployApp("C:\\Users\\...\\name_of-app",
+                     account="your_account_name")
+```
+
+For more information on how to get up and running with shinyapps.io read [https://shiny.rstudio.com/articles/shinyapps.html](https://shiny.rstudio.com/articles/shinyapps.html)

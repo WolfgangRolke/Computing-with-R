@@ -1,31 +1,26 @@
 ---
-title: Graphics with ggplot2
 header-includes: \usepackage{color}
+                 \usepackage{float}
 output:
   html_document: default
   pdf_document:
     fig_caption: no
 ---
 
-<style>
-table, th, td { text-align:right; }
-th, td {padding: 10px;}
-</style>
-
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
-whichcomp <- strsplit(getwd(),"/")[[1]][3]
-load(paste0("c:/users/", whichcomp, "/Dropbox/teaching/Resma3/Resma3.RData"))
-library(knitr)
-opts_chunk$set(fig.width=6, fig.align = "center", 
-      out.width = "70%", warning=FALSE, message=FALSE)
-library(ggplot2)
-library(grid)
+source("../R/setup.rmd.R", local=TRUE)
+setup.rmd(local.env=environment())
 ```
 `r hl()$basefontsize()`
+`r hl()$style()`
+
+# Extending R, Packages
+
+## Graphics with ggplot2
 
 A large part of this chapter is taken from various works of Hadley Wickham. Among others [The layered grammar of graphics](http://byrneslab.net/classes/biol607/readings/wickham_layered-grammar.pdf) and [R for Data Science](http://r4ds.had.co.nz/).
 
-#  Why ggplot2?
+###  Why ggplot2?
 
 Advantages of ggplot2
 
@@ -36,11 +31,11 @@ Advantages of ggplot2
 -  mature and complete graphics system  
 -  many users, active mailing list
 
-#  Grammar of Graphics
+###  Grammar of Graphics
 
-In 2005 Wilkinson, Anand, and Grossman published the book "The Grammar of Graphics". In it they layed out a systematic way to describe any graph in terms of basic building blocks. ggplot2 is an implementation of their ideas.
+In 2005 Wilkinson, Anand, and Grossman published the book "The Grammar of Graphics". In it they laid out a systematic way to describe any graph in terms of basic building blocks. ggplot2 is an implementation of their ideas.
 
-The use of the word *grammar* seems a bit strange here. The general dictonary meaning of the word grammar is: 
+The use of the word *grammar* seems a bit strange here. The general dictionary meaning of the word grammar is: 
 
 *the fundamental principles or rules of an art or science*
 
@@ -49,7 +44,7 @@ so it is not only about language.
 As our running example we will use the *mtcars* data set. It is part of base R and has information on 32 cars:
 
 ```{r echo=FALSE}
-kable(mtcars[1:6, ])
+kable.nice(mtcars[1:6, ])
 ```
 
 Say we want to study the relationship of hp and mpg. So we have two quantitative variables, and therefore the obvious thing to do is a scatterplot. But there are a number of different ways we can this:
@@ -65,7 +60,7 @@ plot(hp, mpg, main="With Fit");abline(lm(mpg~hp))
  
 The basic idea of the grammar of graphs is to separate out the parts of the graphs: there is the basic layout, there is the data that goes into it, there is the way in which the data is displayed. Finally there are annotations, here the titles, and possibly more things added, such as a fitted line. In ggplot2 you can always change one of these without worrying how that change effects any of the others.
 
-Another way of looking at it this: in ggplot2 you build a graph like a lasagne: layer by layer.
+Another way of looking at it this: in ggplot2 you build a graph like a lasagna: layer by layer.
 
 Take the graph on the lower left. Here I made the plotting symbol bigger (with cex=2). But now the graph doesn't look nice any more, the first and the last circle don't fit into the graph. The only way to fix this is to start all over again, by making the margins bigger:
 
@@ -89,13 +84,13 @@ this has the following logic:
 -  *aes* is the *aestetic mapping*. It connects the data to the graph  
 -  *geom* is the geometric object (circle, square, line) to be used in the graph. Here it is points.
 
-**Note** ggplot2 also has the *qplot* command. This stands for *qick plot*
+**Note** ggplot2 also has the *qplot* command. This stands for *quick plot*
 
 ```{r warning=FALSE}
 qplot(hp, mpg, data=mtcars)
 ```
 
-This seems much easier at first (and it is) but the qplot command is also very limitted. Very quickly you want to do things that aren't possible with qplot, and so I won't discuss it further here.
+This seems much easier at first (and it is) but the qplot command is also very limited. Very quickly you want to do things that aren't possible with qplot, and so I won't discuss it further here.
 
 **Note** consider the following variation:
 
@@ -109,6 +104,17 @@ again it seems to do the same thing, but there is a big difference:
 
 -  if aes(x, y) is part of ggplot, it applies to all the geom's that come later (unless a different one is specified)  
 -  an aes(x, y) as part of a geom applies only to it.
+
+`r hl()$hr()`
+
+How about the problem with the graph above, where we had to increase the y margin?
+
+```{r}
+ggplot(mtcars, aes(hp, mpg)) + 
+  geom_point(shape=1, size=5)
+```
+
+so we see that here this is done automatically.
 
 `r hl()$hr()`
 
@@ -130,7 +136,7 @@ ggplot(mtcars, aes(hp, mpg, color=faccyl)) +
   geom_point()
 ```
 
-we can also change the shape of the plotting synbols:
+we can also change the shape of the plotting symbols:
 
 ```{r }
 ggplot(mtcars, aes(hp, mpg, shape=faccyl)) + 
@@ -152,8 +158,8 @@ plt1 <- ggplot(mtcars, aes(hp, mpg, color=faccyl)) +
 plt2 <- plt1 +
   labs(x = "Horsepower", 
        y = "Miles per Gallon", 
-       color = "Cylinders") +
-  labs(title = "Milage goes down as Horsepower goes up")
+       color = "Cylinders",
+       title = "Mileage goes down as Horsepower goes up")
 plt2
 ```
 
@@ -179,26 +185,18 @@ The use of facets also allows us to include two categorical variables:
 ```{r}
 mtcars$facgear <- 
   factor(gear, levels = 3:5, ordered = TRUE)
-plt4 <- ggplot(aes(hp, mpg, color=faccyl), 
-               data = mtcars) +
-           geom_point(size = 1) 
-plt4 <- plt4 + 
-  facet_wrap(~facgear) 
-plt4 <- plt4 +
+ggplot(mtcars, aes(hp, mpg, color=faccyl)) +
+           geom_point(size = 1) +
   labs(x = "Horsepower", 
        y = "Miles per Gallon", 
-       color = "Cylinders") +
-  labs(title = "Milage goes down as Horsepower goes up")
-plt4 <- plt4 + 
+       color = "Cylinders",
+       title = "Mileage goes down as Horsepower goes up") + 
   geom_smooth(method = "lm", se = FALSE)
-plt4
 ```
 
 This is almost a bit to much, with just 32 data points there is not really enough for such a split.
 
-#  Some standard graphs
-
-##  Histograms
+###  Histograms
 
 ```{r}
 x <- rnorm(1000, 100, 30)
@@ -223,14 +221,13 @@ ggplot(df3, aes(x)) +
         binwidth = bw) + 
   labs(x = "x", y = "Density") + 
   geom_line(data = df4, aes(x, y), 
-            colour = "blue",
-            inherit.aes = FALSE) +
+            colour = "blue") +
   geom_density(color = "red")
 ```
 
 **Notice** the red line on the bottom. This should not be there but seems almost impossible to get rid of!
 
-Here is another interesting case: say we have two data sets and we wish to draw the two histograms, one overlayed on the other:
+Here is another interesting case: say we have two data sets and we wish to draw the two histograms, one overlaid on the other:
 
 ```{r message=FALSE}
 df5 <- data.frame(
@@ -245,7 +242,7 @@ ggplot(df5, aes(x=x)) +
 
 Notice the use of alpha. In general this "lightens" the color so we can see "behind".
 
-##  Boxplots
+###  Boxplots
 
 ```{r}
 y <- rnorm(120, 10, 3)
@@ -258,7 +255,7 @@ ggplot(df6, aes(x, y)) +
   geom_boxplot()
 ```
 
-strangly enough doing a boxplot without groups takes a little work. We have to "invent" a categorical variable:
+strangely enough doing a boxplot without groups takes a little work. We have to "invent" a categorical variable:
 
 ```{r}
 ggplot(df6, aes(x="", y)) + 
@@ -275,7 +272,7 @@ ggplot(df6, aes(x="", y)) +
 ```
 
 
-##  Barcharts
+###  Barcharts
 
 ```{r}
 x <- sample(LETTERS[1:5], 
@@ -292,7 +289,7 @@ Say we want to draw the graph based on percentages. Of course we could just calc
 
 ```{r}
 ggplot(df7, aes(x=x)) + 
-  geom_bar(aes(y=(..count..)/sum(..count..)),
+  geom_bar(aes(y=100*(..count..)/sum(..count..)),
       alpha = 0.75, 
       fill = "lightblue") +
   labs(x="", y="Percentages")
@@ -300,7 +297,7 @@ ggplot(df7, aes(x=x)) +
 
 Notice how this works: in geom_bar we use a new aes, but the values in it are calculated from the old data frame.
 
-Finally an example of a contingency table: 
+Finally an example of a contingency table.  
 
 ```{r}
 df7$y <- sample(c("X", "Y"), 
@@ -313,7 +310,7 @@ ggplot(df7, aes(x=x, fill = y)) +
     labs(x="", y="Percentages", fill="Y") 
 ```
 
-#  Axis Ticks and Legend Keys
+###  Axis Ticks and Legend Keys
 
 Let's return to the basic plot of mpg by hp. Let's say we want to change the axis tick marks:
 
@@ -342,7 +339,35 @@ plt2 +
                            override.aes = list(size=4)))
 ```
 
-#  Saving the graph
+### Special Symbols in Labels etc.
+
+Consider this boxplot:
+
+```{r echo=FALSE}
+df <- data.frame(
+  y=c(rnorm(100, 10,2), rnorm(100, 15, 3)),
+  x=rep(c("A", "B"), each=100))
+```
+
+```{r}
+plt <- ggplot(df, aes(x, y)) +
+ geom_boxplot() +
+  labs(x="")
+plt
+```
+
+Now it turns out that this are measurements of some chemical concentrations, and the name of A is really $N_0\pi$ and of B it is $\alpha Co^2$. It would be nice to use these in the graph: 
+
+```{r}
+plt +
+ scale_x_discrete(labels =
+         c(expression(paste("N"[0], pi)),
+           expression(paste(alpha, "Co"^2))))
+```
+
+Unfortunately the exact syntax differs when changing labels, annotations, titles etc, and it can sometimes take a bit of work to find the right one.
+
+###  Saving the graph
 
 It is very easy to save a ggplot2 graph. Simply run
 
@@ -352,7 +377,7 @@ ggsave("myplot.pdf")
 
 it will save the last graph to disc.
 
-One issue is figure sizing. You need to do this so that a graph looks "good". Unfortunately this depends on where it ends up. A graph that looks good on a webpage might look ugly in a pdf. So it is hard to give any general guidelines.
+One issue is figure sizing. You need to do this so that a graph looks "good". Unfortunately this depends on where it ends up. A graph that looks good on a web page might look ugly in a pdf. So it is hard to give any general guidelines.
 
 If you use R markdown, a good place to start is with the chunk arguments fig.with=6 and out.width="70%". In fact on top of every R markdown file I have a chunk with
 

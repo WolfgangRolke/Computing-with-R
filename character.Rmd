@@ -1,28 +1,20 @@
 ---
-title: Working with Characters
 header-includes: \usepackage{color}
+                 \usepackage{float}
 output:
   html_document: default
   pdf_document:
     fig_caption: no
 ---
 
-<style>
-table, th, td { text-align:right; }
-th, td {padding: 10px;}
-</style>
-
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
-whichcomp <- strsplit(getwd(),"/")[[1]][3]
-load(paste0("c:/users/", whichcomp, "/Dropbox/teaching/Resma3/Resma3.RData"))
-library(knitr)
-opts_chunk$set(fig.width=6, fig.align = "center", 
-      out.width = "70%", warning=FALSE, message=FALSE)
-library(ggplot2)
-library(grid)
+source("../R/setup.rmd.R", local=TRUE)
+setup.rmd(local.env=environment())
 ```
 `r hl()$basefontsize()`
+`r hl()$style()`
 
+## Working with Characters
 
 ```{r echo=FALSE}
 library(stringr)
@@ -37,7 +29,7 @@ Character strings can use single or double quotes:
 "this is a string"
 ```
 
-Say you want to type in a vector of names. Having to type all those quotes is hazzle, but there is a nice routine in the *Hmisc* package that helps:
+Say you want to type in a vector of names. Having to type all those quotes is a bit of work, but there is a nice routine in the *Hmisc* package that helps:
 
 ```{r}
 library(Hmisc)
@@ -62,7 +54,7 @@ nchar(states)
 What state has the longest name?
 
 ```{r}
-states[which(nchar(states) == max(nchar(states)))]
+states[which.max(nchar(states))]
 ```
 
 Say we want to shorten the strings to just the first three letters:
@@ -143,6 +135,17 @@ grep(pattern = "[pP]", x = states, value = TRUE)
 
 the syntax [pP] matches either p or P. This is an example of a *regular expression*, which we will discuss shortly.
 
+**Exercise**
+
+Find all the states whose name consist of two or more words (like Puerto Rico)
+
+`r hl()$hr()`
+
+```{r echo=FALSE}
+grep(pattern = " ", x = states, value = TRUE)
+```
+
+
 We can also use the function *tolower*, which turns all the letters into lower case:
 
 ```{r}
@@ -156,7 +159,7 @@ Of course there is also a *toupper* function.
 
 `r hl()$hr()`
 
-We have the *grepl* function, which returns TRUE if the string contains the pattern:
+We alreadu used *grep*. We also  have the *grepl* function, which which does the same but instead of the location it returns TRUE if the string contains the pattern:
 
 ```{r}
 states[1:6]
@@ -169,7 +172,7 @@ Suppose we want to replace all the A's with *'s:
 gsub("A", "*", states)[1:6]
 ```
 
-There is also the *sub* function, which does the same as *gsub* but only to the first occurance:
+There is also the *sub* function, which does the same as *gsub* but only to the first occurrence:
 
 ```{r}
 sub("a", "A", c("abba"))
@@ -246,7 +249,7 @@ num_vowels
 
 `r hl()$hr()`
 
-# paste
+### *paste, paste0* commands
 
 One of the most useful commands in R is *paste*. It let's us put together various parts as a string:
 
@@ -255,10 +258,13 @@ paste(1:3)
 paste("a", 1:3)
 paste("a", 1:3, sep=":")
 paste("a", 1:3, sep="")
-paste0("a", 1:3)
 ```
 
-Notice that the last two are the same.
+This last one (no space between) is needed often enough it has its own command:
+
+```{r}
+paste0("a", 1:3)
+```
 
 If we want to make a single string use
 
@@ -274,7 +280,8 @@ write a routine that generates a licence plate in Puerto Rico at random. For exa
 ```{r echo=FALSE}
 license.plate <- function()
   paste0(
-    paste(sample(LETTERS, size=3, replace=TRUE),
+    paste(sample(LETTERS, size=3,
+                 replace=TRUE),
           collapse=""),
     paste(sample(0:9, size=3, replace=TRUE),
           collapse="")
@@ -300,7 +307,33 @@ notice that the result is a list, so often we use
 unlist(strsplit(txt, " "))
 ```
  
-# Regular Expressions
+**Exercise**
+
+```{r echo=FALSE}
+gettysburg <- " Four score and seven years ago our fathers brought forth on this continent, a new nation, conceived in Liberty, and dedicated to the proposition that all men are created equal.
+
+Now we are engaged in a great civil war, testing whether that nation, or any nation so conceived and so dedicated, can long endure. We are met on a great battle-field of that war. We have come to dedicate a portion of that field, as a final resting place for those who here gave their lives that that nation might live. It is altogether fitting and proper that we should do this.
+
+But, in a larger sense, we can not dedicate -- we can not consecrate -- we can not hallow -- this ground. The brave men, living and dead, who struggled here, have consecrated it, far above our poor power to add or detract. The world will little note, nor long remember what we say here, but it can never forget what they did here. It is for us the living, rather, to be dedicated here to the unfinished work which they who fought here have thus far so nobly advanced. It is rather for us to be here dedicated to the great task remaining before us -- that from these honored dead we take increased devotion to that cause for which they gave the last full measure of devotion -- that we here highly resolve that these dead shall not have died in vain -- that this nation, under God, shall have a new birth of freedom -- and that government of the people, by the people, for the people, shall not perish from the earth."
+```
+
+Here is Abraham Lincolns famous Gettyburg address:
+
+```{r comment=""}
+cat(gettysburg)
+```
+
+How many times did Lincoln use the word "people"?
+
+```{r echo=FALSE}
+a <- strsplit(gettysburg, " ")[[1]]
+a <- tolower(a)
+a <- a[substr(a, 1, 6)=="people"]
+length(a)
+```
+
+ 
+### Regular Expressions
 
 A *regular expression* (a.k.a. regex) is a special text string for describing a certain amount of text.  This “certain amount of text” receives the formal name of pattern.  Hence we say that a regular expression is a pattern that describes a set of strings. 
 
@@ -339,30 +372,39 @@ or we can use regexp:
 txt[grepl("\\d", txt)]
 ```
 
+Here d stands for digits. The backslash in front is the standard regex syntax, but backslashes in R have special meanings, so we need another one in front. This second one is called an *escape character*, it tells R to treat the backslash as such, and not as a special character.
 
-say we want to replace the spaces in a sentence with the underscore:
+Say we want to replace the spaces in a sentence with the underscore. The regex symbol space is s:
 
 ```{r}
 gsub("\\s", "_", "Not a very interesting sentence")
 ```
 
-We already used [pP] before to match both small and large cap p's. This is in fact a regular expression:
+We already used [pP] before to match both small and large cap p's. This is in fact a regular expression. It matches everything between the brackets:
 
 ```{r}
 gsub("[0-9]", "%", txt)
 ```
 
-A ^ in front is NOT:
+A caret in front is NOT:
 
 ```{r}
 gsub("[^0-9]", "%", txt)
 ```
 
+**Exercise**
 
-## POSIX
+What command would replace all komma's, dot's and semicolons in the gettysburg address with an ampersant (@)?
+
+```{r echo=FALSE, comment=""}
+cat(gsub("[;.,]", "@", gettysburg))
+```
+
+
+### POSIX
 
 Closely related to the regex character classes we have what is known as
-POSIX  character classes. In R, POSIX character classes are represented with expressions inside double brackets [[ ]]. 
+*POSIX*  character classes. In R, POSIX character classes are represented with expressions inside double brackets [[ ]]. 
 
 [[:lower:]] Lower-case letters  
 [[:upper:]] Upper-case letters
@@ -385,9 +427,9 @@ as.numeric(txt[grepl("[[:digit:]]", txt)])
 ```
 
 
-# Some Examples
+### Some Examples
 
-## Palindrome
+#### Palindrome
 
 a *palindrome* is a word that is the same when read forwards or backwards. Some examples are noon, civic, radar, level, rotor, kayak, reviver, racecar, redder, madam, and refer. Let's write a sequence of commands that take a sentence and return any palindromes. As an example, consider
 
@@ -404,7 +446,7 @@ wrds <- unlist(strsplit(txt, " "))
 wrds
 ```
 
-Next we need to turn each word around:
+Next we need to turn each word around. To do that we split each word into individual letters, reverse them and paste them back together:
 
 ```{r}
 n <- length(wrds)
@@ -421,7 +463,7 @@ wrds[tolower(wrds) == tolower(rev.wrds)]
 ```
 
 
-### Email Addresses
+#### Email Addresses
 
 Consider the web site of the Math department at [http://math.uprm.edu/academic/people.php](http://math.uprm.edu/academic/people.php)
 
@@ -438,6 +480,8 @@ txt <- scan("http://math.uprm.edu/academic/people.php",
 txt <- scan("C:\\Users\\Wolfgang\\Dropbox\\teaching\\Computing-with-R\\emails.txt", what="char", sep="\n")
 ```
 
+\\n is the newline character, so each line of the webpage will be an element of the vector.
+
 Next we need to figure out what defines an email address. Obviously it needs to have the @ symbol, so let's go through the text and pick out those lines that have the @ symbol:
 
 ```{r}
@@ -446,7 +490,7 @@ txt <- grep("@", txt, value = TRUE)
 length(txt)
 ```
 
-So the @ symbol appears 236 time. but strangly there are only 5 lines with @ symbols! That is because 
+So the @ symbol appears 236 time. but strangely there are only 5 lines with @ symbols! That is because 
 
 ```{r}
 substring(txt[1], 1, 500)
@@ -459,7 +503,7 @@ txt <- unlist(strsplit(paste(txt, collapse=""), "</a>"))
 txt[1:2]
 ```
 
-Ok, next we have to eliminate all the lines that don't have a @ in it:
+OK, next we have to eliminate all the lines that don't have a @ in it:
 
 ```{r}
 txt <- grep("@", txt, value = TRUE)
@@ -468,7 +512,7 @@ length(txt)
 
 which is good because 2*118=236, and each address appeared twice in the table. So we got all of them.
 
-Finally we need to extract the email adress from each line. Checking them we see that just before each address is an empty space, so maybe this will work:
+Finally we need to extract the email address from each line. Checking them we see that just before each address is an empty space, so maybe this will work:
 
 ```{r}
 txt <- unlist(str_split(txt, " "))
@@ -490,7 +534,7 @@ Programs like these are routinely used to go through millions of websites and se
 
 wolfgang[dot]rolke[at]upr[dot]edu
 
-### Example: Binary Arithmetic
+#### Binary Arithmetic
 
 We have previously discussed binary arithmetic. There we used a simple vector of 0's and 1's. The main problem with that is that it is hard to vectorize the routines. Instead we will now use character sequences like "1001". 
 

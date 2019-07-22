@@ -1,5 +1,6 @@
 ---
 title: Syllabus
+                 \usepackage{float}
 header-includes: \usepackage{color} 
 output:
   html_document: default
@@ -17,7 +18,7 @@ require(grid)
 
 Professor: Dr. Wolfgang Rolke  
 Time and Place:  
-Tuesday, Thursday 2:00 - 3:15pm  SH005
+Tuesday, Thursday 12:30 - 1:45pm  SH105
 
 ### Reading List:
 
@@ -34,11 +35,11 @@ There are literally 100s of books about R, with new ones coming out almost every
 ### Office hours
 
 Tuesday, Thursday 12:00-12:30pm OF407  
-Tuesday, Thursday 3:15-5:15pm OF407 (by appointment)  
-Wednesday  1:30-3:00pm via email   
+Tuesday, Thursday 1:45-3:15pm OF407 (by appointment)  
+Wednesday  1:00-3:00pm via email   
 email: wolfgang[dot]rolke[at]upr[dot]edu   
 
-when you send me an email `r hl()$fontcolor("ALWAYS")` start the subject line with ESMA6835
+when you send me an email `r hl()$fontcolor("ALWAYS")` start the subject line with <font color="red">ESMA 6835</font>
 
 ### Grading:
 

@@ -1,5 +1,6 @@
 ---
 title: Answers to Exercises
+                 \usepackage{float}
 header-includes: \usepackage{color}
 output:
   html_document: default

@@ -1,29 +1,22 @@
 ---
-title: Data Input/Output, Transfering R Objects
 header-includes: \usepackage{color}
+                 \usepackage{float}
 output:
   html_document: default
   pdf_document:
     fig_caption: no
 ---
 
-<style>
-table, th, td { text-align:right; }
-th, td {padding: 10px;}
-</style>
-
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
-whichcomp <- strsplit(getwd(),"/")[[1]][3]
-load(paste0("c:/users/", whichcomp, "/Dropbox/teaching/Resma3/Resma3.RData"))
-library(knitr)
-opts_chunk$set(fig.width=6, fig.align = "center", 
-      out.width = "70%", warning=FALSE, message=FALSE)
-library(ggplot2)
-library(grid)
+source("../R/setup.rmd.R", local=TRUE)
+setup.rmd(local.env=environment())
 ```
 `r hl()$basefontsize()`
+`r hl()$style()`
 
-# Printing Info to Screen
+## Data Input/Output, Transferring R Objects
+
+### Printing Info to Screen
 
 The basic functions to display information on the screen are
 
@@ -34,6 +27,7 @@ rm(print)
 
 
 ```{r}
+options(digits=4)
 x <- rnorm(5, 100, 30)
 print(x)
 cat(x)
@@ -44,7 +38,7 @@ Both of these have certain advantages:
 -  with print you can easily control the number of digits:
 
 ```{r}
-print(x, digits=4)
+print(x, digits=6)
 ```
 
 -  with cat you can easily mix text and numeric:
@@ -55,7 +49,7 @@ cat("The mean is ", round(mean(x), 1), "\n")
 
 The "\\n" (**n**ewline) is needed so that the cursor moves to the next line. This also sometimes referred as a *carriage return*.
 
-Another advantage of cat is that one can have different rounding for for different numbers:
+Another advantage of cat is that one can have different rounding for different numbers:
 
 ```{r}
 x <- 1100; y <- 0.00123334
@@ -63,7 +57,7 @@ print(c(x, y), 4)
 cat(x, "  ", round(y, 4), "\n")
 ```
 
-Notice that in the case of print R switches to scientific notation. This default behaviour can be changed with
+Notice that in the case of print R switches to scientific notation. This default behavior can be changed with
 
 ```{r}
 options(scipen=999)
@@ -99,12 +93,16 @@ sprintf("%g", 1e6*pi)
 Here is another example. In Statistics we often find a p value. These should generally be quoted to three digits. But when the p value is less than $10^{-3}$ R uses scientific notation. If you want to avoid that do this
 
 ```{r}
-p <- c(0, 0.213, 0.0001)
-p
-sprintf("%.3f", p)
+x <- 1100; pval <- 0.00123334
 ```
 
-# Reading in a Vector
+
+```{r}
+c(x, pval)
+sprintf("%.3f", c(x, pval))
+```
+
+### Reading in a Vector
 
 Often the easiest thing to do is to use copy-paste the data and then simply *scan* it into R:
 
@@ -119,7 +117,7 @@ x <- scan(pipe("pbpaste"))
 ```
 
 
--  use the argument sep=";" to change the symbol that is being used as a spearator. The default is empty space, common cases include  comma, semi-colon, and newline (\\n)  
+-  use the argument sep=";" to change the symbol that is being used as a separator. The default is empty space, common cases include  comma, semi-colon, and newline (\\n)  
 
 -  scan assumes that the  data is numeric, if not use the argument what="char".
 
@@ -145,7 +143,7 @@ Notice some features:
 
 -  it then tries to turn it into numeric. If that works, fine, otherwise it stays character. This is done with as.numeric(x), which returns NA if it can't turn an entry into numeric, so is.na(as.numeric(x)) returns TRUE if x can't be made numeric.
 
--  when trying to turn a character into a number R prints a warning. This is good in general to warn you that you are doing something strange. Here, though, it is expected behaviour and we don't need the warning. The routine suppresses them by setting options(warn=-1), and setting it back to the default afterwards.
+-  when trying to turn a character into a number R prints a warning. This is good in general to warn you that you are doing something strange. Here, though, it is expected behavior and we don't need the warning. The routine suppresses them by setting options(warn=-1), and setting it back to the default afterwards.
 
 If the data is in a stand-alone file saved on your hard drive you can also read it from there:
 
@@ -211,9 +209,11 @@ x <- paste0()
 
 
 ```{r, echo=FALSE}
-x <- paste0(scan("sales.txt", what="char", sep="\n"),
-            collapse="")
+x <- paste0(scan("sales.txt", 
+    what="char", sep="\n"), collapse="")
 ```
+
+Let's see what we have, at least at the beginning: 
 
 ```{r}
 substring(x, 1, 100)
@@ -257,7 +257,7 @@ mean(x)
 ```
 
 
-# Data Frames
+### Importing a Data Frame
 
 the standard command to read data from a table into a data frame is *read.table*. 
 
@@ -267,16 +267,18 @@ x <- read.table("c:/folder/file.R")
 
 it has many of the same arguments as scan (for example sep). It also has the argument header=FALSE. If your table has column names use header=TRUE. The same for row names.
 
-Example: say the following data is saved in a file named *student.data.R*:
+**Example:**
 
-```{r, echo=6}
+say the following data is saved in a file named *student.data.R*:
+
+```{r, echo=FALSE}
 set.seed(111)
 ID <- sample(10000:99999, size=10)
 Age <- sample(18:25, size=10, replace=T)
 GPA <- round(runif(10, 2, 4), 1)
 Gender <- sample(c("Male", "Female"), size=10, replace=T)
 students <- data.frame(ID, Age, GPA, Gender)
-knitr::kable(students)
+kable.nice(students, do.row.names = FALSE)
 ```
 
 Now we can use
@@ -288,7 +290,7 @@ read.table("c:/folder/student.data.R",
 
 the row.names=1 tells R to use the first column as row names.
 
-# Transfering Objects from one R to another
+### Transferring Objects from one R to another
 
 Say you have a few data sets and routines you want to send to someone else. The easiest thing to do is use *dump* and *source*.
 
@@ -309,15 +311,15 @@ dp <- function (x) dump(x, "clipboard")
 sc <- function () source("clipboard")
 ```
 
-# Special File Formats
+### Special File Formats
 
 There are routines to read all sorts of file formats. The most important one is likely *read.csv*, which can read Excel files saved in the comma delimited format.
 
-# Packages
+### Packages
 
 there are a number of packages written to help with data I/O. We will discuss some of them later.
 
-# Working on Files
+### Working on Files
 
 R can also be used to create, copy, move and delete files and folders on your hard drive. The routines are
 

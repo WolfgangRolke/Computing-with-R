@@ -1,29 +1,23 @@
 ---
-title: Generating Random Variates
 header-includes: \usepackage{color}
+                 \usepackage{float}
 output:
   html_document: default
   pdf_document:
     fig_caption: no
 ---
 
-<style>
-table, th, td { text-align:right; }
-th, td {padding: 10px;}
-</style>
-
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
-whichcomp <- strsplit(getwd(),"/")[[1]][3]
-load(paste0("c:/users/", whichcomp, "/Dropbox/teaching/Resma3/Resma3.RData"))
-library(knitr)
-opts_chunk$set(fig.width=6, fig.align = "center", 
-      out.width = "70%", warning=FALSE, message=FALSE)
-library(ggplot2)
-library(grid)
+source("../R/setup.rmd.R", local=TRUE)
+setup.rmd(local.env=environment())
 ```
 `r hl()$basefontsize()`
+`r hl()$style()`
+`r hl()$basefontsize()`
 
-# Random Numbers
+## Generating Random Variates
+
+### Random Numbers
 
 Everything starts with generating X~1~, X~2~, .. iid U[0,1]. These are simply called random numbers. There are some ways to get these:
 
@@ -32,14 +26,14 @@ Everything starts with generating X~1~, X~2~, .. iid U[0,1]. These are simply ca
 - quantum random number generators  
 - ...
 
-The R package *random* has the routine *randomNumbers* which gets random numbers from a web site which generates them based on (truely random) atmospheric phenomena.
+The R package *random* has the routine *randomNumbers* which gets random numbers from a web site which generates them based on (truly random) atmospheric phenomena.
 
 ```{r message=FALSE}
 require(random)
 randomNumbers(20, 0, 100)
 ```
 
-# Pseudo-Random Numbers
+### Pseudo-Random Numbers
 
 These are numbers that look random, smell random ...
 
@@ -99,7 +93,7 @@ sort(sample(x, size=10, replace = TRUE))
 
 How can we find Bootstrap samples of the **upr** data set?
 
-# Standard Probability Distributions
+### Standard Probability Distributions
 
 Not surprisingly many standard distributions are part of base R. For each the format is
 
@@ -108,22 +102,24 @@ Not surprisingly many standard distributions are part of base R. For each the fo
 -  rname = random generation  
 -  qname = quantile function  
 
-**Note** we will use the term *density* for both discrete and continuous random variable.
+**Note** we will use the term *density* for both discrete and continuous random variables.
 
 **Example**  Poisson distribution
 
 We have $X \sim \text{Pois}(\lambda)$ if 
 
 $$
-P(X=x)=\frac{\lambda^x}{x!}e^{-\lambda}\text{, }x=0,1, ...
+P(X=x)=\frac{\lambda^x}{x!}e^{-\lambda}\text{; }x=0,1, ...
 $$
 
 ```{r}
+options(digits=4)
+x <- c(0, 8, 12, 20)
 # density
-dpois(c(0, 8, 12, 20), lambda=10)
-10^c(0, 8, 12, 20)/factorial(c(0, 8, 12, 20))*exp(-10)
+dpois(x, lambda=10)
+10^x/factorial(x)*exp(-10)
 # cumulative distribution function
-ppois(c(0, 8, 12, 20), 10)
+ppois(x, 10)
 # random generation
 rpois(5, 10)
 # quantiles
@@ -175,12 +171,12 @@ Generate 10000 variates from a Binomial distribution with n=10, p=0.25 and compa
 With some of these a bit of caution is needed. For example, the usual textbook definition of the geometric random variable is the number of tries in a sequence of independent Bernoulli trials until a success. This means that the density is defined as
 
 $$
-P(X=x)=p(1-p)^{x-1}\text{, }x=1,2,..
+P(X=x)=p(1-p)^{x-1}\text{; }x=1,2,..
 $$
 R however defines it as the number of failures until the first success, and so it uses
 
 $$
-P(X^*=x)=\text{dgeom}(x, p)=p(1-p)^x\text{, }x=0,1,2,..
+P(X^*=x)=\text{dgeom}(x, p)=p(1-p)^x\text{; }x=0,1,2,..
 $$
 Of course this is easy to fix. If you want to generate the "usual" geometric do
 
@@ -199,13 +195,13 @@ round(0.4*(1-0.4)^(x-1), 4)
 Another example is the Gamma random variable. Here most textbooks use the definition
 
 $$
-f(x; \alpha, \beta)= \frac1{\Gamma{(\alpha)}\beta^\alpha}x^{\alpha-1}e^{-x/\beta}
+f(x; \alpha, \beta)= \frac1{\Gamma{(\alpha)}\beta^\alpha}x^{\alpha-1}e^{-x/\beta}\text{; }x>0
 $$
 but R uses
 
 
 $$
-f^*(x; \alpha, \beta)= \frac{\beta^\alpha}{\Gamma{(\alpha)}}x^{\alpha-1}e^{-\beta x}
+f^*(x; \alpha, \beta)= \frac{\beta^\alpha}{\Gamma{(\alpha)}}x^{\alpha-1}e^{-\beta x}\text{; }x>0
 $$
 
 ```{r}
@@ -219,8 +215,30 @@ Again, it is easy to *re-parametrize*:
 dgamma(1.2, 0.5, 1/(1/2))
 ```
 
+**Exercise**
 
-# Other Variates
+Consider a *normal mixture model*, say
+
+$$f(x,\alpha)=\alpha \phi(x, 0, 1)+(1-\alpha)\phi(x, 4, 1)$$
+where $\phi$ is the normal density
+
+$$\phi(x,\mu,\sigma)=\frac{1}{\sqrt{2\pi\sigma^2}}\exp\{-\frac{(x-\mu)^2}{2\sigma^2}\} $$
+
+How could we generate 1000 variates from f if (say) $\alpha=0.3$? This is what it should look like:
+
+```{r echo=FALSE}
+z <- sample(0:1, 
+            replace = TRUE, 
+            size=c(3, 7))
+x <- rnorm(1000, 4*z)
+```
+
+```{r}
+hist(x, breaks=100, main="")
+```
+
+
+### Other Variates
 
 if you need to generate  random variates from a distribution that is not part of base R you should first try to find a package that includes it.
 

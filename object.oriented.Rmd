@@ -1,27 +1,21 @@
 ---
-title: Object-Oriented Programming
 header-includes: \usepackage{color}
+                 \usepackage{float}
 output:
   html_document: default
   pdf_document:
     fig_caption: no
 ---
 
-<style>
-table, th, td { text-align:right; }
-th, td {padding: 10px;}
-</style>
-
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
-whichcomp <- strsplit(getwd(),"/")[[1]][3]
-load(paste0("c:/users/", whichcomp, "/Dropbox/teaching/Resma3/Resma3.RData"))
-require(knitr)
-require(ggplot2)
-require(grid)
+source("../R/setup.rmd.R", local=TRUE)
+setup.rmd(local.env=environment())
 ```
 `r hl()$basefontsize()`
+`r hl()$style()`
+`r hl()$basefontsize()`
 
-
+## Object-Oriented Programming
 
 Like C++ and just about every other modern programming language R is *object oriented*. This is huge topic and we will only discuss the basic ideas. It is also only worth while (and in fact absolutely necessary) when writing large programs, at least several 100 lines.
 
@@ -34,7 +28,7 @@ a <- ecdf(x)
 plot(a)
 # Non parametric density estimate
 a <- density(x)
-plot(a)
+plot(a, type="l")
 ```
 
 so although we call the same command (plot) we get different graphs, one of the empirical distribution function and the other a non-parametric density estimate.
@@ -56,7 +50,7 @@ There are many different plot functions (or *methods*)
 methods(plot)
 ```
 
-so when we call plot with an object of class density, it in turn class the function plot.density.
+so when we call plot with an object of class density, it in turn calls the function plot.density.
 
 `r hl()$hr()`
 
@@ -75,12 +69,12 @@ salesperson <- c("Jack", "Jim", "Mary", "Ann")
 z <- factor(sample(salesperson, size=40, replace=T), 
         levels = salesperson, ordered = TRUE)
 sales.data <- data.frame(Sales=x, Salesperson=z)
-kable(sales.data[1:5,])
+kable.nice(sales.data[1:5,], do.row.names = FALSE)
 ```
 
 Here is the non-object oriented solution:
 
-```{r}
+```{r, results='asis'}
 report <- function(dta) {
   salespersons <- unique(dta$Salesperson) 
   tbl <- matrix(0, length(salespersons), 3)
@@ -92,8 +86,9 @@ report <- function(dta) {
       tbl[i, 2] <- round(mean(df$Sales), 2)
       tbl[i, 3] <- round(sd(df$Sales), 2)
   }
-  print(tbl)
-  boxplot(dta$Sales~dta$Salesperson, horizontal=TRUE)
+  boxplot(dta$Sales~dta$Salesperson,
+          horizontal=TRUE)
+  return(kable.nice(tbl))
 }
 report(sales.data)
 ```
@@ -122,7 +117,7 @@ stats.sales <- function(dta) {
       tbl[i, 2] <- round(mean(df$Sales), 2)
       tbl[i, 3] <- round(sd(df$Sales), 2)
   }
-  tbl
+  return(kable.nice(tbl))
 }
 ```
 
@@ -135,14 +130,14 @@ plot.sales <- function(dta)
 
 and now we can run
 
-```{r}
+```{r results='asis'}
 sales.data <- as.sales(sales.data)
 # assign class sales to data frame
 stats(sales.data)
 plot(sales.data)
 ```
 
-So far not much has been gained. But let's say that sometimes we also have information on the whether the sales person was on the morning or on the afternoon shift, and we want to include this in our report. One great feature of object-oriented programing is *inheritance*, that is we can define a new class that already has all the features of the old one, plus whatever new one we want.
+So far not much has been gained. But let's say that sometimes we also have information on the whether the sales person was on the morning or on the afternoon shift, and we want to include this in our report. One great feature of object-oriented programming is *inheritance*, that is we can define a new class that already has all the features of the old one, plus whatever new one we want.
 
 so say now the data is
 
@@ -151,7 +146,7 @@ tms <- c("Morning", "Afternoon")
 u <-  factor(sample(tms, size=40, replace=T), 
         levels = tms, ordered = TRUE)
 sales.time.data <- data.frame(Sales=x, Salesperson=z, Time=u)
-kable(sales.time.data[1:5, ])
+kable.nice(sales.time.data[1:5, ])
 ```
 
 ```{r}
@@ -206,7 +201,7 @@ generally every class has at least three methods:
 Let's return to the empirical distribution function discussed earlier. It is defined as follows: Let $x_1, .., x_n$ be a sample from some probability density $f$. Then the empirical distribution function $\hat F (x)$ is defined by
 
 $$
-\hat F (x) = \frac{\text{#  of }x_i \le x}n
+\hat F (x) = \frac{\text{number  of }x_i \le x}n
 $$
 
 Let's have a closer look at the ecdf object:
@@ -229,7 +224,7 @@ plot(x, y(x))
 
 **Example**
 
-Let's say we have a data frame with anx and a y column, which are the coordinates of some function. We want to plot command to graph that function:
+Let's say we have a data frame with an x and a y column, which are the coordinates of some function. We want the plot command to graph that function:
 
 ```{r}
 x <- seq(0, 1, length=250)
@@ -238,12 +233,31 @@ df <- data.frame(x=x, y=y)
 plot(df)
 ```
 
+We can do this by defining a new class *fn*:
+
 ```{r}
 class(df) <- c("fn", "data.frame")
 plot.fn <- function(df) {
   plot(df[, 1], df[, 2], type="l", 
        xlab="x", ylab="y")
 }
+plot(df)
+```
+
+**Exercise**
+
+Say for all the functions that cross the horizontal line y=0 we want to add that line to the graph. Use OOP!
+
+```{r echo=FALSE}
+class(df) <- c("fn0", "fn", "data.frame")
+plot.fn0 <- function(df) {
+  plot(df[, 1], df[, 2], type="l", 
+       xlab="x", ylab="y")
+  abline(h=0)
+}
+```
+
+```{r}
 plot(df)
 ```
 

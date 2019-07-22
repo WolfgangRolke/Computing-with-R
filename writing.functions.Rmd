@@ -1,30 +1,20 @@
----
-title: Writing Functions
+--- 
 output:
   html_document: default
   pdf_document:
     fig_caption: no
+header-includes: \usepackage{color}
+                 \usepackage{float} 
 ---
 
-<style>
-table, th, td { text-align:right; }
-th, td {padding: 10px;}
-</style>
-
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
-whichcomp <- strsplit(getwd(),"/")[[1]][3]
-load(paste0("c:/users/", whichcomp, "/Dropbox/teaching/Resma3/Resma3.RData"))
-library(knitr)
-library(wolfr)
-opts_chunk$set(fig.width=6, fig.align = "center", 
-      out.width = "70%", warning=FALSE, message=FALSE)
-library(ggplot2)
-library(grid)
-library(stringr)
+source("../R/setup.rmd.R", local=TRUE)
+setup.rmd(local.env=environment())
 ```
-`r hl()$basefontsize()`
 
-#  General Information
+## Writing Functions
+
+###  General Information
 
 In R/RStudio you have several ways to write your own functions:
 
@@ -57,8 +47,6 @@ now a window with an editor pops up and you can type in the code. When you are d
 myfun <- edit()
 ```
 
-*myfun* will exist only until you close R/RStudio unless you save the project file. 
-
 -  Open any code editor outside of RStudio, type in the code, save it as myfun.R, go to the console and run 
 
 ```{r eval=FALSE}
@@ -74,9 +62,7 @@ If *myfun* is open in RStudio there are some useful keyboard shortcuts. If the c
 -  CTRL-Shift-Enter run complete chunk 
 -  CTRL-Shift-P rerun previous
 
-# R Functions
-
-## Testing
+### Testing
 
 As always you can test whether an object is a function:
 
@@ -94,7 +80,7 @@ get("f")(4)
 get("g")(4)
 ```
 
-## Arguments
+### Arguments
 
 There are several ways to specify arguments in a function:
 
@@ -110,14 +96,14 @@ if the arguments are not named they are matched in order:
 calc.power(2, 3) 
 ```
 
-or they can be expicitely named in any order:
+or they can be explicitly named in any order:
 
 ```{r}
 calc.power(y=2, x=3)
 calc.power(n=3, 2, 3)
 ```
 
-This however is not recommened as it can be very confusing.
+This however is not recommend as it can be very confusing.
 
 `r hl()$hr()`
 
@@ -191,9 +177,9 @@ f <- function() {
 f()
 ```
 
-this is called *recursion* and is a very powerful programming technique.
+this is called *recursion* and is a very powerful programming technique, although for reasons of memory management not as useful in R as in other languages.
 
-## Lazy Evaluation
+### Lazy Evaluation
 
 R uses a concept called *lazy evaluation*. This means that an argument is not evaluated until it is used:
 
@@ -209,7 +195,7 @@ f(5, "A")
 f(11, "A")
 ```
 
-This can be a source of computer bugs. One can override this behaviour with the *force* command:
+This can be a source of computer bugs. One can override this behavior with the *force* command:
 
 ```{r error=TRUE}
 f <- function(first, second) {
@@ -229,7 +215,7 @@ test <- first+second
 
 but force makes it clearer that the purpose here is to make sure first and second are of the correct type.
 
-## Return Values
+### Return Values
 
 A function can either return nothing or exactly one thing. It will automatically return the last object evaluated:
 
@@ -284,11 +270,11 @@ f <- function(x) {
 f(1:3)
 ```
 
-## *on.exit*
+### *on.exit*
 
 *on.exit* is a routine that you use inside a function and that gets called and executed whenever the function terminates.
 
-The advantage of *on.exit* is that is gets called when the function exits, regardless of whether an error was thrown. This means that its main use is for cleaning up after risky behaviour. Risky, in this context, usually means accessing resources outside of R (that consequently cannot be guaranteed to work). 
+The advantage of *on.exit* is that is gets called when the function exits, regardless of whether an error was thrown. This means that its main use is for cleaning up after risky behavior. Risky, in this context, usually means accessing resources outside of R (that consequently cannot be guaranteed to work). 
 
 Common examples include connecting to databases or files (where the connection must be closed when you are finished, even if there was an error), or saving a plot to a file (where the graphics device must be closed afterwards)
 
@@ -305,11 +291,11 @@ f()
 ```
 
 
-# Basic Programmming Structures in R
+### Basic Programming Structures in R
 
 R has all the standard programming structures:
 
-## Conditionals (if-else)
+#### Conditionals (if-else)
 
 ```{r}
 f <- function(x) {
@@ -358,11 +344,12 @@ f2 <- function(x) {
 ```
 
 
-## Loops
+#### Loops
 
 there are three standard loops in R:
 
-### for loop
+
+-  **for** loop
 
 ```{r}
 y <- rep(0, 10)
@@ -399,7 +386,7 @@ A
 ```
 
 
-### while loop
+-  **while** loop
 
 this is useful if we don't know how often the loop needs to run.
 
@@ -415,9 +402,9 @@ while (length(table(x))!=1) {
 k
 ```
 
-### repeat loop
+-  **repeat** loop
 
-similar to while loop, except that check is done at the end
+similar to while loop, except that the check is done at the end
 
 ```{r}
 k <- 0
@@ -429,7 +416,7 @@ repeat {
 k
 ```
 
-Notice that a while and repeat loop could in principle run forever. I usually include a counter that ensures the loop will eventually stop:
+Notice that a while and repeat loop could in principle run forever. I often include a counter that ensures the loop will eventually stop:
 
 ```{r}
 k <- 0

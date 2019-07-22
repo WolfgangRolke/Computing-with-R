@@ -1,30 +1,24 @@
 ---
-title: Costumizing R
 header-includes: \usepackage{color}
+                 \usepackage{float}
 output:
   html_document: default
   pdf_document:
     fig_caption: no
 ---
 
-<style>
-table, th, td { text-align:right; }
-th, td {padding: 10px;}
-</style>
-
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
-whichcomp <- strsplit(getwd(),"/")[[1]][3]
-load(paste0("c:/users/", whichcomp, "/Dropbox/teaching/Resma3/Resma3.RData"))
-library(knitr)
-opts_chunk$set(fig.width=6, fig.align = "center", 
-      out.width = "70%", warning=FALSE, message=FALSE)
-library(ggplot2)
-library(grid)
+source("../R/setup.rmd.R", local=TRUE)
+setup.rmd(local.env=environment())
 ```
 `r hl()$basefontsize()`
+`r hl()$style()`
 
+## Customizing R
 
 There are quite a few things that one might want to change from the defaults of R. For example, I prefer a certain editor when writing a function, and there are a number of libraries that I will need sooner or later, so I would like to have them loaded. Also, over the years I have written a number of small routines that I use for various tasks, and I want them available at any time. 
+
+### .First and .Rprofile
 
 The two routines to set up things the way I want are
 
@@ -44,11 +38,13 @@ When R starts it looks for a file called .Rprofile and executes any commands the
 
 Well, at least that is how it used to be when we were using the command console. For reasons never explained (and much complained about by the users) RStudio ignores the .First file at startup, so we will need to have a work around.
 
-Let's start with a simple .Rprofile. This is a stand-alone file usually loacted in your default working directory. You can find out what that is by running
+Let's start with a simple .Rprofile. This is a stand-alone file usually located in your default working directory. You can find out what that is by running
 
 ```{r eval=FALSE}
 dir("~")
 ```
+
+On machines running Win10 it is  usually the C:/Users/YourName/Documents folder.
 
 Exactly in what folder the .Rprofile should be in is bit of a mystery, it depends not just on your operating system but even on its version. You might need to do a bit of trial and error!
 
@@ -56,19 +52,17 @@ Exactly in what folder the .Rprofile should be in is bit of a mystery, it depend
 
 So here is what (part of) mine looks like:
 
-
-options(help_type="html")  # ignored in RStudio
-options(show.signif.stars=FALSE)  # for p-values
-options(stringsAsFactors=FALSE)  # a classic source of errors  
-library(ggplot2)  
-library(wolfr)  # Two of my own
-library(moodler)  
-.MyEnv <- new.env()   
-.MyEnv\$sc <- function() source("clipboard")  
-.MyEnv\$dp <- function(x) { dump(x,"clipboard") }  
+options(show.signif.stars=FALSE)  # for p-values  
+options(stringsAsFactors=FALSE)  # a classic source of errors    
+library(ggplot2)   
+library(wolfr)  # Two of my own  
+library(moodler)    
+.MyEnv <- new.env()    
+.MyEnv\$sc <- function() source("clipboard")   
+.MyEnv\$dp <- function(x) { dump(x,"clipboard") }   
 .MyEnv\$ip <- function(x) { 
-\# Install and immediately load a package
-    install.packages(x, lib = "C:/R/library")  
+\# Install and immediately load a package  
+    install.packages(x, lib = "C:/R/library")   
     library(x, character.only = TRUE)   
 }  
 attach(.MyEnv)  
@@ -82,13 +76,13 @@ cat("\\nSuccessfully loaded .Rprofile at", date(), "\\n")
 
 So it changes a few options, loads some libraries, makes a new environment and defines a few functions. Finally it checks the directory from where the Rproject was started to see whether it contains a file First.R. If so it loads and executes it as well. 
 
-Say this project is about writing a shiny app, then the .First.R would have the line
+Say this project is about writing a shiny app, then the First.R would have the line
 
 library(shiny)
 
-Notice because a single .Rprofile sits in the default working directory the same one gets executed everytime I start RStudio, but different working directories might have different First.R's (or none) 
+Notice because a single .Rprofile sits in the default working directory the same one gets executed every time I start RStudio, but different working directories might have different First.R's (or none) 
 
-# Dropbox
+### Dropbox
 
 Disclaimer: I discuss here Dropbox, but there are other companies that offer the same service and this is not meant as an endorsement of Dropbox (although I do like it myself!).
 

@@ -1,29 +1,22 @@
 ---
-title: History, Basic Usage
 header-includes: \usepackage{color}
+                 \usepackage{float}
 output:
   html_document: default
   pdf_document:
     fig_caption: no
 ---
 
-<style>
-table, th, td { text-align:right; }
-th, td {padding: 10px;}
-</style> 
-
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
-whichcomp <- strsplit(getwd(),"/")[[1]][3]
-load(paste0("c:/users/", whichcomp, "/Dropbox/teaching/Resma3/Resma3.RData"))
-library(knitr)
-opts_chunk$set(fig.width=6, fig.align = "center", 
-      out.width = "70%", warning=FALSE, message=FALSE)
-library(ggplot2)
-library(grid)
+source("../R/setup.rmd.R", local=TRUE)
+setup.rmd(local.env=environment())
 ```
 `r hl()$basefontsize()`
+`r hl()$style()`
 
-# S
+## History, Basic Usage
+
+### S
 
 S is a statistical programming language developed primarily by John Chambers and (in earlier versions) Rick Becker and Allan Wilks of Bell Laboratories. The aim of the language, as expressed by John Chambers, is "to turn ideas into software, quickly and faithfully".
 
@@ -33,21 +26,21 @@ By 1988, many changes were made to S and the syntax of the language. The New S L
 
 In the late 1990s AT&T sold the S license to a private company that started to charge a lot of money for it. This lead to
 
-# R
+### R
 
 R is an implementation of the S programming language combined with lexical scoping semantics inspired by Scheme. There are some important differences between S and R, but much of the code written for S runs unaltered.
 
 R was created by Ross Ihaka and Robert Gentleman at the University of Auckland, New Zealand, and is currently developed by the R Development Core Team, of which Chambers is a member. R is named partly after the first names of the first two R authors and partly as a play on the name of S. The project was conceived in 1992, with an initial version released in 1995 and a stable beta version in 2000.
 
-# RStudio
+### RStudio
 
 RStudio is a free and open-source integrated development environment (IDE) for R, a programming language for statistical computing and graphics. RStudio was founded by JJ Allaire, creator of the programming language ColdFusion. Hadley Wickham is the Chief Scientist at RStudio.
 
 Work on RStudio started at around December 2010, and the first public beta version (v0.92) was officially announced in February 2011. Version 1.0 was released on 1 November 2016. Version 1.1 was released on 9 October 2017.
 
-R can be run by itself using the command line interface, but it is usually much nicer to use RStudio as a front end.
+R can be run by itself using the command line interface, but it is usually much nicer to use RStudio as a front end. Considering that it is only about three years old it has taken the R world by storm!
 
-# Getting Started
+### Getting Started
 
 Once R (or Rstudio) is opened you will see the >. This is the *command prompt*. It means R is waiting for you to do something!
 
@@ -90,28 +83,30 @@ this tells R to warn about certain things. Those are not errors, just warnings, 
 options(warn=-1)
 ```
 
-Changing one or more of these options is something one needs to do on occasion inside a function. If so you likely want to reset them to the defaults before leaving the function:
+Changing one or more of these options is something one needs to do on occasion inside a function. If so you likely want to reset them to the defaults before leaving the function. Say we have a program that prints results to the screen and we want all the numbers to have 4 digits. Then we can use
 
 ```{r eval=FALSE}
 # At start of function:
 default.options <- options()
+options(digits=4)
 # now do stuff
-# then at the end
+# then at the end of the program
 options(default.options)
 ```
 
-# Saving your Stuff
+### Saving your Stuff
 
 The standard setup is to have separate folders for each project. When starting a new one RStudio creates the folder and within the files
 
 -  foldername.Rproj  is the RStudio project file  
 -  .RData is the R worksheet
 
-In the past the .RData file was the "heart" of R, and typically there was one for each project, with different names. RStudio wants you to essentially forget about it, there is actually an option in Tools > Global Options to just ignore any RData file. Personally (maybe because I am so used to it) I prefer to also have a distinct name for the Rdata worksheet. You can do that by running
+In the past the .RData file was the "heart" of R, and typically there was one for each project, with different names. RStudio wants you to essentially forget about it, there is actually an option in Tools > Global Options to just ignore any RData file. If you do need to create a .RData file (maybe to send stuff to someone else) use
 
 ```{r eval=FALSE}
 save.image("c:/folder/filename.RData")
 ```
+
 
 *Notice* the use of the backslash as a separator for folders. On Windows systems one usually uses forward slashes ("\\") but these have a special use in R as the "escape character". One alternative is to use
 
@@ -121,7 +116,7 @@ save.image("c:\\folder\\filename.RData")
 
 but / is generally preferred.
 
-## Assignments
+### Assignments
 
 The basic assignment character in R is <-
 
@@ -139,21 +134,23 @@ x = 2
 x
 ```
 
-but for some good reasons is not the best way to go.
+but mainly for reasons of backward compatibility <- is generally recommended.
 
 RStudio has a lot of useful shortcuts, one of them is ALT - , which enters <- and even the spaces around it!
 
 Check out the list of keyboard shortcuts at Tools > Keyboards shortcuts.
 
-# Help!
+### Help!
 
-## Help inside of R
+#### Help inside of R
 
 R has a help command. Let's say we want to find out about the *mean* command:
 
 ```{r eval=FALSE}
 ?mean
 ```
+
+This opens a page in the Help pane with all sorts of information regarding the mean command.
 
 Another useful function is *arg*, which lists the arguments of a routine:
 
@@ -167,29 +164,29 @@ args(splot)
 args(mean)
 ```
 
-## Help from Outside of R
+#### Help from Outside of R
 
 R has one of the most active and friendly user communities anywhere. So if you run into a problem do this:
 
-### Google!
+#### Google!
 
 Most of the problems you have, someone else already had. They ended up asking for help on the internet, and someone replied. So all you need to do is find that reply. Start with a google search. Typically you want to include R in your search terms. If at first you don't succeed, try, try again!
 
-### Stackoverflow
+#### Stackoverflow
 
-Many times your google search will lead you to [stackoverflow](https://stackoverflow.com). This is a website for people working on computer coding problems to help each other. It is not specific to R but the R community is using to discuss and solve R questions. 
+Many times your google search will lead you to [stackoverflow](https://stackoverflow.com). This is a website for people working on computer coding problems to help each other. It is not specific to R but the R community is using it to discuss and solve R questions. 
 
 If you can not find a solution to your problem, eventually you might want to post a question on stackoverflow. To do so you have to become a member, which is free. 
 
 Here are some guidelines for posting questions:
 
--  did you really try hard enough to find an answer on your own? It is very embarrasing when you post a question and the reply is a link to a simple google search that has the answer already. 
+-  did you really try hard enough to find an answer on your own? It is very embarrassing when you post a question and the reply is a link to a simple Google search that has the answer already. 
 
 -  try and eliminate anything that does not have to do with your problem.
 
 -  produce a simple and short example of your problem. Anything over 5 or 10 lines of code is almost certainly to long.
 
-# ls, rm
+#### ls, rm
 
 use the *ls* command to get a listing of the current objects in the worksheet:
 
@@ -249,7 +246,7 @@ cleanup <- function ()
 
 -  notice the argument envir. We will talk about what that means soon.
 
-# Naming Conventions
+### Naming Conventions
 
 It is good practice to have a consistent style when choosing names for objects, functions etc. There is a detailed description at [https://google.github.io/styleguide/Rguide.xml](https://google.github.io/styleguide/Rguide.xml). Here are the most important ones:
 

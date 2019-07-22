@@ -1,30 +1,24 @@
 ---
-title: Graphs
 header-includes: \usepackage{color}
+                 \usepackage{float}
 output:
   html_document: default
   pdf_document:
     fig_caption: no
 ---
-<style>
-table, th, td { text-align:right; }
-th, td {padding: 10px;}
-</style>
 
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
-whichcomp <- strsplit(getwd(),"/")[[1]][3]
-load(paste0("c:/users/", whichcomp, "/Dropbox/teaching/Resma3/Resma3.RData"))
-library(knitr)
-opts_chunk$set(fig.width=6, fig.align = "center",
-      out.width = "70%", warning=FALSE, message=FALSE)
-library(ggplot2)
-library(grid)
+source("../R/setup.rmd.R", local=TRUE)
+setup.rmd(local.env=environment())
 ```
 `r hl()$basefontsize()`
+`r hl()$style()`
+
+## Graphs
 
 In this section we will discuss some graphs that are part of base R. Later we will study more advanced graphics, but it is still a good idea to know how to draw a base graph.
 
-# Barcharts
+### Barcharts
 
 Say we have the data on the number of freshman, sophomores etc at some college:
 
@@ -39,7 +33,6 @@ st.y <- factor(students,
                levels = student.levels, 
                ordered = TRUE)
 students.ord <- table(st.y)
-kable(students.ord, col.names = c("Class", "Counts"))
 ```
 
 ```{r}
@@ -50,13 +43,13 @@ So here we have a *categorical* variable. One popular graph for this type of dat
 
 BUT repeat after me: [pie charts are evil!!](http://www.storytellingwithdata.com/blog/2011/07/death-to-pie-charts)
 
-A MUCH better alternative are barcharts:
+A MUCH better alternative are bar charts:
 
 ```{r}
 barplot(table(students))
 ```
 
-**Note** that the argument to barplot has to be a table.
+**Note** that the argument to bar plot has to be a table.
 
 But this is not quite right, Sophomores should come second. In general, when we have a categorical variable which has an ordering we should turn it into a factor:
 
@@ -108,9 +101,9 @@ barplot(tbl.students.fac,
                 "lightcyan", "lavender"))
 ```
 
-Here I used the *par* command to set some parameters for how the graph is drawn. There is a very long list of such parameters see ?par
+Here I used the *par* command to set some parameters for how the graph is drawn. There is a very long list of such parameters, see the par help file.
 
-# Histogram
+### Histogram
 
 ```{r}
 x <- rnorm(1000, 100, 20)
@@ -121,7 +114,7 @@ hist(x,
      ylab = "Counts")
 ```
 
-Often the hist command is useful for its side effect of counting:
+The hist command is useful for its side effect of counting:
 
 ```{r error=TRUE}
 range(x)
@@ -133,7 +126,8 @@ hist(x,
 Often we want to compare a histogram with a theoretical curve, say a probability density. Then we can use the curve command with the argument add=TRUE:
 
 ```{r}
-x <- c(rnorm(1500, 100, 20), rnorm(1000, 140, 10))
+x <- c(rnorm(1500, 100, 20), 
+       rnorm(1000, 140, 10))
 hist(x, 
      breaks = 50, 
      main = "", 
@@ -147,29 +141,28 @@ curve(f(x)/I, from=min(x), to=max(x),
       lwd = 2)
 ```
 
-# Empirical Distribution Function
+### Empirical Distribution Function
 
 ```{r}
 plot(ecdf(x))
 ```
 
 
-# Boxplot
+### Boxplot
 
 ```{r}
 boxplot(x, horizontal = TRUE)
-attach(mothers)
-boxplot(Length~Status)
+boxplot(Length~Status, data=mothers)
 ```
 
-# Normal Probability Plot
+### Normal Probability Plot
 
 ```{r}
 qqnorm(x)
 qqline(x)
 ```
 
-# Scatterplot
+### Scatterplot
 
 
 ```{r echo=FALSE}
@@ -178,8 +171,8 @@ rm(plot)
 
 
 ```{r}
-attach(faithful)
-plot(Eruptions, Waiting.Time, 
+plot(faithful$Eruptions,
+     faithful$Waiting.Time, 
      xlab = "Length of last eruption",
      ylab = "Time until next eruption", 
      main = "Old Faithful Guyser")
@@ -188,11 +181,13 @@ plot(Eruptions, Waiting.Time,
 Let's add the least squares regression fit to the graph:
 
 ```{r}
-plot(Eruptions, Waiting.Time, 
+plot(faithful$Eruptions,
+     faithful$Waiting.Time,  
      xlab = "Length of last eruption",
      ylab = "Time until next eruption", 
      main = "Old Faithful Guyser")
-abline(lm(Waiting.Time~Eruptions), lwd=2, lty=2)
+abline(lm(Waiting.Time~Eruptions,
+          data=faithful), lwd=2, lty=2)
 ```
 
 There are a lot of different plotting symbols:
@@ -222,7 +217,9 @@ for(i in 1:6) {
 
 ```
 
-Consider the data set mtcars, which is part of base R. It has data on 32 different cars:
+`r hl()$hr()`
+
+Consider the data set *mtcars*, which is part of base R. It has data on 32 different cars:
 
 ```{r}
 head(mtcars)
@@ -231,40 +228,56 @@ head(mtcars)
 say we wish to study the relationship of mpg (Miles per Gallon) and hp (Horsepower) but also include information on the number of cylinders (either 4, 6 or 8):
 
 ```{r message=FALSE}
-attach(mtcars)
 cols <- rep("blue", 32)
-cols[cyl==6] <- "green"
-cols[cyl==8] <- "red"
-plot(hp, mpg, 
+cols[mtcars$cyl==6] <- "green"
+cols[mtcars$cyl==8] <- "red"
+plot(mtcars$hp, mtcars$mpg, 
      xlab = "Horsepower", 
      ylab = "Miles per Gallon",
      col = cols, pch = 20)
-legend(250, 33, paste(c(4, 6, 8), "Cylinders"),
+legend(250, 33, 
+       paste(c(4, 6, 8), "Cylinders"),
        pch = 20, 
        col = c("blue", "green", "red"))
 ```
+
+**Exercise**
+
+Do the graph again, but use the cylinder numbers as plotting symbols:
+
+```{r echo=FALSE}
+plot(mtcars$hp, mtcars$mpg, 
+     xlab = "Horsepower", 
+     ylab = "Miles per Gallon",
+     pch=as.character(mtcars$cyl))
+```
+
+`r hl()$hr()`
 
 Let's add the least squares regression lines for each cylinder separately. We could use the *abline(fit)* command, but notice that the hp ranges for the three cylinder types are quite different. Using abline would draw the fit all the way across the graph. Here is a better solution: 
 
 ```{r message=FALSE}
 cls <- c("blue", "green", "red")
-plot(hp, mpg, 
+plot(mtcars$hp, mtcars$mpg, 
      xlab = "Horsepower", 
      ylab = "Miles per Gallon",
      col = cols, pch = 20)
-legend(250, 33, paste(c(4, 6, 8), "Cylinders"),
+legend(250, 33, 
+       paste(c(4, 6, 8), "Cylinders"),
        pch = 20, 
        col = cls)
 for(i in c(4, 6, 8)) {
-  fit <- lm(mpg[cyl==i]~hp[cyl==i])
-  x <- range(hp[cyl==i])
+  fit <- lm(mpg[cyl==i]~hp[cyl==i],
+            data=mtcars)
+  x <- range(mtcars$hp[mtcars$cyl==i])
   y <- coef(fit)[1] + coef(fit)[2]*x
-  segments(x[1], y[1], x[2], y[2], col=cls[(i-2)/2])
+  segments(x[1], y[1], x[2], y[2],
+           col=cls[(i-2)/2])
 }
 ```
 
 
-# Multiple Graphs
+### Multiple Graphs
 
 sometimes we want to combine several graphs into one
 
@@ -273,9 +286,11 @@ par(mfrow=c(2, 2))
 hist(rnorm(1000), 50, 
      main="Normal Distribution",
      ylab="", xlab="")
-hist(rt(1000, 2), 50, main="t Distribution, df=2",
+hist(rt(1000, 2), 50, 
+     main="t Distribution, df=2",
      ylab="", xlab="")
-hist(runif(1000), 50, main="Uniform Distribution",
+hist(runif(1000), 50, 
+     main="Uniform Distribution",
      ylab="", xlab="")
 hist(rchisq(1000, 2), 50, 
      main = expression(paste(chi^2, 
@@ -286,17 +301,19 @@ hist(rchisq(1000, 2), 50,
 This works fine for rectangular arrays. For more complicated graphs we have the *layout* command. Let's create a scatterplot of mpg by hp with marginal boxplots:
 
 ```{r}
-layout(matrix(c(2, 0, 1, 3), 2, 2, byrow = TRUE), 
+layout(matrix(c(2, 0, 1, 3), 2, 2, 
+              byrow = TRUE), 
              c(3, 1), c(1, 3), TRUE)
 par(mar = c(3, 3, 1, 1))
-plot(hp, mpg)
+plot(mtcars$hp, mtcars$mpg)
 par(mar = c(0, 3, 1, 1))
-boxplot(hp, axes = FALSE, horizontal = TRUE)
+boxplot(mtcars$hp, 
+        axes = FALSE, horizontal = TRUE)
 par(mar = c(3, 0, 1, 1))
-boxplot(mpg, axes = FALSE)
+boxplot(mtcars$mpg, axes = FALSE)
 ```
 
-# Functions that create graphs
+### Functions that create graphs
 
 When I write a paper or a talk or anything else that requires some graphs I always write a routine *plot.mytalk*, which has everything to recreate every graph. This is a great way to not only make changes if necessary but also to remind myself what I did back years ago when I wrote it.
 
@@ -318,8 +335,9 @@ figure1 <- function() {
 }  
 ```
 
+**Note** these days I often do this with Rmarkdown instead.
 
-# Graphs that don't look like Graphs
+### Graphs that don't look like Graphs
 
 we can use R to make other types of pictures. Consider this diagram, which I use to illustrate the topic of Cause vs Effect:
 
@@ -336,7 +354,8 @@ draw.cause.effect <- function() {
   arrows(25, 65, 38, 65)
   text(56, 90, "Confounding Variable", 
        cex=1.2, adj=0)
-  text(c(60, 70, 80), c(50, 75, 50), c("X", "Z", "Y"),
+  text(c(60, 70, 80), c(50, 75, 50), 
+       c("X", "Z", "Y"),
        cex=1.1, adj=0)
   arrows(70, 70, 62, 55)  
   arrows(70, 70, 78, 55)  
@@ -380,7 +399,7 @@ say("Hello world!", by = "cow")
 
 
 
-# Printing Graphs
+### Printing Graphs
 
 Often we need to save a graph as a png or a postscript file, so we can include it in a webpage or a latex document. I have to do this often enough I wrote a routine for it:
 

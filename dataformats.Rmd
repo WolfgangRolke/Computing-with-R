@@ -1,29 +1,22 @@
 ---
-title: Data Formats - Vectors, Matrices, Arrays, Data frames and Lists
 header-includes: \usepackage{color}
+                 \usepackage{float}
 output:
   html_document: default
   pdf_document:
     fig_caption: no
 ---
 
-<style>
-table, th, td { text-align:right; }
-th, td {padding: 10px;}
-</style>
-
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
-whichcomp <- strsplit(getwd(),"/")[[1]][3]
-load(paste0("c:/users/", whichcomp, "/Dropbox/teaching/Resma3/Resma3.RData"))
-library(knitr)
-opts_chunk$set(fig.width=6, fig.align = "center", 
-      out.width = "70%", warning=FALSE, message=FALSE)
-library(ggplot2)
-library(grid)
+source("../R/setup.rmd.R", local=TRUE)
+setup.rmd(local.env=environment())
 ```
 `r hl()$basefontsize()`
+`r hl()$style()`
 
-#Vectors
+## Data Formats 
+
+### Vectors
 
 here are some useful commands for vectors:
 
@@ -37,7 +30,7 @@ x
 
 If we have several vectors of the same type and length which belong together we can put them in a 
 
-#Matrix
+### Matrix
 
 ```{r}
 x <- c(1, 2, 3, 4, 5, 6)
@@ -94,6 +87,15 @@ x
 
 empty spaces in names are allowed but can on occasion lead to problems, so avoiding them is a good idea. Of course they are not nice as labels in graphs or as titles in tables, but it is usually easy to change those.
 
+Sometimes a matrix is created by a function and given row and column names automatically, but we don't want it to have them. They can be removed with
+
+```{r}
+rownames(x) <- NULL
+x
+```
+
+`r hl()$hr()`
+
 Here is a strange way to make a matrix:
 
 ```{r}
@@ -119,11 +121,11 @@ not surprisingly it just uses the elements needed.
 matrix(1:3, 2, 2)
 ```
 
-In this case R just starts all over again. This behaviour is called *recycling* (in computer sciecne, not just R)
+In this case R just starts all over again. This behavior is called *recycling* (in computer science, not just R)
 
 In either case R gives a warning. Except in rare cases you should try to avoid these things, they are usually the consequence of bad programming.
 
-#Arrays
+### Arrays
 
 an array is a k-dimensional matrix. For example
 
@@ -137,11 +139,19 @@ Often these come about as a 3-way table:
 x <- sample(1:3, size=20, replace=T)
 y <- sample(c("F", "M"), size=20, replace = T)
 z <- sample(c("a", "b", "c"), size=20, replace = T)
-table(x,y,z)
+xyz <- table(x,y,z)
+xyz
+```
+
+The commands for arrays are similar to those for matrices:
+
+```{r}
+dim(xyz)
+dimnames(xyz)
 ```
 
 
-#Data Frames
+### Data Frames
 
 sometimes we have several vectors of the same length but of different types, then we can put them together as a data frame:
 
@@ -184,7 +194,7 @@ xyz[[4]] <- NULL
 ```
 
 
-There is a strange default behaviour of data frames: they turn strings into factors:
+There is a strange default behavior of data frames: they turn strings into factors:
 
 ```{r echo=FALSE}
 options(stringsAsFactors = TRUE)
@@ -216,7 +226,7 @@ what does as.matrix() do when it is applied to a data frame with columns of diff
 
 Finally, if the vectors aren't even of the same lengths we have
 
-#Lists
+### Lists
 
 ```{r}
 x <- c(1, 2, 3, 4, 5, 6)
@@ -248,14 +258,14 @@ x[[4]] <- "a"
 x
 ```
 
-Anything can be an element of a list:
+Internally R stores all data as lists. In fact anything can be an element of a list:
 
-**Example**
+#### **Example**
 
 In Statistics we often have data of the form $(x, y)$ and we want to find a *linear model*. For example consider the data on *wine consumption and life expectancy*:
 
 ```{r}
-kable(wine)
+kable.nice(wine)
 attach(wine)
 plot(Wine.Consumption, Heart.Disease.Deaths,
       xlab = "Wine Consumption",
@@ -292,3 +302,27 @@ dim(df)
 ```
 
 This works, but I don't recommend it. A list is likely a better option here.
+
+**Example**
+
+Say we have the following data set: in each of 10 experiments 5 measurements in five different locations coded as A-E were taken. The result was stored as a list, with each set of measurements an element:
+
+```{r echo=FALSE}
+results <- as.list(1:10)
+for(i in 1:10) {
+  results[[i]] <- round(rnorm(5, 100, 20), 1)
+  names(results[[i]]) <- LETTERS[1:5]
+}  
+names(results) <- paste0("Experiment ", 1:10)
+```
+
+```{r}
+results
+```
+
+Now we want to find the means by locations. One way would be to loop over the list elements, but much easier is:
+
+```{r}
+Reduce(`+`, results)/length(results)
+```
+
