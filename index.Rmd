@@ -50,6 +50,7 @@ setup.rmd(local.env=environment())
 
 # Extending R, Packages
 
+3.0&nbsp; [Packages](packages.html)  
 3.1&nbsp; [Graphics with ggplot2](ggplot2.html)  
 3.2&nbsp; [C++ with Rcpp](rcpp.html)  
 3.3&nbsp; [Parallel and gpu Computing](parallel.html)  

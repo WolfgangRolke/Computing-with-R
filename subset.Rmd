@@ -203,6 +203,7 @@ students[Age>21 & Gender=="Male" & GPA>=3.0,]
 ```
 
 
+
 ### Lists
 
 Sub-setting of lists is very similar to data frames:

@@ -68,6 +68,12 @@ runGitHub(repo = "Computing-with-R",
 
 you can also do this: File > New File > Shiny Web App, copy-paste commands into file, click Run App
 
+**Exercise 1**
+
+write a shiny app that does the same but using base R histograms.
+
+`r hl()$hr()`
+
 Next we will improve the app in three ways:
 
 -  nicer layout 
@@ -110,6 +116,12 @@ shinyApp(ui, server)
 ```
 
 notice also that instead of a numericInput I used a textInput, although nbins is meant to be a number. I often do this because I find the appearance of text inputs more pleasing. I can of course always turn it into a number with *as.numeric*.
+
+**Exercise 2**
+
+add the possibility to change the number of bins to your solution of the previous example.
+
+`r hl()$hr()`
 
 Next we will use one of the most useful commands in shiny: *conditionalPanel*. With this we can control what happens in the app depending on the users choices.
 
@@ -166,6 +178,12 @@ server <- function(input, output) {
 }
 shinyApp(ui, server)
 ```
+
+**Exercise 3**
+
+add the same option to the previous exercise
+
+`r hl()$hr()`
 
 Another useful feature is the ability to create tabs. Let's say we want to show the histogram on one tab and the boxplot on another:
 
@@ -261,6 +279,18 @@ shinyApp(ui, server)
 ```
 
 This also shows that we can use html syntax in shiny. This is not a surprise because in the end it is a web page!
+
+**Exercise 4**
+
+change your exercise so that the graphs show the same data set.
+
+`r hl()$hr()`
+
+**Exercise 5**
+
+change your exercise so that below the graph we see the mean of the data.
+
+`r hl()$hr()`
 
 shiny apps are incredible versatile, you can write apps with a lot of stuff in it. You can even make little movies:
 

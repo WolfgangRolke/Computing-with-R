@@ -172,7 +172,11 @@ babynames %>%
 
 Looks like my name is getting more popular (even if it is still rare)!
 
+**Exercise**
 
+Do the same for your name!
+
+`r hl()$hr()`
 
 What were the most popular girls names each year?
 

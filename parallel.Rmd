@@ -1,34 +1,28 @@
 ---
-title: Parallel and GPU Computing
 header-includes: \usepackage{color}
+                 \usepackage{float}
 output:
   html_document: default
   pdf_document:
     fig_caption: no
 ---
 
-<style>
-table, th, td { text-align:right; }
-th, td {padding: 10px;}
-</style>
-
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
-whichcomp <- strsplit(getwd(),"/")[[1]][3]
-load(paste0("c:/users/", whichcomp, "/Dropbox/teaching/Resma3/Resma3.RData"))
-library(knitr)
-opts_chunk$set(fig.width=6, fig.align = "center", 
-      out.width = "70%", warning=FALSE, message=FALSE)
-library(ggplot2)
-library(grid)
+source("../R/setup.rmd.R", local=TRUE)
+setup.rmd(local.env=environment())
 ```
 `r hl()$basefontsize()`
+`r hl()$style()`
 
+## Parallel and GPU Computing
 
 ```{r}
 library(microbenchmark)
 ```
 
-Many modern computers have several processor cores. This makes it easy to do parallel computing with R. Also, many simulation problems are *embarrasingly parallel*, that is they can be run in parallel very easily.
+Many modern computers have several processor cores. This makes it easy to do parallel computing with R. Also, many simulation problems are *embarrassingly parallel*, that is they can be run in parallel very easily.
+
+### Using multiple processors
 
 There are a number of packages that help here. I will discuss
 
@@ -36,7 +30,7 @@ There are a number of packages that help here. I will discuss
 library(parallel)
 ```
 
-If you don't know how many proessors (called cores) you computer has your can check:
+If you don't know how many processors (called cores) you computer has your can check:
 
 ```{r}
 detectCores()
@@ -50,10 +44,10 @@ num_cores <- detectCores()-1
 
 of them.
 
-Let's consider a simple simuation problem. We wish to study the standard estimators of the least squares regression line. That is we have a data set of the form $(x, y)$ and we want to fit an equation of the form $y=\beta_0 + \beta_1 x$. The parameters $\beta_0$ and $\beta_1$ are estimated by minimizing the least squares criterion
+Let's consider a simple simulation problem. We wish to study the standard estimators of the least squares regression line. That is we have a data set of the form $(x, y)$ and we want to fit an equation of the form $y=\beta_0 + \beta_1 x + \epsilon$, where $\epsilon \sim N(0, \sigma)$. The parameters $\beta_0$, $\beta_1$ and $\sigma$ are estimated by minimizing the least squares criterion
 
 $$
-L(a, b) = \sum_{i=1}^n \left( y-a-bx \right)^2
+L(\beta_0, \beta_1) = \sum_{i=1}^n \left( y-\beta_0-\beta_1x \right)^2
 $$
 
 We can use the R function *lm* to this:
@@ -143,35 +137,37 @@ proc.time()-tm
 
 In general the easiest case of parallizing a calculation is if you have already used the *lapply* command: Let's say we have the scores of students in a number of exams. Because each exam had a different number of students we have the data organized as a list: 
 
-```{r echo=5:7}
+```{r echo=FALSE}
 grades <- list(Exam_1=round(rnorm(10, 70, 5)), 
-Exam_2 <- round(rnorm(10, 70, 5)))
-for(i in 3:50) grades[[i]] <- round(rnorm(10, 70, 5))
+Exam_2 <- round(rnorm(15, 70, 5)))
+for(i in 3:49) grades[[i]] <- round(rnorm(10, 70, 5))
+grades[[50]] <- round(rnorm(5, 70, 5))
 names(grades) <- paste0("Exam_", 1:50)
+```
+
+```{r}
 cat("Exam 1: ", grades$Exam_1, "\n")
 cat("Exam 2: ", grades$Exam_2, "\n")
-length(grades)
+#...
+cat("Exam 50: ", grades$Exam_50, "\n")
 ```
+
 
 Now we want to find the minimum , mean, standard deviation and maximum of each exam. We can do that with
 
 ```{r cache=TRUE}
-z <- lapply(grades, 
-        function(x) {round(c(min(x), 
+grade.summary <- function(x) round(c(min(x), 
                              mean(x), 
                              sd(x), 
-                             max(x)), 1)} 
-      )
+                             max(x)), 1)
+z <- lapply(grades, grade.summary)
 z[1:2]
 ```
 
 and to run this in parallel:
 
 ```{r cache=TRUE}
-z <- parLapply(cl, grades, function(x) {c(min(x), 
-                                          mean(x), 
-                                          sd(x), 
-                                          max(x))} )
+z <- parLapply(cl, grades, grade.summary)
 z[1:2]
 ```
 
@@ -181,16 +177,61 @@ When you are done with the parallel calculations
 stopCluster(cl)
 ```
 
+#### **Example** (Umbrella problem)
 
-## GPU Programing
+You go every day (during the week) from your houe to school in the mornign and back in the evening. You own n umbrellas. If it rains and you have an umbrella you take it, otherwise you get wet. The probability of rain in the morning is p and in the evening is q. What is the probability to get wet?
+
+Let's write a simulation to answer this question:
+
+```{r}
+umbrella <- function(params) {
+  n <- params[1]
+  B <- params[2]
+  p <- params[3]
+  q <- params[4]
+  x <- sample(1:n, 1) #number of umbrellas at home
+  num.got.wet <- 0
+# umbrellas at home first day in the morning
+  for(i in 1:B) {
+    if(runif(1)<p) {#It's raining in the morning 
+       if(x==0) num.got.wet=num.got.wet+1 
+       else  x <- x-1 #one less umbrella at home
+    } 
+    if(runif(1)<q) {#It's raining in the evening
+       if(n-x==0) num.got.wet=num.got.wet+1 
+       else  x <- x+1 #one less umbrella at home
+    } 
+  }
+  num.got.wet/B
+}
+
+```
+```{r}
+a <- umbrella(c(4, 1e4, 0.2, 0.5))
+params <- c(4, 2*1e3, 0.2, 0.5)
+cl <- makeCluster(num_cores) 
+b <- clusterCall(cl, umbrella, params)
+a
+unlist(b)
+mean(unlist(b))
+mb <- microbenchmark(
+      umbrella(c(4, 1e4, 0.2, 0.5)),
+      clusterCall(cl, umbrella, params))  
+round(as.numeric(summary(mb)[, "median"]), 2)
+```
+
+
+### GPU Programming
 
 20 years ago or so there was a lot of talk about *massively parallel* computing. This was the idea of using 100s or 1000s of cpu's (*computer processing units*). It never went very far because such computers were way to expensive.
 
-However, there was one area were such chips were in fact developed, namely for graphics cards. The difference is that these cpus are extrememly simple, they don't have to do much, just determine the colors of a few pixels. Eventually it occured to people that as long as the computations were simple as well, such gpu's (*graphics processing units*), could also be used for other purposes. So if your computer has a dedicated graphics card you can do this.
+However, there was one area were such chips were in fact developed, namely for graphics cards. The difference is that these cpus are extremely simple, they don't have to do much, just determine the colors of a few pixels. Eventually it occurred to people that as long as the computations were simple as well, such pug's (*graphics processing units*), could also be used for other purposes. So if your computer has a dedicated graphics card you can do this.
 
 Not all cards, however, will work. The most widely available ones are NVIDIA, but some others work as well.
 
-To do gpu programming you need to get the *gpuR* library. Unlike most libraries this one is distributed as a *source*, so before you can use it it needs to be compiled. This will happen automatically but does take a bit of time.
+### gpuR
+
+To use gpuR you need to get the *spur* library. Unlike most libraries this one is distributed as a *source*, so before you can use it it needs to be compiled. This will happen automatically but does take a bit of time.
 
 To make sure you have all that is needed install the package and then run
 
@@ -199,23 +240,23 @@ library(gpuR)
 detectGPUs()
 ```
 
-The gpuR package has mostly routines for matrix algebra. So let's say we have a large matrix which we want to invert.
+The spur package has mostly routines for matrix algebra. So let's say we have a large matrix which we want to invert.
 
 ```{r}
 A <- matrix(rnorm(100), 10, 10)
-summary(microbenchmark(solve(A)))["mean"]
+summary(microbenchmark(solve(A)))["median"]
 ```
 
-To use gpuR we have to turn the matrix into a gpuR object, and then we can run solve again:
+To use spur we have to turn the matrix into a spur object, and then we can run solve again:
 
 ```{r}
 A_gpuR <- vclMatrix(A, type="float")
-summary(microbenchmark(solve(A_gpuR)))["mean"]
+summary(microbenchmark(solve(A_gpuR)))["median"]
 ```
 
-Most linear algebra methods have been created to be executed for the gpuMatrix and gpuVector objects.   These  methods  include  basic  arithmetic functions %*%, +, -, \*, /, t, , crossprod, tcrossprod, colMeans, colSums, rowMean,  and rowSums.  
+Most linear algebra methods have been created to be executed for the matrix and convector objects.   These  methods  include  basic  arithmetic functions %*%, +, -, \*, /, t, , cross prod, crosspatch, col Means, col Sums, row Mean,  and row Sums.  
 
-Math functions include sin, asin, sinh, cos, acos, cosh, tan, atan, tanh, log, log10, exp, abs, max, andmin. Additional operations include some linear algebra routines such as cov(Pearson Covariance) and eigen.  
+Math functions include sin, sin, sing, cos, cos, cosh, tan, tan, tang, log, log10, exp, abs, max, admin. Additional operations include some linear algebra routines such as cob(Pearson Covariance) and eigen.  
 
 A few ’distance’ routines have also been added with the dist and distance (for pairwise) functions. These currently include ’Euclidean’ and ’SqEuclidean’ methods.
 

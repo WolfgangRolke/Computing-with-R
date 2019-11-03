@@ -14,7 +14,6 @@ setup.rmd(local.env=environment())
 `r hl()$basefontsize()`
 `r hl()$style()`
 
-# Extending R, Packages
 
 ## Graphics with ggplot2
 

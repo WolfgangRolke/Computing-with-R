@@ -146,7 +146,7 @@ tms <- c("Morning", "Afternoon")
 u <-  factor(sample(tms, size=40, replace=T), 
         levels = tms, ordered = TRUE)
 sales.time.data <- data.frame(Sales=x, Salesperson=z, Time=u)
-kable.nice(sales.time.data[1:5, ])
+kable.nice(sales.time.data[1:5, ], do.row.names = FALSE)
 ```
 
 ```{r}
